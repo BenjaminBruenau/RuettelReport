@@ -5,7 +5,13 @@ import akka.actor.typed.scaladsl.Behaviors
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import akka.http.scaladsl.model.*
+import akka.http.scaladsl.model.headers._
 import akka.http.scaladsl.server.Directives.*
+import akka.http.scaladsl.server.Route
+import akka.http.scaladsl.model.headers._
+import akka.http.scaladsl.model.{HttpResponse, StatusCodes}
+import akka.http.scaladsl.server.Directives._
+import akka.http.scaladsl.model.HttpMethods._
 import akka.http.scaladsl.server.Route
 import com.typesafe.config.{Config, ConfigFactory}
 import model.{Feature, FeatureJsonProtocol, Geometry, Properties}
@@ -42,7 +48,7 @@ class HttpController extends FeatureJsonProtocol with SprayJsonSupport:
                 case Success(feature: Feature) =>
                   val newFeature = feature.copy(`type` = "updatedFeature")
                   complete {
-                      newFeature
+                    newFeature
                   }
                 case Failure(exception) =>
                   println(exception.getMessage)
@@ -53,13 +59,25 @@ class HttpController extends FeatureJsonProtocol with SprayJsonSupport:
       path("api" / "event") {
         parameters("starttime", "endtime") { (startTime, endTime) =>
           onComplete(httpService.getFeatures(startTime, endTime)) {
-            case Success(featureCollection) => complete {featureCollection.copy(`type` = "updatedFeatureCollection")}
+            case Success(featureCollection) =>
+              respondWithHeaders(
+                // Allow all origins (you might want to restrict this in production)
+                `Access-Control-Allow-Origin`.*,
+                // Allow the headers that might be sent by the client during the actual request
+                `Access-Control-Allow-Headers`("Content-Type", "Authorization"),
+                // Allow all HTTP methods (you might want to restrict this in production)
+                `Access-Control-Allow-Methods`(OPTIONS, POST, PUT, GET, DELETE)
+              ) {
+                complete {
+                  featureCollection.copy(`type` = "updatedFeatureCollection")
+                }
+              }
             case Failure(exception) =>
               println(exception.getMessage)
               complete(StatusCodes.InternalServerError, exception.getMessage)
           }
         }
-      },
+      }
     )
 
 
@@ -79,6 +97,7 @@ object HttpServer:
     val api: HttpController = HttpController()
 
     val route: Route = api.route
+
 
     val bindingFuture = Http().newServerAt(host, port.toInt).bind(route)
 
