@@ -4,14 +4,10 @@ import akka.actor.typed.ActorSystem
 import akka.actor.typed.scaladsl.Behaviors
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
+import akka.http.scaladsl.model.HttpMethods.*
 import akka.http.scaladsl.model.*
-import akka.http.scaladsl.model.headers._
+import akka.http.scaladsl.model.headers.*
 import akka.http.scaladsl.server.Directives.*
-import akka.http.scaladsl.server.Route
-import akka.http.scaladsl.model.headers._
-import akka.http.scaladsl.model.{HttpResponse, StatusCodes}
-import akka.http.scaladsl.server.Directives._
-import akka.http.scaladsl.model.HttpMethods._
 import akka.http.scaladsl.server.Route
 import com.typesafe.config.{Config, ConfigFactory}
 import model.{Feature, FeatureJsonProtocol, Geometry, Properties}

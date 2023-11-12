@@ -6,10 +6,9 @@ ThisBuild / scalaVersion := "3.3.1"
 
 lazy val root = (project in file("."))
   .settings(
-    name := "Scala API Template",
+    name := "Ruettel Report Backend",
     libraryDependencies ++= dependencies,
   )
-
 
 val AkkaVersion = "2.8.5"
 val AkkaHttpVersion = "10.5.3"
