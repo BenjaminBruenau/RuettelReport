@@ -26,8 +26,15 @@ jobs:
       with:
         java-version: "openjdk@1.17.0"
     - name: Run Tests
-      run: sbt +clean +coverage +test +coverageReport +coveralls
+      run: sbt coverage test
       working-directory: ${{ env.working-directory }}
+    - name: Coverage Report
+      run: sbt coverageReport
+      working-directory: ${{ env.working-directory }}
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@v3
+      env:
+        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       # Optional: This step uploads information to the GitHub dependency graph and unblocking Dependabot alerts for the repository
     - name: Upload dependency graph
       uses: scalacenter/sbt-dependency-submission@ab086b50c947c9774b70f39fc7f6e20ca2706c91
