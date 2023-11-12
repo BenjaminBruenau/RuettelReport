@@ -19,6 +19,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+    - name: Switch to backend directory
+      working-directory: ./backend
     - name: Setup Scala
       uses: olafurpg/setup-scala@v10
       with:
