@@ -26,7 +26,7 @@ export default defineNuxtConfig({
     cssLayerOrder: 'tailwind-base, primevue, tailwind-utilities', // this breaks dark/light mode switch
     components: {
       prefix: 'Prime',
-      include: [ 'Button', 'Panel', 'Sidebar', 'InputSwitch' ]    /* Used as <PrimeButton /> and <PrimeDataTable /> */
+      include: '*'   /* Used as <PrimeButton /> and <PrimeDataTable /> */
     }
   },
   colorMode: {
