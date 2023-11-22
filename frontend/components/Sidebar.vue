@@ -31,7 +31,7 @@
         <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
     </PrimeSidebar>
     -->
-    <div class="h-screen w-1/3 shadow-2xl rounded-r-xl bg-gradient-to-r from-mainColor_1_1 to-mainColor_1_2  p-4" :class="{
+    <div class="h-screen w-1/3 shadow-2xl rounded-r-xl bg-gradient-to-r from-primary-1 to-primary-2  p-4" :class="{
       'hidden': hideSidebar
     }">
       <div class="flex justify-end">
@@ -45,60 +45,10 @@
       </div>
       <h2>Sidebar</h2>
       <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
-      <PrimeAccordion :activeIndex="0">
+      <PrimeAccordion :activeIndex="0" :multiple="true">
 
         <PrimeAccordionTab header="Header I">
-          <div class="grid grid-cols-3 grid-flow-dense gap-1 text-center items-center justify-center">
-            <div class="">
-              min Latitude
-            </div>
-            <div class="col-span-1">
-              <PrimeSlider v-model="value" :min="-90" :max="90" range  />
-            </div>
-            <div class="">
-              {{value[0]}}, {{value[1]}}
-            </div>
-          </div>
-
-          <div class="grid grid-cols-3 gap-1 text-center items-center justify-center">
-            <div class="col-span-1">
-              min Latitude AAAAAAAAAAAAAAA
-            </div>
-            <div class="col-span-1">
-              <PrimeSlider v-model="value" :min="-90" :max="90" range  />
-            </div>
-            <div class="col-span-1">
-              {{value[0]}}, {{value[1]}}
-            </div>
-          </div>
-
-
-          <div class="mb-4 flex row items-center justify-center w-full">
-            <label class="block text-gray-700 text-sm font-bold mr-3" for="username">
-              min Latitude
-            </label>
-            <div class="flex-grow">
-              <PrimeSlider v-model="value" :min="-90" :max="90" range  />
-            </div>
-            <div class="ml-3">
-              {{value[0]}}, {{value[1]}}
-            </div>
-          </div>
-
-
-
-
-          <div class="mb-4 flex row items-center justify-center w-full">
-            <label class="block text-gray-700 text-sm font-bold mr-3" for="username">
-              min Latitude AAAAAAAAAAAAAAA
-            </label>
-            <div class="flex-grow">
-              <PrimeSlider v-model="value" :min="-90" :max="90" range  />
-            </div>
-            <div class="ml-3">
-              {{value[0]}}, {{value[1]}}
-            </div>
-          </div>
+          <Slider></Slider>
 
 
         </PrimeAccordionTab>

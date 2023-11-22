@@ -27,7 +27,11 @@ export default defineNuxtConfig({
     components: {
       prefix: 'Prime',
       include: '*'   /* Used as <PrimeButton /> and <PrimeDataTable /> */
-    }
+    },
+    directives: {
+      prefix: '',
+      include: [ 'Tooltip' ],
+    },
   },
   colorMode: {
     classSuffix: '',

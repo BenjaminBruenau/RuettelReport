@@ -18,6 +18,6 @@
 
 <style lang="postcss">
 body {
-  @apply bg-gradient-to-r from-mainColor_2_1 to-mainColor_2_2 dark:text-textColor_dark text-textColor_light;
+  @apply bg-gradient-to-r from-secondary-1 to-secondary-2 dark:text-text-dark text-text-light;
 }
 </style>

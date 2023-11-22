@@ -23,6 +23,16 @@ export default <Partial<Config>>{
 
                 primary: 'rgb(var(--color-primary) / <alpha-value>)',
                 secondary: 'rgb(var(--color-secondary) / <alpha-value>)',
+
+
+                'primary-1': 'rgb(var(--color-primary-1) / <alpha-value>)',
+                'primary-2': 'rgb(var(--color-primary-2) / <alpha-value>)',
+
+                'secondary-1': 'rgb(var(--color-secondary-1) / <alpha-value>)',
+                'secondary-2': 'rgb(var(--color-secondary-2) / <alpha-value>)',
+
+                'text-dark': 'rgb(var(--color-text-dark) / <alpha-value>)',
+                'text-light': 'rgb(var(--color-text-light) / <alpha-value>)'
             }
         }
 
@@ -31,6 +41,7 @@ export default <Partial<Config>>{
     content: [
         "./index.html",
         "./src/**/*.{vue,js,ts,jsx,tsx}",
-        "./node_modules/primevue/**/*.{vue,js,ts,jsx,tsx}"
+        "./node_modules/primevue/**/*.{vue,js,ts,jsx,tsx}",
+        "./assets/presets/**/*.{vue,js,ts,jsx,tsx}"
     ],
 }

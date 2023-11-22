@@ -53,56 +53,21 @@ const value = ref([-90,90]);
       </PrimeMultiSelect>-->
 
 
-      <PrimeAccordion :activeIndex="0">
+
+      <PrimeAccordion :activeIndex="0" :multiple="true">
 
         <PrimeAccordionTab header="Header I">
-          <div class="grid grid-cols-3 grid-flow-dense gap-1 text-center items-center justify-center">
-            <div class="">
-              min Latitude
-            </div>
-            <div class="col-span-1">
-              <PrimeSlider v-model="value" :min="-90" :max="90" range  />
-            </div>
-            <div class="col-span-1">
-              {{value[0]}}, {{value[1]}}
-            </div>
-          </div>
 
-          <div class="grid grid-cols-3 gap-1 text-center items-center justify-center">
-            <div class="col-span-1">
-              min Latitude AAAAAAAAAAAAAAA
-            </div>
-            <div class="col-span-1">
-              <PrimeSlider v-model="value" :min="-90" :max="90" range  />
-            </div>
-            <div class="col-span-1">
-              {{value[0]}}, {{value[1]}}
-            </div>
-          </div>
 
-          <div class="mb-4 flex row items-center justify-center w-full">
-            <label class="block text-gray-700 text-sm font-bold mr-3" for="username">
-              min Latitude
-            </label>
-            <div class="flex-grow">
-              <PrimeSlider v-model="value" :min="-90" :max="90" range  />
-            </div>
-            <div class="ml-3">
-              {{value[0]}}, {{value[1]}}
-            </div>
-          </div>
 
-          <div class="mb-4 flex row items-center justify-center w-full">
-            <label class="block text-gray-700 text-sm font-bold mr-3" for="username">
-              min Latitude AAAAAAAAAAAAAAA
-            </label>
-            <div class="flex-grow">
-              <PrimeSlider v-model="value" :min="-90" :max="90" range  />
-            </div>
-            <div class="ml-3">
-              {{value[0]}}, {{value[1]}}
-            </div>
-          </div>
+
+
+
+
+          <Slider></Slider>
+
+
+
 
 
         </PrimeAccordionTab>

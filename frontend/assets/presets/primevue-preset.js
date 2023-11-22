@@ -148,6 +148,39 @@ const PrimevueDesignPreset = {
     inputswitch: {
         root: ({ props }) => ({
             class: [
+            ]
+        }),
+        slider: ({ props }) => ({
+            class: [
+                'border border-transparent',
+                'focus:outline-none focus:outline-offset-0 shadow-none',
+                {
+                    'bg-gray-200': !props.modelValue,
+                    'bg-primary-2': props.modelValue
+                }
+            ]
+        })
+    },
+    /*
+    inputswitch: {
+        root: ({ props }) => ({
+            class: [
+            ]
+        }),
+        slider: ({ props }) => ({
+            class: [
+                'border border-transparent',
+                'focus:outline-none focus:outline-offset-0',
+                {
+                    'bg-gray-200': !props.modelValue,
+                    'bg-primary-2': props.modelValue
+                }
+            ]
+        })
+    },
+    inputswitch: {
+        root: ({ props }) => ({
+            class: [
                 'inline-block relative',
                 'w-12 h-7',
                 {
@@ -165,6 +198,40 @@ const PrimevueDesignPreset = {
                 'bg-mainColor_1_2 before:transform before:translate-x-5': props.modelValue
             }])
     },
+     */
+    slider: {
+        root: ({ props }) => ({
+            class: [
+            ]
+        }),
+        range: ({ props }) => ({
+            class: [
+                'bg-primary-1',
+                'block absolute',
+            ]
+        }),
+        handle: ({ props }) => ({
+            class: [
+                'bg-white dark:bg-gray-600 border-2 border-primary-1 rounded-full transition duration-200',
+                'hover:bg-primary-1 hover:border hover:border-primary-1',
+            ]
+        }),
+        starthandler: ({ props }) => ({
+            class: [
+                'bg-white dark:bg-gray-600 border-2 border-primary-1 rounded-full transition duration-200',
+                'hover:bg-primary-1 hover:border hover:border-primary-1',
+            ],
+            'v-tooltip.top': props.modelValue,
+            'v-badge.danger':"'5+'"
+        }),
+        endhandler: ({ props }) => ({
+            class: [
+                'bg-white dark:bg-gray-600 border-2 border-primary-1 rounded-full transition duration-200',
+                'hover:bg-primary-1 hover:border hover:border-primary-1',
+
+            ]
+        })
+    }
 
 }
 

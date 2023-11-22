@@ -5,7 +5,7 @@
     <PrimeColorPicker v-model="primaryColor" @update:model-value="onColorChange" inputId="cp-rgb" format="rgb" class="mb-3" />
 
     <div class="mt-4">
-      <h1 class="text-primary">Hello, Tailwind!</h1>
+      <h1 class="text-primary-1">Hello, Tailwind!</h1>
     </div>
   </div>
 </template>
@@ -15,7 +15,7 @@
 const emit = defineEmits(['update-primary-color'])
 
 
-const pColor = getComputedStyle(document.documentElement).getPropertyValue('--color-primary')
+const pColor = getComputedStyle(document.documentElement).getPropertyValue('--color-primary-1')
 
 const [r, g, b] = pColor.split(' ')
 const primaryColor: Ref<{r: string, g: string, b: string}> = ref({ r, g, b })
@@ -26,7 +26,7 @@ console.log('VALUE: ', primaryColor)
 const onColorChange = (newValue: {r: string, g: string, b: string}) => {
   emit('update-primary-color', newValue);
   console.log(newValue)
-  document.documentElement.style.setProperty('--color-primary', `${newValue.r} ${newValue.g} ${newValue.b}`);
+  document.documentElement.style.setProperty('--color-primary-1', `${newValue.r} ${newValue.g} ${newValue.b}`);
 }
 </script>
 

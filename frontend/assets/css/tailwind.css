@@ -7,6 +7,12 @@
     :root {
         --color-primary: 255 115 179;
         --color-secondary: 111 114 185;
+        --color-primary-1: 75 84 113;
+        --color-primary-2: 57 66 83;
+        --color-secondary-1: 239 240 242;
+        --color-secondary-2: 230 231 233;
+        --color-text-dark: 59 60 62;
+        --color-text-light: 239 240 242;
     }
 }
 
