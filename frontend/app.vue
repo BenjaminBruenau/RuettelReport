@@ -1,8 +1,14 @@
 <template>
+
   <div>
-    <Sidebar></Sidebar>
     <NuxtLayout>
-      <NuxtPage/>
+      <div class="sticky mr-12 flex h-full space-x-4">
+      <Sidebar></Sidebar>
+
+        <div class="ml-[25%] w-full">
+          <NuxtPage/>
+        </div>
+      </div>
     </NuxtLayout>
   </div>
 </template>

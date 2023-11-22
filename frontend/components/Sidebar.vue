@@ -1,6 +1,7 @@
 <template>
-    <PrimeSidebar v-model:visible="visible" :modal="false" :dismissable="false" :showCloseIcon="false" position="left" :pt="{
-        root: { class: 'w-80 h-full shadow-2xl rounded-r-xl bg-gradient-to-r from-mainColor_1_1 to-mainColor_1_2' }
+  <!--
+    <PrimeSidebar v-model:visible="visible" :modal="false" :dismissable="false" :showCloseIcon="false" position="left" :autoZIndex="false" :pt="{
+        root: { class: 'h-screen w-1/4 shadow-2xl rounded-r-xl bg-gradient-to-r from-mainColor_1_1 to-mainColor_1_2' }
     }">
       <div class="flex gap-2 align-items-center">
         <PrimeInputSwitch v-model="darkMode"
@@ -29,13 +30,119 @@
         <h2>Sidebar</h2>
         <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
     </PrimeSidebar>
-    <PrimeButton icon="pi pi-arrow-right" @click="visible = true">test</PrimeButton>
+    -->
+    <div class="h-screen w-1/3 shadow-2xl rounded-r-xl bg-gradient-to-r from-mainColor_1_1 to-mainColor_1_2  p-4" :class="{
+      'hidden': hideSidebar
+    }">
+      <div class="flex justify-end">
+        <PrimeButton icon="pi pi-arrow-right" @click="hideSidebar = true" class="mb-2"></PrimeButton>
+      </div>
+      <div class="flex gap-2 align-items-center">
+        <PrimeInputSwitch v-model="darkMode"
+                          @update:model-value="toggleDarkMode"
+                          ></PrimeInputSwitch>
+        <i class="pi" :class="darkMode ? 'pi-moon text-[#6A5ACD]' : 'pi-sun text-[#DAA520]'" style="font-size: 1.5rem"></i>
+      </div>
+      <h2>Sidebar</h2>
+      <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+      <PrimeAccordion :activeIndex="0">
+
+        <PrimeAccordionTab header="Header I">
+          <div class="grid grid-cols-3 grid-flow-dense gap-1 text-center items-center justify-center">
+            <div class="">
+              min Latitude
+            </div>
+            <div class="col-span-1">
+              <PrimeSlider v-model="value" :min="-90" :max="90" range  />
+            </div>
+            <div class="">
+              {{value[0]}}, {{value[1]}}
+            </div>
+          </div>
+
+          <div class="grid grid-cols-3 gap-1 text-center items-center justify-center">
+            <div class="col-span-1">
+              min Latitude AAAAAAAAAAAAAAA
+            </div>
+            <div class="col-span-1">
+              <PrimeSlider v-model="value" :min="-90" :max="90" range  />
+            </div>
+            <div class="col-span-1">
+              {{value[0]}}, {{value[1]}}
+            </div>
+          </div>
+
+
+          <div class="mb-4 flex row items-center justify-center w-full">
+            <label class="block text-gray-700 text-sm font-bold mr-3" for="username">
+              min Latitude
+            </label>
+            <div class="flex-grow">
+              <PrimeSlider v-model="value" :min="-90" :max="90" range  />
+            </div>
+            <div class="ml-3">
+              {{value[0]}}, {{value[1]}}
+            </div>
+          </div>
+
+
+
+
+          <div class="mb-4 flex row items-center justify-center w-full">
+            <label class="block text-gray-700 text-sm font-bold mr-3" for="username">
+              min Latitude AAAAAAAAAAAAAAA
+            </label>
+            <div class="flex-grow">
+              <PrimeSlider v-model="value" :min="-90" :max="90" range  />
+            </div>
+            <div class="ml-3">
+              {{value[0]}}, {{value[1]}}
+            </div>
+          </div>
+
+
+        </PrimeAccordionTab>
+        <PrimeAccordionTab header="Header II">
+
+          <table>
+            <colgroup>
+              <col>
+              <col>
+              <col>
+            </colgroup>
+            <tbody>
+            <tr>
+              <td><label for="username">
+                min Latitude
+              </label></td>
+              <td><PrimeSlider v-model="value" :min="-90" :max="90" range  /></td>
+              <td><div>
+                {{value[0]}}, {{value[1]}}
+              </div></td>
+            </tr>
+            <tr>
+              <td><label for="username">
+                max Latitude
+              </label></td>
+              <td><PrimeSlider v-model="value" :min="-90" :max="90" range  /></td>
+              <td><div>
+                {{value[0]}}, {{value[1]}}
+              </div></td>
+            </tr>
+            </tbody>
+          </table>
+
+        </PrimeAccordionTab>
+      </PrimeAccordion>
+    </div>
 </template>
 
 <script setup lang="ts">
-
+const value = ref([-90,90]);
 const visible = ref(true)
-const moonColor = ref('slateblue')
+
+const hideSidebar = ref(false)
+
 
 const darkMode = ref(false)
 const savedTheme = localStorage.getItem('theme')
@@ -43,27 +150,15 @@ console.log('DARK MODE: ', darkMode.value)
 if (savedTheme) {
   console.log(savedTheme)
   useColorMode().preference = savedTheme
-  moonColor.value = savedTheme === 'dark' ? 'goldenrod' : 'slateblue'
 }
 
 const changeTheme = (theme: string) => {
   console.log('THEME CHANGE: ', theme)
-  if (theme === 'dark') {
-    moonColor.value = 'goldenrod'
-  } else {
-    moonColor.value = 'slateblue'
-  }
-
   useColorMode().preference = theme
   //localStorage.setItem('theme', theme)
 }
 
 const toggleDarkMode = (newValue: boolean) => {
-  if (darkMode.value) {
-    moonColor.value = 'goldenrod'
-  } else {
-    moonColor.value = 'slateblue'
-  }
   useColorMode().preference = darkMode.value ? 'dark' : 'light'
 }
 

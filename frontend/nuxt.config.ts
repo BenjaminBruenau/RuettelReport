@@ -3,6 +3,7 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
   css: [
     'primeicons/primeicons.css',
+    'primevue/resources/themes/soho-light/theme.css'
   ],
   pages: true,
   ssr: false,
@@ -16,12 +17,13 @@ export default defineNuxtConfig({
   primevue: {
     usePrimeVue: true,
     options: {
-      unstyled: true,
+      unstyled: false,
       ripple: true,
       inputStyle: 'filled',
     },
-    importPT: { as: 'Tailwind', from: 'primevue/passthrough/tailwind' },
-    //cssLayerOrder: 'tailwind-base, primevue, tailwind-utilities', // this breaks dark/light mode switch
+    //importPT: { as: 'Tailwind', from: 'primevue/passthrough/tailwind' },
+    importPT: { as: 'PrimevueDesignPreset', from: './assets/presets/primevue-preset.js' },
+    cssLayerOrder: 'tailwind-base, primevue, tailwind-utilities', // this breaks dark/light mode switch
     components: {
       prefix: 'Prime',
       include: [ 'Button', 'Panel', 'Sidebar', 'InputSwitch' ]    /* Used as <PrimeButton /> and <PrimeDataTable /> */
