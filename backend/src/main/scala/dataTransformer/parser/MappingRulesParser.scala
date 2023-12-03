@@ -6,7 +6,7 @@ import dataTransformer.model.MappingExpr.->
 import scala.util.parsing.combinator.*
 
 
-object MappingRulesParser extends RegexParsers {
+object MappingRulesParser extends RegexParsers:
   private def field: Parser[String] = "\"" ~> "[^\".]*".r <~ "\""
   private def nestedField: Parser[String] = "\"" ~> "[^\"]*".r <~ "\""
 
@@ -30,4 +30,4 @@ object MappingRulesParser extends RegexParsers {
       case Success(result, _) => Right(result)
       case NoSuccess(msg, next) => Left(s"Failed to parse mapping rules: $msg at line ${next.pos.line}, column ${next.pos.column}")
     }
-}
+

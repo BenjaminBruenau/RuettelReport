@@ -3,25 +3,24 @@ package dataTransformer.protocol
 import dataTransformer.model.{MappingRules, executeMapping}
 import spray.json.{JsObject, JsValue, JsonFormat}
 
-trait DynamicProtocolGenerator[T] {
+trait DynamicProtocolGenerator[T]:
   def generateProtocol(mappingRules: MappingRules): JsonFormat[T]
 
   def renameAttribute(input: T, attribute: String): Option[T]
   def extractNestedAttributeValue(input: T, path: String): Option[T]
-}
+
 
 given DynamicProtocolGenerator[JsValue] with
   def generateProtocol(mappingRules: MappingRules): JsonFormat[JsValue] = new JsonFormat[JsValue] {
     def read(json: JsValue): JsValue = throw new UnsupportedOperationException("Reading not supported")
 
-    def write(input: JsValue): JsValue = {
+    def write(input: JsValue): JsValue = 
       val transformedFields = for {
         rule <- mappingRules.exprs
         value <- rule.executeMapping(input)
       } yield rule.from -> value
       
       JsObject(transformedFields: _*)
-    }
   }
   
   def renameAttribute(input: JsValue, attribute: String): Option[JsValue] =
