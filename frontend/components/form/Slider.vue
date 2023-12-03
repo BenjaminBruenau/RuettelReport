@@ -2,12 +2,11 @@
 
 
 
-  <div class="grid grid-cols-3 lg:grid-cols-10 gap-2 text-center items-center justify-center pt-[2rem]">
-    <!-- First Row -->
-    <div class="col-span-2">
+  <div class="grid grid-cols-3 xl:grid-cols-10 gap-2 items-center justify-center pt-[2rem]">
+    <div class="col-span-1 xl:col-span-2 text-left mr-2">
       min Latitude
     </div>
-    <div class="flex-grow col-span-1 lg:col-span-8 relative">
+    <div class="col-span-2 xl:col-span-8">
       <div class="relative">
         <PrimeBadge class="-top-[2rem] -translate-x-1/2 bg-primary-1 absolute" :value="value[1]" :style="{ left: valuePosition1 }"></PrimeBadge>
         <PrimeBadge :value="value[0]" class="-top-[2rem] -translate-x-1/2 bg-primary-1 absolute" :style="{ left: valuePosition0 }"></PrimeBadge>
@@ -15,6 +14,40 @@
       </div>
     </div>
   </div>
+
+  <table class="border-separate border-spacing-2">
+    <colgroup>
+      <col>
+      <col>
+      <col>
+    </colgroup>
+    <tbody>
+    <tr>
+      <td class="w-1/4 mr-2"><label for="username">
+        min Latitude
+      </label></td>
+      <td>
+        <div class="relative">
+          <PrimeBadge class="-top-[2rem] -translate-x-1/2 bg-primary-1 absolute" :value="value[1]" :style="{ left: valuePosition1 }"></PrimeBadge>
+          <PrimeBadge :value="value[0]" class="-top-[2rem] -translate-x-1/2 bg-primary-1 absolute" :style="{ left: valuePosition0 }"></PrimeBadge>
+          <PrimeSlider v-model="value" :min="-90" :max="90" range />
+        </div>
+      </td>
+    </tr>
+    <tr>
+      <td><label for="username">
+        max Latitude
+      </label></td>
+      <td class="w-3/4">
+        <div class="relative">
+          <PrimeBadge class="-top-[2rem] -translate-x-1/2 bg-primary-1 absolute" :value="value[1]" :style="{ left: valuePosition1 }"></PrimeBadge>
+          <PrimeBadge :value="value[0]" class="-top-[2rem] -translate-x-1/2 bg-primary-1 absolute" :style="{ left: valuePosition0 }"></PrimeBadge>
+          <PrimeSlider v-model="value" :min="-90" :max="90" range />
+        </div>
+      </td>
+    </tr>
+    </tbody>
+  </table>
 
 
 
@@ -52,6 +85,5 @@ const valuePosition1 = computed(() => {
 
 
 <style scoped>
-
 
 </style>

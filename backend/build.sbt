@@ -15,6 +15,8 @@ val AkkaHttpVersion = "10.5.3"
 lazy val dependencies = Seq(
   "org.scalactic" %% "scalactic" % "3.2.16",
   "org.scalatest" %% "scalatest" % "3.2.15" % "test",
+  "org.scala-lang.modules" % "scala-parser-combinators_3" % "2.3.0",
+  "com.lihaoyi" %% "fastparse" % "3.0.2",
   "com.typesafe.akka" %% "akka-stream-testkit" % AkkaVersion % "test",
   "com.typesafe.akka" %% "akka-http-testkit" % AkkaHttpVersion % "test",
   "com.typesafe.akka" %% "akka-actor-typed" % AkkaVersion,

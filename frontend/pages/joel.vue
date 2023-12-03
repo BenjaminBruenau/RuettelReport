@@ -113,7 +113,13 @@ const value = ref([-90,90]);
               <td><label for="username">
                 max Longitude
               </label></td>
-              <td><PrimeSlider v-model="value" :min="-90" :max="90" range  /></td>
+              <td>
+                <div class="relative">
+                  <PrimeBadge class="-top-[2rem] -translate-x-1/2 bg-primary-1 absolute" :value="value[1]" :style="{ left: valuePosition1 }"></PrimeBadge>
+                  <PrimeBadge :value="value[0]" class="-top-[2rem] -translate-x-1/2 bg-primary-1 absolute" :style="{ left: valuePosition0 }"></PrimeBadge>
+                  <PrimeSlider v-model="value" :min="-90" :max="90" range />
+                </div>
+              </td>
               <td><div>
                 {{value[0]}}, {{value[1]}}
               </div></td>
@@ -138,7 +144,7 @@ th, td {
   text-align: left;
   white-space: nowrap;
 }
-col:first-child, col:nth-child(3) {
+col:first-child {
   width: 1%;
   white-space: nowrap;
 }

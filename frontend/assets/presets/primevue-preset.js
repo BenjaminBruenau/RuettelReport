@@ -211,7 +211,7 @@ const PrimevueDesignPreset = {
             ]
         }),
         handle: ({ props }) => ({
-            class: [
+            class: [ //box-shadow: 0 0 0 1px #c7bbfa;
                 'bg-white dark:bg-gray-600 border-2 border-primary-1 rounded-full transition duration-200',
                 'hover:bg-primary-1 hover:border hover:border-primary-1',
             ]
@@ -219,7 +219,7 @@ const PrimevueDesignPreset = {
         starthandler: ({ props }) => ({
             class: [
                 'bg-white dark:bg-gray-600 border-2 border-primary-1 rounded-full transition duration-200',
-                'hover:bg-primary-1 hover:border hover:border-primary-1',
+                'hover:bg-primary-1 hover:border hover:border-primary-1 focus:shadow-[0_0_0_1px] focus:shadow-primary-1/30 ',
             ],
             'v-tooltip.top': props.modelValue,
             'v-badge.danger':"'5+'"
@@ -227,7 +227,7 @@ const PrimevueDesignPreset = {
         endhandler: ({ props }) => ({
             class: [
                 'bg-white dark:bg-gray-600 border-2 border-primary-1 rounded-full transition duration-200',
-                'hover:bg-primary-1 hover:border hover:border-primary-1',
+                'hover:bg-primary-1 hover:border hover:border-primary-1 focus:shadow-[0_0_0_1px] focus:shadow-primary-1/30',
 
             ]
         })

@@ -49,38 +49,13 @@
 
         <PrimeAccordionTab header="Header I">
           <Slider></Slider>
+          <Slider></Slider>
 
 
         </PrimeAccordionTab>
         <PrimeAccordionTab header="Header II">
 
-          <table>
-            <colgroup>
-              <col>
-              <col>
-              <col>
-            </colgroup>
-            <tbody>
-            <tr>
-              <td><label for="username">
-                min Latitude
-              </label></td>
-              <td><PrimeSlider v-model="value" :min="-90" :max="90" range  /></td>
-              <td><div>
-                {{value[0]}}, {{value[1]}}
-              </div></td>
-            </tr>
-            <tr>
-              <td><label for="username">
-                max Latitude
-              </label></td>
-              <td><PrimeSlider v-model="value" :min="-90" :max="90" range  /></td>
-              <td><div>
-                {{value[0]}}, {{value[1]}}
-              </div></td>
-            </tr>
-            </tbody>
-          </table>
+
 
         </PrimeAccordionTab>
       </PrimeAccordion>
@@ -88,7 +63,8 @@
 </template>
 
 <script setup lang="ts">
-const value = ref([-90,90]);
+
+
 const visible = ref(true)
 
 const hideSidebar = ref(false)

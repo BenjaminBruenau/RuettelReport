@@ -4,10 +4,6 @@
   <input style="width: 40%" type="range" id="timeSlider" min="0" max="100" step="1" value="0" ref="timeSlider" @input="handleTimeSlider">
   <div style="color: whitesmoke; margin-bottom: .25em" v-if="currentTimeRange.startDate && currentTimeRange.endDate">{{currentTimeRange.startDate.toUTCString()}} - {{currentTimeRange.endDate.toUTCString()}}</div>
   <div style="color: whitesmoke; margin-bottom: .25em" v-if="!currentTimeRange.startDate && !currentTimeRange.endDate">Use the slider to view data</div>
-
-  <div id="card">
-
-  </div>
 </template>
 
 <script setup lang="ts">
@@ -37,10 +33,6 @@ const colors = {
   color_8: "#5cafa8", //Türkis
   color_9: "#ea7e62", //Strange Orange
 };
-
-onMounted(() => {
-
-})
 
 
 // Erstellen einer Farbskala für die Darstellung von Magnituden
@@ -78,7 +70,7 @@ const path = d3.geoPath()
 
 
 // SVG-Canvas erstellen
-const canvas = d3.select("#card").append("svg")
+const canvas = d3.select("body").append("svg")
     .attr("width", screenSize.width)
     .attr("height", screenSize.height);
 const g = canvas.append("g");
