@@ -29,13 +29,3 @@ object DataTransformerApp extends App:
 
       case Left(errorMessage) => println(s"Error: $errorMessage")
     }
-
-
-
-
-
-
-
-
-
-
