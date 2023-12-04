@@ -14,7 +14,7 @@ case class MappingExpr(from: String, to: String, mappingType: MappingType)
 extension [T](expr: MappingExpr)(using protocolGenerator: DynamicProtocolGenerator[T])
   def executeMapping(input: T): Option[T] =
     expr.mappingType match {
-      case MappingType.FieldRename => protocolGenerator.renameAttribute(input, expr.from)
+      case MappingType.FieldRename => protocolGenerator.renameAttribute(input, expr.to)
       case MappingType.FieldExtract => protocolGenerator.extractNestedAttributeValue(input, expr.to)
     }
 

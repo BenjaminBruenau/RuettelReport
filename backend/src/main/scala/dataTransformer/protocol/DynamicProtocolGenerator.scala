@@ -14,15 +14,28 @@ given DynamicProtocolGenerator[JsValue] with
   def generateProtocol(mappingRules: MappingRules): JsonFormat[JsValue] = new JsonFormat[JsValue] {
     def read(json: JsValue): JsValue = throw new UnsupportedOperationException("Reading not supported")
 
-    def write(input: JsValue): JsValue = 
+    def write(input: JsValue): JsValue =
       val transformedFields = for {
         rule <- mappingRules.exprs
         value <- rule.executeMapping(input)
-      } yield rule.from -> value
-      
-      JsObject(transformedFields: _*)
+      } yield constructNestedObject(rule.from.split("\\.").toVector, value)
+
+      // fold left for ordering
+      JsObject(transformedFields.foldLeft(Map.empty[String, JsValue]) { (acc, field) =>
+        field match {
+          // parent key already present which means the nested fields of the object need to be merged
+          case (key, value: JsObject) if acc.contains(key) => acc + (key -> mergeObjects(acc(key).asJsObject, value))
+          case (key, value) => acc + (key -> value)
+        }
+      })
   }
-  
+
+  private def constructNestedObject(keys: Vector[String], value: JsValue) =
+    keys.head -> keys.tail.foldRight(value: JsValue)((key, acc) => JsObject(key -> acc))
+
+  private def mergeObjects(obj1: JsObject, obj2: JsObject): JsObject =
+    JsObject(obj1.fields ++ obj2.fields)
+
   def renameAttribute(input: JsValue, attribute: String): Option[JsValue] =
     input.asJsObject.fields.get(attribute)
 

@@ -14,7 +14,7 @@ object DataTransformerApp extends App:
   // ToDo: match input e.g. NodeSeq => inject XML Generator, JsValue => inject Json Generator
 
   private def transformInput(using protocolGenerator: DynamicProtocolGenerator[JsValue]): Unit =
-    val userMappingRules = "{ \"name\" -> \"newName\", \"address\" -> \"address.city\" }"
+    val userMappingRules = "{ \"newName\" -> \"name\", \"address\" -> \"address.city\", \"old_address\" -> \"address\", \"test.a\" -> \"address.zip\", \"test.b\" -> \"address\" }"
     val inputJson = """{"name": "John", "age": 25, "address": {"city": "New York", "zip": "10001"}}"""
 
     val parseResult = MappingRulesParser.parseMappingRules(userMappingRules)
@@ -29,3 +29,13 @@ object DataTransformerApp extends App:
 
       case Left(errorMessage) => println(s"Error: $errorMessage")
     }
+
+
+
+
+
+
+
+
+
+
