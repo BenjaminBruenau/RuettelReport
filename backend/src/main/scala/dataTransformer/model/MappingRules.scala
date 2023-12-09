@@ -9,8 +9,8 @@ case class MappingRules(exprs: Vector[MappingExpr])
 
 
 case class MappingExpr(from: String, to: String, mappingType: MappingType)
-// Inject logic to execute each mapping type
 
+// Inject logic to execute each mapping type
 extension [T](expr: MappingExpr)(using protocolGenerator: DynamicProtocolGenerator[T])
   def executeMapping(input: T): Option[T] =
     expr.mappingType match {

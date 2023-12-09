@@ -30,7 +30,7 @@ given DynamicProtocolGenerator[JsValue] with
       })
   }
 
-  private def constructNestedObject(keys: Vector[String], value: JsValue) =
+  private def constructNestedObject(keys: Vector[String], value: JsValue): (String, JsValue) =
     keys.head -> keys.tail.foldRight(value: JsValue)((key, acc) => JsObject(key -> acc))
 
   private def mergeObjects(obj1: JsObject, obj2: JsObject): JsObject =
