@@ -5,8 +5,8 @@ import org.scalatest.wordspec.AnyWordSpec
 import dataTransformer.model.MappingType
 import dataTransformer.model.MappingRules
 class MappingRulesParserSpec extends AnyWordSpec with Matchers {
-  val validInput = "{ \"newName\" -> \"name\", \"address\" -> \"address.city\" }"
-  val validInputNoCurlyBraces =  "\"newName\" -> \"name\", \"address\" -> \"address.city\""
+  val validInput = "{ \"name\" -> \"newName\", \"address.city\" -> \"address\" }"
+  val validInputNoCurlyBraces =  "\"name\" -> \"newName\", \"address.city\" -> \"address\""
 
 
   val invalidInput = "{ \"newName\" > \"name\","
@@ -28,10 +28,10 @@ class MappingRulesParserSpec extends AnyWordSpec with Matchers {
       }
 
       "parse field names correctly" in {
-        mappingRules.get.exprs.head.from should be ("newName")
-        mappingRules.get.exprs.head.to should be ("name")
-        mappingRules.get.exprs.tail.head.from should be("address")
-        mappingRules.get.exprs.tail.head.to should be("address.city")
+        mappingRules.get.exprs.head.from should be ("name")
+        mappingRules.get.exprs.head.to should be ("newName")
+        mappingRules.get.exprs.tail.head.from should be("address.city")
+        mappingRules.get.exprs.tail.head.to should be("address")
       }
 
       "consider curly braces to be optional" in {

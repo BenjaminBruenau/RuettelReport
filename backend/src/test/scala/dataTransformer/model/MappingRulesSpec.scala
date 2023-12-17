@@ -5,7 +5,7 @@ import dataTransformer.model.executeMapping
 import dataTransformer.protocol.DynamicProtocolGenerator
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
-import spray.json.JsonFormat
+import spray.json.{JsObject, JsString, JsValue, JsonFormat}
 
 class MappingRulesSpec extends AnyWordSpec with Matchers {
 
@@ -15,11 +15,13 @@ class MappingRulesSpec extends AnyWordSpec with Matchers {
 
     def generateProtocol(mappingRules: MappingRules): JsonFormat[MockDataFormat] = ???
 
-    def renameAttribute(input: MockDataFormat, attribute: String): Option[MockDataFormat] =
-      Some(input.copy(data = attribute))
+    def applyToEachElement(input: MockDataFormat, mappingType: MappingType, arrayField: String, expressions: Vector[MappingExpr]): Option[JsValue] = ???
 
-    def extractNestedAttributeValue(input: MockDataFormat, path: String): Option[MockDataFormat] =
-      Some(input.copy(data = path))
+    def renameAttribute(input: MockDataFormat, attribute: String): Option[JsValue] =
+      Some(JsObject((attribute, JsString(input.data))))
+
+    def extractNestedAttributeValue(input: MockDataFormat, path: String): Option[JsValue] =
+      Some(JsObject((path, JsString(input.data))))
 
 
   "Mapping Expressions" when {
@@ -47,12 +49,12 @@ class MappingRulesSpec extends AnyWordSpec with Matchers {
       val data = MockDataFormat("mockdata")
 
       "return a specific data format type" in {
-          renameMappingExpr.executeMapping(data) shouldBe a[Option[MockDataFormat]]
+          renameMappingExpr.executeMapping[MockDataFormat](data) shouldBe a[Option[MockDataFormat]]
       }
 
       "handle different mapping types" in {
-        renameMappingExpr.executeMapping(data).get.data should be ("test2")
-        extractMappingExpr.executeMapping(data).get.data should be ("test.nested")
+        renameMappingExpr.executeMapping[MockDataFormat](data).get shouldEqual JsObject(("test", JsString("mockdata")))
+        extractMappingExpr.executeMapping[MockDataFormat](data).get shouldEqual JsObject(("test", JsString("mockdata")))
       }
     }
 

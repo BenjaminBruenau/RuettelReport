@@ -13,8 +13,8 @@ class DynamicProtocolGeneratorSpec extends AnyWordSpec with Matchers {
     "providing an existing type class instance for JSON input" should {
       val protocolGenerator: DynamicProtocolGenerator[JsValue] = summon[DynamicProtocolGenerator[JsValue]]
       val mappingRules = MappingRules(Vector(
-        "abc" -> "def",
-        "foo" ->/ "foo.bar"
+        "def" -> "abc",
+        "foo.bar" ->/ "foo"
       ))
 
       "generate a spray-json Protocol to transform one JSON structure into another based on Mapping Rules" in {
@@ -35,9 +35,9 @@ class DynamicProtocolGeneratorSpec extends AnyWordSpec with Matchers {
       "handle multiple mappings for nested fields of a specific parent field in the output structure" in {
         val inputJson = """{"def": "test", "foo": {"bar": "nested-test", "foo": 0}}"""
         val protocol = protocolGenerator.generateProtocol(MappingRules(Vector(
-          "abc" -> "def",
-          "foo.a" ->/ "foo.bar",
-          "foo.b" ->/ "foo"
+          "def" -> "abc",
+          "foo.bar" ->/ "foo.a",
+          "foo" ->/ "foo.b"
         )))
 
         val transformedJson = protocol.write(inputJson.parseJson)
@@ -48,10 +48,10 @@ class DynamicProtocolGeneratorSpec extends AnyWordSpec with Matchers {
           ToDo: Tests for this case
           where a field is both assigned a non Object value aswell as object values (nested fields in this case)
       val protocol = protocolGenerator.generateProtocol(MappingRules(Vector(
-        "abc" -> "def",
-        "foo" ->/ "foo.bar",
-        "foo.a" ->/ "foo.bar",
-        "foo.b" ->/ "foo"
+        "def" -> "abc",
+        "foo.bar" ->/ "foo",
+        "foo.bar" ->/ "foo.a",
+        "foo" ->/ "foo.b"
       )))
        */
 

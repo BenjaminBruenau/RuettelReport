@@ -5,27 +5,34 @@ import akka.actor.typed.scaladsl.Behaviors
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.common.{EntityStreamingSupport, JsonEntityStreamingSupport}
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
-import akka.http.scaladsl.model.{HttpRequest, HttpResponse, StatusCodes}
+import akka.http.scaladsl.marshallers.xml.ScalaXmlSupport
+import akka.http.scaladsl.model.*
+import akka.http.scaladsl.model.headers.RawHeader
 import akka.http.scaladsl.server.Directives.*
 import akka.http.scaladsl.server.Route
 import akka.stream.scaladsl.{Flow, Sink, Source}
 import com.typesafe.config.{Config, ConfigFactory}
+import dataTransformer.model.MappingExpr.{->, ->*, ->/}
+import dataTransformer.model.MappingRules
 import dataTransformer.parser.MappingRulesParser
 import dataTransformer.protocol.{DynamicProtocolGenerator, given}
 import service.HttpServiceInterface
 import service.httpServiceBaseImpl.HttpService
 import spray.json.*
 
+import scala.concurrent.duration.*
 import scala.concurrent.{ExecutionContextExecutor, Future}
 import scala.io.StdIn
 import scala.util.{Failure, Success, Try}
+import scala.xml.Elem
 
-
-class DataTransformerHttpController extends DefaultJsonProtocol with SprayJsonSupport:
+class DataTransformerHttpController extends DefaultJsonProtocol with SprayJsonSupport with ScalaXmlSupport:
   private val httpService: HttpServiceInterface = new HttpService
-  val protocolGenerator: DynamicProtocolGenerator[JsValue] = summon[DynamicProtocolGenerator[JsValue]]
+  val protocolGeneratorJs: DynamicProtocolGenerator[JsValue] = summon[DynamicProtocolGenerator[JsValue]]
+  val protocolGeneratorXml: DynamicProtocolGenerator[Elem] = summon[DynamicProtocolGenerator[Elem]]
   val userMappingRules = "{ \"newId\" -> \"userId\" }"
   val parseResult = MappingRulesParser.parseMappingRules(userMappingRules).toOption
+  val dbMappingRules = MappingRules(Vector("features" ->* Vector("s.@id" -> "properties.id", "s.@eva" -> "properties.eva", "s.ar.@ct" ->/ "properties.ct")))
 
   implicit val system: ActorSystem[Nothing] = ActorSystem(Behaviors.empty, "http-server")
   implicit val executionContext: ExecutionContextExecutor = system.executionContext
@@ -40,7 +47,7 @@ class DataTransformerHttpController extends DefaultJsonProtocol with SprayJsonSu
           val httpRequest = HttpRequest(uri = apiUrl)
           val responseFuture: Future[HttpResponse] = httpService.sendGET(apiUrl)
 
-          val dynamicProtocol = protocolGenerator.generateProtocol(parseResult.get)
+          val dynamicProtocol = protocolGeneratorJs.generateProtocol(parseResult.get)
 
           val dataTransformFlow = Flow[JsValue].map(chunk => DataTransformer.transform(chunk, dynamicProtocol))
 
@@ -55,6 +62,43 @@ class DataTransformerHttpController extends DefaultJsonProtocol with SprayJsonSu
 
           Try(apiSource) match
             case Success(source: Source[JsValue, Future[Any]]) =>
+              complete(source.via(dataTransformFlow))
+            case Failure(exception) =>
+              complete(StatusCodes.InternalServerError, exception.getMessage)
+        }
+      },
+      path("api" / "db") {
+        get {
+          val authHeaders = Seq(
+            RawHeader("DB-Api-Key", ""),
+            RawHeader("DB-Client-Id", "")
+          )
+          val apiUrlChanges = "https://apis.deutschebahn.com/db-api-marketplace/apis/timetables/v1/fchg/8011160"
+          val apiUrl = "https://apis.deutschebahn.com/db-api-marketplace/apis/timetables/v1/plan/8011160/231217/11"
+          val request = HttpRequest(
+            method = HttpMethods.GET,
+            uri = Uri(apiUrlChanges),
+          ).withHeaders(authHeaders)
+
+          val responseFuture: Future[HttpResponse] = Http().singleRequest(request)
+
+          val dynamicProtocol = protocolGeneratorXml.generateProtocol(dbMappingRules)
+
+          val dataTransformFlow = Flow[Elem].map(chunk => DataTransformer.transform(chunk, dynamicProtocol))
+
+          val apiSource = Source.futureSource(responseFuture.flatMap {
+            case HttpResponse(StatusCodes.OK, _, entity, _) =>
+              val strictEntity: Future[HttpEntity.Strict] = entity.toStrict(3.seconds)
+              strictEntity.map { e =>
+                e.dataBytes.map(bytes =>
+                  scala.xml.XML.loadString(bytes.utf8String))
+              }
+            case HttpResponse(status, _, _, _) =>
+              throw new RuntimeException(s"Request failed with status code $status")
+          })
+
+          Try(apiSource) match
+            case Success(source: Source[Elem, Future[Any]]) =>
               complete(source.via(dataTransformFlow))
             case Failure(exception) =>
               complete(StatusCodes.InternalServerError, exception.getMessage)
