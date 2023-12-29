@@ -1,5 +1,7 @@
 <template>
 
+    <theme-customizer></theme-customizer>
+
 </template>
 
 <script setup lang="ts">

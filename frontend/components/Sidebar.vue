@@ -1,6 +1,7 @@
 <template>
-    <PrimeSidebar v-model:visible="visible" :modal="false" :dismissable="false" :showCloseIcon="false" position="left" :pt="{
-        root: { class: 'w-80 h-full shadow-2xl rounded-r-xl bg-gradient-to-r from-mainColor_1_1 to-mainColor_1_2' }
+  <!--
+    <PrimeSidebar v-model:visible="visible" :modal="false" :dismissable="false" :showCloseIcon="false" position="left" :autoZIndex="false" :pt="{
+        root: { class: 'h-screen w-1/4 shadow-2xl rounded-r-xl bg-gradient-to-r from-mainColor_1_1 to-mainColor_1_2' }
     }">
       <div class="flex gap-2 align-items-center">
         <PrimeInputSwitch v-model="darkMode"
@@ -29,13 +30,45 @@
         <h2>Sidebar</h2>
         <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
     </PrimeSidebar>
-    <PrimeButton icon="pi pi-arrow-right" @click="visible = true">test</PrimeButton>
+    -->
+    <div class="h-screen w-1/3 shadow-2xl rounded-r-xl bg-gradient-to-r from-primary-1 to-primary-2  p-4" :class="{
+      'hidden': hideSidebar
+    }">
+      <div class="flex justify-end">
+        <PrimeButton icon="pi pi-arrow-right" @click="hideSidebar = true" class="mb-2"></PrimeButton>
+      </div>
+      <div class="flex gap-2 align-items-center">
+        <PrimeInputSwitch v-model="darkMode"
+                          @update:model-value="toggleDarkMode"
+                          ></PrimeInputSwitch>
+        <i class="pi" :class="darkMode ? 'pi-moon text-[#6A5ACD]' : 'pi-sun text-[#DAA520]'" style="font-size: 1.5rem"></i>
+      </div>
+      <h2>Sidebar</h2>
+      <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+      <PrimeAccordion :activeIndex="0" :multiple="true">
+
+        <PrimeAccordionTab header="Header I">
+          <Slider></Slider>
+          <Slider></Slider>
+
+
+        </PrimeAccordionTab>
+        <PrimeAccordionTab header="Header II">
+
+
+
+        </PrimeAccordionTab>
+      </PrimeAccordion>
+    </div>
 </template>
 
 <script setup lang="ts">
 
+
 const visible = ref(true)
-const moonColor = ref('slateblue')
+
+const hideSidebar = ref(false)
+
 
 const darkMode = ref(false)
 const savedTheme = localStorage.getItem('theme')
@@ -43,27 +76,15 @@ console.log('DARK MODE: ', darkMode.value)
 if (savedTheme) {
   console.log(savedTheme)
   useColorMode().preference = savedTheme
-  moonColor.value = savedTheme === 'dark' ? 'goldenrod' : 'slateblue'
 }
 
 const changeTheme = (theme: string) => {
   console.log('THEME CHANGE: ', theme)
-  if (theme === 'dark') {
-    moonColor.value = 'goldenrod'
-  } else {
-    moonColor.value = 'slateblue'
-  }
-
   useColorMode().preference = theme
   //localStorage.setItem('theme', theme)
 }
 
 const toggleDarkMode = (newValue: boolean) => {
-  if (darkMode.value) {
-    moonColor.value = 'goldenrod'
-  } else {
-    moonColor.value = 'slateblue'
-  }
   useColorMode().preference = darkMode.value ? 'dark' : 'light'
 }
 
