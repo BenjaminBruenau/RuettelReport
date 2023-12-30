@@ -24,7 +24,5 @@ lazy val dependencies = Seq(
   "com.typesafe.akka" %% "akka-stream" % AkkaVersion,
   "com.typesafe.akka" %% "akka-http" % AkkaHttpVersion,
   "com.typesafe.akka" %% "akka-http-spray-json" % AkkaHttpVersion,
-  "com.typesafe.akka" %% "akka-http-xml" % AkkaHttpVersion,
-  "io.circe" %% "circe-core" % "3.7.0",
-  "io.circe" %% "circe-generic" % "3.7.0"
+  "com.typesafe.akka" %% "akka-http-xml" % AkkaHttpVersion
 )

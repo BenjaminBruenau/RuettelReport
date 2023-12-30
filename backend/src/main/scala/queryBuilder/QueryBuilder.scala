@@ -1,21 +1,24 @@
-import io.circe.Decoder
-import io.circe.parser._
+package queryBuilder
+
+import queryBuilder.EarthquakeQueryStructureJsonProtocol.{requestOptionsFormat, apiEndpointConfigFormat}
+import spray.json._
 
 trait QueryBuilder {
   def buildQuery(endpoint: String): String
 }
 
-object QueryBuilder {
+object QueryBuilder extends DefaultJsonProtocol {
 
-  // Define implicit decoder for EarthquakeQueryStructure
-  implicit val earthquakeQueryStructureDecoder: Decoder[EarthquakeQueryStructure] = deriveDecoder
+  // Define implicit JsonFormat for EarthquakeQueryStructure
+  implicit val earthquakeQueryStructureFormat: JsonFormat[EarthquakeQueryStructure] = jsonFormat(
+    EarthquakeQueryStructure.apply,
+    "requestOptions", "api_endpoints"
+  )
 
   def fromJson(json: String): QueryBuilder = {
-    // Implement JSON parsing and case class creation here using circe
-    decode[EarthquakeQueryStructure](json).fold(
-      error => throw new IllegalArgumentException(s"Error parsing JSON: $error"),
-      structure => createQueryBuilder(structure)
-    )
+    JsonParser(json).convertTo[EarthquakeQueryStructure] match {
+      case structure => createQueryBuilder(structure)
+    }
   }
 
   private def createQueryBuilder(structure: EarthquakeQueryStructure): QueryBuilder = {

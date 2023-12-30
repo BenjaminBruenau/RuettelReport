@@ -2,6 +2,7 @@ package queryBuilder
 
 import akka.http.scaladsl.model.Uri
 import akka.http.scaladsl.model.Uri.Query
+import queryBuilder.{EarthquakeQueryStructure, RequestOptions}
 
 class HttpQueryBuilder(structure: EarthquakeQueryStructure) extends QueryBuilder {
 
@@ -16,9 +17,12 @@ class HttpQueryBuilder(structure: EarthquakeQueryStructure) extends QueryBuilder
   private def buildQueryParams(requestOptions: RequestOptions, paramsMapping: Map[String, String]): Query = {
     // Extracting values from RequestOptions based on paramsMapping
     val queryParams = paramsMapping.map { case (_, key) =>
-      key -> requestOptions.getClass.getDeclaredField(key).get(requestOptions).toString
+      val field = requestOptions.getClass.getDeclaredField(key)
+      field.setAccessible(true) // Make the private field accessible
+      key -> field.get(requestOptions).toString
     }
 
     Query(queryParams)
   }
+
 }

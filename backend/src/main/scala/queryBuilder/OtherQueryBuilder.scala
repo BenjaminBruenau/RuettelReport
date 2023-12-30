@@ -1,21 +1,19 @@
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
+package queryBuilder
+
+import spray.json._
+import queryBuilder.{EarthquakeQueryStructure, RequestOptions, ApiEndpointConfig, EarthquakeQueryStructureJsonProtocol}
 
 class OtherQueryBuilder extends QueryBuilder {
   private var requestOptions: RequestOptions = _
   private var apiEndpoints: Map[String, ApiEndpointConfig] = Map.empty
 
-  override def fromJson(json: String): QueryBuilder = {
-    val result = decode[EarthquakeQueryStructure](json)
-    result match {
-      case Right(queryStructure) =>
-        requestOptions = queryStructure.requestOptions
-        apiEndpoints = queryStructure.api_endpoints
-        this
-      case Left(error) =>
-        throw new IllegalArgumentException(s"Error parsing JSON: $error")
-    }
-  }
+  //override def fromJson(json: String): QueryBuilder = {
+  //  import EarthquakeQueryStructureJsonProtocol._
+  //  val result = JsonParser(json).convertTo[EarthquakeQueryStructure]
+  //  requestOptions = result.requestOptions
+  //  apiEndpoints = result.api_endpoints
+  //  this
+  //}
 
   override def buildQuery(endpoint: String): String = {
     val endpointConfig = apiEndpoints.getOrElse(endpoint, throw new IllegalArgumentException(s"No config found for endpoint: $endpoint"))
