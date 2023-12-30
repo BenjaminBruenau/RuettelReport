@@ -1,4 +1,4 @@
-package service.httpServiceBaseImpl
+package service.http.httpServiceBaseImpl
 
 import akka.actor.typed.ActorSystem
 import akka.actor.typed.scaladsl.Behaviors
@@ -7,7 +7,7 @@ import akka.http.scaladsl.model.*
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import com.typesafe.config.{Config, ConfigFactory}
 import model.FeatureCollection
-import service.HttpServiceInterface
+import service.http.HttpServiceInterface
 
 import scala.concurrent.{ExecutionContextExecutor, Future}
 

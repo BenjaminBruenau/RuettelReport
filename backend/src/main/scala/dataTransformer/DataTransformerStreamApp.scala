@@ -16,8 +16,8 @@ import dataTransformer.model.MappingExpr.{->, ->*, ->/}
 import dataTransformer.model.MappingRules
 import dataTransformer.parser.MappingRulesParser
 import dataTransformer.protocol.{DynamicProtocolGenerator, given}
-import service.HttpServiceInterface
-import service.httpServiceBaseImpl.HttpService
+import service.http.HttpServiceInterface
+import service.http.httpServiceBaseImpl.HttpService
 import spray.json.*
 
 import scala.concurrent.duration.*

@@ -11,8 +11,8 @@ import akka.http.scaladsl.server.Directives.*
 import akka.http.scaladsl.server.Route
 import com.typesafe.config.{Config, ConfigFactory}
 import model.{Feature, FeatureJsonProtocol, Geometry, Properties}
-import service.HttpServiceInterface
-import service.httpServiceBaseImpl.HttpService
+import service.http.HttpServiceInterface
+import service.http.httpServiceBaseImpl.HttpService
 import spray.json.JsValue
 
 import scala.concurrent.ExecutionContextExecutor
