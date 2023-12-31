@@ -1,7 +1,6 @@
 package queryBuilder.model
 
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
-import queryBuilder.model.{ApiEndpointConfig, EarthquakeQueryStructure, RequestOptionField, RequestOptions}
 import spray.json.*
 
 
