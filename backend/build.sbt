@@ -26,5 +26,7 @@ lazy val dependencies = Seq(
   "com.typesafe.akka" %% "akka-http" % AkkaHttpVersion,
   "com.typesafe.akka" %% "akka-http-spray-json" % AkkaHttpVersion,
   "com.typesafe.akka" %% "akka-http-xml" % AkkaHttpVersion,
-  "com.typesafe.akka" %% "akka-stream-kafka" % "5.0.0"
+  "com.typesafe.akka" %% "akka-slf4j" % AkkaVersion,
+  "com.typesafe.akka" %% "akka-stream-kafka" % "5.0.0",
+  "ch.qos.logback" % "logback-classic" % "1.2.13"
 )

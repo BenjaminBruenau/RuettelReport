@@ -1,32 +1,16 @@
 package service.kafka
 
-import akka.Done
-import akka.actor.ActorSystem
-import akka.kafka.{ConsumerSettings, ProducerSettings, Subscriptions}
 import akka.kafka.scaladsl.{Consumer, Producer}
+import akka.kafka.{ConsumerSettings, ProducerSettings, Subscriptions}
+import akka.stream.scaladsl.{Flow, Keep, Sink, Source}
 import akka.stream.{ActorAttributes, Supervision}
-import akka.stream.scaladsl.Source
-import org.apache.kafka.clients.consumer.ConsumerConfig
+import akka.{Done, NotUsed}
 import org.apache.kafka.clients.producer.ProducerRecord
-import org.apache.kafka.common.serialization.{StringDeserializer, StringSerializer}
 import spray.json.*
 
-import scala.concurrent.{ExecutionContext, Future}
-class KafkaService(topic: String)(using system: ActorSystem)(using ec: ExecutionContext):
-  private val producerConfig = system.settings.config.getConfig("akka.kafka.producer")
-  private val consumerConfig = system.settings.config.getConfig("akka.kafka.consumer")
-
-  private val bootstrapServers = "localhost:29092" //ToDo: this should be provided by e.g. an ENV Variable
-
-  private val producerSettings =
-    ProducerSettings(producerConfig, new StringSerializer, new StringSerializer)
-      .withBootstrapServers(bootstrapServers)
-
-  private val consumerSettings =
-    ConsumerSettings(system, new StringDeserializer, new StringDeserializer)
-      .withBootstrapServers(bootstrapServers)
-      .withGroupId("your-group-id")
-      .withProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
+import scala.concurrent.Future
+class KafkaService(private val producerSettings: ProducerSettings[String, String],
+                   private val consumerSettings: ConsumerSettings[String, String]):
 
   // Share single producer instance across streams to improve performance
   private val kafkaProducer: org.apache.kafka.clients.producer.Producer[String, String] =
@@ -37,9 +21,14 @@ class KafkaService(topic: String)(using system: ActorSystem)(using ec: Execution
     case _ => Supervision.stop
   }
 
-  def produceMessage(topic: String, message: JsValue): Future[Done] =
-    val record = new ProducerRecord[String, String](topic, message.toString)
-    Source.single(record).runWith(Producer.plainSink(producerSettings.withProducer(kafkaProducer)))
+  def produceMessage(topic: String): Sink[JsValue, Future[Done]] =
+    Flow[JsValue]
+      .log("publishing message to kafka", m => {
+        "topic" -> topic; "message" -> m.toString
+      })
+      //.withAttributes(Attributes.logLevels(onElement = Logging.DebugLevel, onFinish = Logging.WarningLevel, onFailure = Logging.WarningLevel))
+      .map(message => ProducerRecord[String, String](topic, message.toString))
+      .toMat(Producer.plainSink(producerSettings.withProducer(kafkaProducer)))(Keep.right)
 
 
   def consumeMessages(topic: String): Source[JsValue, Consumer.Control] =
@@ -47,3 +36,29 @@ class KafkaService(topic: String)(using system: ActorSystem)(using ec: Execution
       .plainSource(consumerSettings, Subscriptions.topics(topic))
       .map(_.value().parseJson)
       .withAttributes(resumeOnParsingException)
+      .log("received message from kafka", m => {
+        "topic" -> topic;
+        "message" -> m.toString
+      })
+
+
+/*
+trait KafkaServiceComponent {
+val kafkaService: KafkaService
+}
+
+class KafkaServiceComponentImpl extends KafkaServiceComponent {
+val kafkaService: KafkaService = new KafkaService()
+}
+
+
+// Singleton to share e.g. Kafka Producer instances across streams
+object KafkaMessageService extends KafkaServiceComponent {
+
+val kafkaService: KafkaService = new KafkaServiceComponentImpl().kafkaService
+}
+
+
+*/
+
+
