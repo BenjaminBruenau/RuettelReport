@@ -1,6 +1,8 @@
 package queryBuilder
 
-import spray.json._
+import queryBuilder.impl.HttpQueryBuilder
+import queryBuilder.model.{EarthquakeQueryStructure, EarthquakeQueryStructureJsonProtocol}
+import spray.json.*
 
 trait QueryBuilder {
   def buildQuery(endpoint: String): String

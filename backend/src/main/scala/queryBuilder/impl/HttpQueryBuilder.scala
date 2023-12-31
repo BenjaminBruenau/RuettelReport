@@ -1,7 +1,9 @@
-package queryBuilder
+package queryBuilder.impl
 
 import akka.http.scaladsl.model.Uri
 import akka.http.scaladsl.model.Uri.Query
+import queryBuilder.QueryBuilder
+import queryBuilder.model.{EarthquakeQueryStructure, RequestOptionField, RequestOptions}
 
 class HttpQueryBuilder(structure: EarthquakeQueryStructure) extends QueryBuilder {
 

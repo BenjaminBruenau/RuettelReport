@@ -1,18 +1,11 @@
-package queryBuilder
+package queryBuilder.model
 
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
-import spray.json._
+import queryBuilder.model.{ApiEndpointConfig, EarthquakeQueryStructure, RequestOptionField, RequestOptions}
+import spray.json.*
 
 
-case class RequestOptions(format: RequestOptionField[String],
-                          endtime: RequestOptionField[String],
-                          starttime: RequestOptionField[String],
-                          minmagnitude: RequestOptionField[Double],
-                          maxmagnitude: RequestOptionField[Double],
-                          minlongitude: RequestOptionField[Double],
-                          maxlongitude: RequestOptionField[Double],
-                          minlatitude: RequestOptionField[Double],
-                          maxlatitude: RequestOptionField[Double])
+case class RequestOptions(format: RequestOptionField[String], endtime: RequestOptionField[String], starttime: RequestOptionField[String], minmagnitude: RequestOptionField[Double], maxmagnitude: RequestOptionField[Double], minlongitude: RequestOptionField[Double], maxlongitude: RequestOptionField[Double], minlatitude: RequestOptionField[Double], maxlatitude: RequestOptionField[Double])
 
 case class RequestOptionField[T](`type`: String, include: Boolean, value: Option[T])
 
