@@ -9,7 +9,7 @@ class HttpQueryBuilderSpec extends AnyWordSpec with Matchers {
   "HttpQueryBuilder" should {
     "correctly build a query with valid configuration" in {
       val validConfig =
-        EarthquakeQueryStructure(
+        QueryStructure(
           RequestOptions(
             RequestOptionField("type", include = true, Some("geojson")),
             RequestOptionField("float", include = true, Some("1.0")),

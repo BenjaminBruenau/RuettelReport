@@ -3,9 +3,9 @@ package queryBuilder.impl
 import akka.http.scaladsl.model.Uri
 import akka.http.scaladsl.model.Uri.Query
 import queryBuilder.QueryBuilder
-import queryBuilder.model.{EarthquakeQueryStructure, RequestOptionField, RequestOptions}
+import queryBuilder.model.{QueryStructure, RequestOptionField, RequestOptions}
 
-class HttpQueryBuilder(structure: EarthquakeQueryStructure) extends QueryBuilder {
+class HttpQueryBuilder(structure: QueryStructure) extends QueryBuilder {
 
   override def buildQuery(endpoint: String): String =
     val endpointConfig = structure.api_endpoints.getOrElse(endpoint, throw new IllegalArgumentException(s"No config found for endpoint: $endpoint"))
