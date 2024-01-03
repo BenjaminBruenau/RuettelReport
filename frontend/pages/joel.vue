@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import {set} from "vue-demi";
+import {FilterMatchMode} from "primevue/api";
 
 const struct = ref({
   requestOptions: {
@@ -98,8 +99,8 @@ const api_endpoint_mapping = ref({
         maxlatitude: 'maxlatitude',
       },
     },
-    'earthquake.usgs.gov2': {
-      url: 'https://earthquake.usgs.gov/fdsnws/event/1/query',
+    'earthquakes.eu.database': {
+      url: 'https://earthquake.eu/query',
       method: 'GET',
       params: {
         format: '_format',
@@ -116,6 +117,23 @@ const api_endpoint_mapping = ref({
   },
 });
 
+const default_api_endpointStructure =ref({
+  name: 'New Endpoint',
+  url: '',
+  method:'',
+  params: {
+    format: '',
+    starttime: '',
+    endtime: '',
+    minmagnitude: '',
+    maxmagnitude: '',
+    minlongitude: '',
+    maxlongitude: '',
+    minlatitude: '',
+    maxlatitude: '',
+  },
+});
+
 const endpoints = computed(() => Object.entries(api_endpoint_mapping.value.api_endpoints).map(([name, value]) => ({
   name,
   ...value,
@@ -126,11 +144,7 @@ const selectedEndpoints = ref([]);
 const editDialogVisible = ref(false);
 const editDialogHeader = ref('');
 const editedEndpoint = ref({});
-const maxAddonLength = ref(0);
-const editedRequestOptions = ref([]);
-
 const originalEndpointName = ref('');
-
 const temporaryEditedParams = ref([]);
 
 const openEditDialog = (endpoint) => {
@@ -138,17 +152,8 @@ const openEditDialog = (endpoint) => {
   originalEndpointName.value = endpoint.name;
   editDialogHeader.value = `Edit ${endpoint.name}`;
   editDialogVisible.value = true;
-
-  // Initialisieren der temporären Parameter
   temporaryEditedParams.value = Object.entries(api_endpoint_mapping.value.api_endpoints[endpoint.name].params).map(([key, value]) => ({ key, value }));
 };
-
-const editedEndpointParams = computed(() => {
-  if (!editedEndpoint.value || !api_endpoint_mapping.value.api_endpoints[editedEndpoint.value.name]) {
-    return [];
-  }
-  return Object.entries(api_endpoint_mapping.value.api_endpoints[editedEndpoint.value.name].params).map(([key, value]) => ({ key, value }));
-});
 
 const deleteSelectedEndpoints = () => {
   selectedEndpoints.value.forEach((endpoint) => {
@@ -162,41 +167,91 @@ const saveChanges = () => {
     const newEndpointName = editedEndpoint.value.name;
     const endpointParamsPairs = temporaryEditedParams.value.map(param => [param.key, param.value]);
 
-    // Prüfen, ob der Name geändert wurde
     if (originalEndpointName.value !== newEndpointName) {
-      // Aktualisieren Sie die API-Endpunkte mit dem neuen Namen
       const updatedEndpoint = {
         ...api_endpoint_mapping.value.api_endpoints[originalEndpointName.value],
         url: editedEndpoint.value.url,
         params: Object.fromEntries(endpointParamsPairs)
       };
 
-      // Fügen Sie den aktualisierten Endpunkt unter dem neuen Namen hinzu
       set(api_endpoint_mapping.value.api_endpoints, newEndpointName, updatedEndpoint);
 
-      // Entfernen Sie den alten Endpunkt
       delete api_endpoint_mapping.value.api_endpoints[originalEndpointName.value];
 
-      // Aktualisieren Sie auch die Liste der Endpunkte auf der linken Seite
       const endpointIndex = endpoints.value.findIndex(e => e.name === originalEndpointName.value);
       if (endpointIndex !== -1) {
         endpoints.value.splice(endpointIndex, 1, { ...updatedEndpoint, name: newEndpointName });
       }
     } else {
-      // Aktualisieren Sie nur die URL und Parameter des bestehenden Endpunkts
       const endpoint = api_endpoint_mapping.value.api_endpoints[newEndpointName];
       endpoint.url = editedEndpoint.value.url;
       endpoint.params = Object.fromEntries(endpointParamsPairs);
     }
-
-    // Setzen Sie den ursprünglichen Namen und die temporären Parameter zurück
     originalEndpointName.value = '';
     temporaryEditedParams.value = [];
+
+    if (newEndpointName) {
+      editedEndpoint.value = {...api_endpoint_mapping.value.api_endpoints[newEndpointName]};
+      temporaryEditedParams.value = Object.entries(editedEndpoint.value.params).map(([key, value]) => ({ key, value }));
+    }
   }
+
 };
 
+const filters = ref({
+  key: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+  value: { value: null, matchMode: FilterMatchMode.STARTS_WITH }
+});
+
 const addNewEndpoint = () => {
-  // Logik zum Hinzufügen eines neuen Endpunkts
+  const newEndpoint = JSON.parse(JSON.stringify(default_api_endpointStructure.value));
+  newEndpoint.name = `New Endpoint ${formatDate(Date.now())}`;
+  set(api_endpoint_mapping.value.api_endpoints, newEndpoint.name, newEndpoint);
+  openEditDialog(newEndpoint);
+};
+
+const formatDate = (date) => {
+  const d = new Date(date);
+  let month = '' + (d.getMonth() + 1);
+  let day = '' + d.getDate();
+  const year = d.getFullYear();
+
+  if (month.length < 2)
+    month = '0' + month;
+  if (day.length < 2)
+    day = '0' + day;
+
+  return [year, month, day].join('.');
+};
+
+const downloadSelectedEndpoints = () => {
+  // Objekt erstellen, das die API-Namen als Schlüssel und die Daten als Werte enthält
+  const dataToDownload = selectedEndpoints.value.reduce((acc, endpoint) => {
+    const endpointName = endpoint.name; // API-Name
+    acc[endpointName] = api_endpoint_mapping.value.api_endpoints[endpointName];
+    return acc;
+  }, {});
+
+  const jsonString = JSON.stringify(dataToDownload, null, 2);
+  const blob = new Blob([jsonString], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'selected_endpoints.json';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+};
+
+
+const toast = useToast();
+const uploadedFiles = ref([]);
+
+const onAdvancedUpload = (event) => {
+  uploadedFiles.value = event.files;
+  toast.add({ severity: 'info', summary: 'Success', detail: 'File Uploaded', life: 3000 });
 };
 
 </script>
@@ -205,7 +260,7 @@ const addNewEndpoint = () => {
   <div>
     <PrimeSplitter>
       <h3>API - Endpoints</h3>
-      <PrimeSplitterPanel size="20">
+      <PrimeSplitterPanel size="50">
         <div class="splitter-container">
           <div class="left-panel">
             <PrimeDataTable v-model:selection="selectedEndpoints" :value="endpoints" dataKey="name" selectionMode="checkbox">
@@ -213,6 +268,7 @@ const addNewEndpoint = () => {
                 <div class="header-buttons">
                   <PrimeButton label="+ Endpoint" @click="addNewEndpoint" class="p-button-outlined" />
                   <div class="spacer"></div>
+                  <PrimeButton label="Download" icon="pi pi-download" @click="downloadSelectedEndpoints" class="p-button-outlined" />
                   <PrimeButton label="Del" class="p-button-danger p-button-outlined" @click="deleteSelectedEndpoints" />
                 </div>
               </template>
@@ -224,12 +280,19 @@ const addNewEndpoint = () => {
                 </template>
               </PrimeColumn>
             </PrimeDataTable>
+            <div class="file-upload-container">
+              <PrimeToast />
+              <PrimeFileUpload name="demo[]" url="/api/upload" @upload="onAdvancedUpload" :multiple="true" accept="application/json" :maxFileSize="1000000">
+                <template #empty>
+                  <p>Drag and drop JSON files to here to upload.</p>
+                </template>
+              </PrimeFileUpload>
+            </div>
           </div>
         </div>
       </PrimeSplitterPanel>
-      <PrimeSplitterPanel size="80">
-        <PrimeDataTable :value="temporaryEditedParams" dataKey="key" paginator :rows="5" :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 50rem">
-          <template #header>
+      <PrimeSplitterPanel size="50">
+          <PrimeDataTable :value="temporaryEditedParams" dataKey="key" paginator :rows="5" :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 50rem" v-model:filters="filters">          <template #header>
             <div class="header-buttons">
               <PrimeInputGroup>
                 <PrimeInputGroupAddon>Name</PrimeInputGroupAddon>
@@ -243,13 +306,20 @@ const addNewEndpoint = () => {
               <PrimeButton label="Save" @click="saveChanges" class="p-button-outlined" icon="pi pi-save" />
             </div>
           </template>
-          <PrimeColumn field="key" header="RüttelReport API ref." sortable style="width: 25%"></PrimeColumn>
-          <PrimeColumn header="Custom API ref.">
-            <template #body="slotProps">
-              <PrimeInputText v-model="slotProps.data.value" />
-            </template>
-          </PrimeColumn>
-        </PrimeDataTable>
+            <PrimeColumn field="key" header="RüttelReport API ref." :filter="true" filterPlaceholder="Filter" filterMatchMode="startsWith">
+              <template #filter="{ filterModel, filterCallback }">
+                <PrimeInputText v-model="filterModel.value" type="text" @keydown.enter="filterCallback()" class="p-column-filter" />
+              </template>
+            </PrimeColumn>
+            <PrimeColumn header="Custom API ref." :filter="true" filterField="value" filterMatchMode="startsWith">
+              <template #filter="{ filterModel, filterCallback }">
+                <PrimeInputText v-model="filterModel.value" type="text" @keydown.enter="filterCallback()" class="p-column-filter" />
+              </template>
+              <template #body="slotProps">
+                <PrimeInputText v-model="slotProps.data.value" />
+              </template>
+            </PrimeColumn>
+          </PrimeDataTable>
       </PrimeSplitterPanel>
     </PrimeSplitter>
   </div>
@@ -276,23 +346,6 @@ const addNewEndpoint = () => {
 
 InputGroupAddon {
   flex-shrink: 0;
-}
-
-.right-panel-container {
-  margin: 10px;
-}
-.options-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.param-key {
-  white-space: nowrap;
-  padding-right: 1em; /* Abstand zwischen den Spalten */
-}
-
-.param-value {
-  width: 100%;
 }
 
 .header-buttons {
