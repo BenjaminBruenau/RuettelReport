@@ -1,155 +1,235 @@
-<script setup
-        lang="ts">
+<script setup lang="ts">
+import { computed, ref } from 'vue';
 
-
-
-const selectedCities = ref();
-const groupedCities = ref([
-  {
-    label: 'Germany',
-    code: 'DE',
-    items: [
-      { label: 'Berlin', value: 'Berlin' },
-      { label: 'Frankfurt', value: 'Frankfurt' },
-      { label: 'Hamburg', value: 'Hamburg' },
-      { label: 'Munich', value: 'Munich' }
-    ]
+const struct = ref({
+  requestOptions: {
+    format: {
+      type: 'string',
+      include: true,
+      default: 'geojson',
+      value: 'geojson',
+    },
+    endtime: {
+      type: 'dateTime',
+      include: true,
+    },
+    starttime: {
+      type: 'dateTime',
+      include: true,
+    },
+    minmagnitude: {
+      type: 'float',
+      include: true,
+      value: 0.0,
+      attr: {
+        default: 0.0,
+        min: 0.0,
+        max: 10.0,
+      },
+    },
+    maxmagnitude: {
+      type: 'float',
+      include: true,
+      value: 10.0,
+      attr: {
+        default: 10.0,
+        min: 0.0,
+        max: 10.0,
+      },
+    },
+    minlongitude: {
+      type: 'float',
+      include: true,
+      value: -180.0,
+      attr: {
+        default: -180.0,
+        min: -180.0,
+        max: 180.0,
+      },
+    },
+    maxlongitude: {
+      type: 'float',
+      include: true,
+      value: 180.0,
+      attr: {
+        default: 180.0,
+        min: -180.0,
+        max: 180.0,
+      },
+    },
+    minlatitude: {
+      type: 'float',
+      include: true,
+      value: -90.0,
+      attr: {
+        default: -90.0,
+        min: -90.0,
+        max: 90.0,
+      },
+    },
+    maxlatitude: {
+      type: 'float',
+      include: true,
+      value: 90.0,
+      attr: {
+        default: 90.0,
+        min: -90.0,
+        max: 90.0,
+      },
+    },
   },
-  {
-    label: 'USA',
-    code: 'US',
-    items: [
-      { label: 'Chicago', value: 'Chicago' },
-      { label: 'Los Angeles', value: 'Los Angeles' },
-      { label: 'New York', value: 'New York' },
-      { label: 'San Francisco', value: 'San Francisco' }
-    ]
+});
+
+const api_endpoint_mapping = ref({
+  api_endpoints: {
+    'earthquake.usgs.gov': {
+      url: 'https://earthquake.usgs.gov/fdsnws/event/1/query',
+      method: 'GET',
+      params: {
+        format: 'format',
+        starttime: 'starttime',
+        endtime: 'endtime',
+        minmagnitude: 'minmagnitude',
+        maxmagnitude: 'maxmagnitude',
+        minlongitude: 'minlongitude',
+        maxlongitude: 'maxlongitude',
+        minlatitude: 'minlatitude',
+        maxlatitude: 'maxlatitude',
+      },
+    },
+    'earthquake.usgs.gov2': {
+      url: 'https://earthquake.usgs.gov/fdsnws/event/1/query',
+      method: 'GET',
+      params: {
+        format: '_format',
+        starttime: '_starttime',
+        endtime: '_endtime',
+        minmagnitude: '_minmagnitude',
+        maxmagnitude: '_maxmagnitude',
+        minlongitude: '_minlongitude',
+        maxlongitude: '_maxlongitude',
+        minlatitude: '_minlatitude',
+        maxlatitude: '_maxlatitude',
+      },
+    },
   },
-  {
-    label: 'Japan',
-    code: 'JP',
-    items: [
-      { label: 'Kyoto', value: 'Kyoto' },
-      { label: 'Osaka', value: 'Osaka' },
-      { label: 'Tokyo', value: 'Tokyo' },
-      { label: 'Yokohama', value: 'Yokohama' }
-    ]
-  }
-]);
+});
 
+const endpoints = computed(() => Object.entries(api_endpoint_mapping.value.api_endpoints).map(([name, value]) => ({
+  name,
+  ...value,
+  checked: false,
+})));
 
-const value = ref([-90,90]);
+const selectedEndpoints = ref([]);
+const editDialogVisible = ref(false);
+const editDialogHeader = ref('');
+const editedEndpoint = ref({});
+const maxAddonLength = ref(0);
+const editedRequestOptions = ref([]);
 
+const openEditDialog = (endpoint) => {
+  editedEndpoint.value = endpoint;
+  editDialogHeader.value = `Edit ${endpoint.name}`;
+  editDialogVisible.value = true;
+
+  editedRequestOptions.value = Object.entries(struct.value.requestOptions).map(([key, value]) => ({
+    key,
+    ...value,
+  }));
+
+  maxAddonLength.value = Math.max(...editedRequestOptions.value.map(option => option.key.length));
+};
+
+const deleteSelectedEndpoints = () => {
+  selectedEndpoints.value.forEach((endpoint) => {
+    delete api_endpoint_mapping.value.api_endpoints[endpoint.name];
+  });
+  selectedEndpoints.value = [];
+};
+
+const addNewEndpoint = () => {
+  // Logik zum Hinzufügen eines neuen Endpunkts
+};
 </script>
 
 <template>
-      <!--<PrimeMultiSelect v-model="selectedCities" :options="groupedCities" optionLabel="label" optionGroupLabel="label" optionGroupChildren="items" display="chip" placeholder="Select Cities" class="w-full md:w-20rem">
-        <template #optiongroup="slotProps">
-          <div class="flex align-items-center">
-            <img :alt="slotProps.option.label" src="https://primefaces.org/cdn/primevue/images/flag/flag_placeholder.png" :class="`flag flag-${slotProps.option.code.toLowerCase()} mr-2`" style="width: 18px" />
-            <div>{{ slotProps.option.label }}</div>
-          </div>
-        </template>
-      </PrimeMultiSelect>-->
-
-
-
-      <PrimeAccordion :activeIndex="0" :multiple="true">
-
-        <PrimeAccordionTab header="Header I">
-
-
-
-
-
-
-
-          <Slider></Slider>
-
-
-
-
-
-        </PrimeAccordionTab>
-        <PrimeAccordionTab header="Location">
-          <PrimeAccordion>
-          <PrimeAccordionTab header="Rectangle">
-
-          <table>
-            <colgroup>
-              <col>
-              <col>
-              <col>
-            </colgroup>
-            <tbody>
-            <tr>
-              <td><label for="username">
-                min Latitude
-              </label></td>
-              <td><PrimeSlider v-model="value" :min="-90" :max="90" range  /></td>
-              <td><div>
-                {{value[0]}}, {{value[1]}}
-              </div></td>
-            </tr>
-            <tr>
-              <td><label for="username">
-                max Latitude
-              </label></td>
-              <td><PrimeSlider v-model="value" :min="-90" :max="90" range  /></td>
-              <td><div>
-                {{value[0]}}, {{value[1]}}
-              </div></td>
-            </tr>
-            <tr>
-              <td><label for="username">
-                min Longitude
-              </label></td>
-              <td><PrimeSlider v-model="value" :min="-90" :max="90" range  /></td>
-              <td><div>
-                {{value[0]}}, {{value[1]}}
-              </div></td>
-            </tr>
-            <tr>
-              <td><label for="username">
-                max Longitude
-              </label></td>
-              <td>
-                <div class="relative">
-                  <PrimeBadge class="-top-[2rem] -translate-x-1/2 bg-primary-1 absolute" :value="value[1]" :style="{ left: valuePosition1 }"></PrimeBadge>
-                  <PrimeBadge :value="value[0]" class="-top-[2rem] -translate-x-1/2 bg-primary-1 absolute" :style="{ left: valuePosition0 }"></PrimeBadge>
-                  <PrimeSlider v-model="value" :min="-90" :max="90" range />
+  <div>
+    <PrimeSplitter>
+      <h3>API - Endpoints</h3>
+      <PrimeSplitterPanel size="20">
+        <div class="splitter-container">
+          <div class="left-panel">
+            <PrimeDataTable v-model:selection="selectedEndpoints" :value="endpoints" dataKey="name" selectionMode="checkbox">
+              <template #header>
+                <div class="header-buttons">
+                  <PrimeButton label="+ Endpoint" @click="addNewEndpoint" class="p-button-outlined" />
+                  <div class="spacer"></div>
+                  <PrimeButton label="Del" class="p-button-danger p-button-outlined" @click="deleteSelectedEndpoints" />
                 </div>
-              </td>
-              <td><div>
-                {{value[0]}}, {{value[1]}}
-              </div></td>
-            </tr>
-            </tbody>
-          </table>
-          </PrimeAccordionTab>
-            </PrimeAccordion>
-        </PrimeAccordionTab>
-      </PrimeAccordion>
+              </template>
+              <PrimeColumn selectionMode="multiple" style="width:3em"></PrimeColumn>
+              <PrimeColumn field="name" header="Endpoint"></PrimeColumn>
+              <PrimeColumn style="width:6em">
+                <template #body="slotProps">
+                  <PrimeButton label="Edit" icon="pi pi-pencil" @click="() => openEditDialog(slotProps.data)" />
+                </template>
+              </PrimeColumn>
+            </PrimeDataTable>
+          </div>
+        </div>
+      </PrimeSplitterPanel>
+      <PrimeSplitterPanel size="80">
+        <div class="right-panel-container" v-if="editedEndpoint">
+          <h4>{{ editDialogHeader }}</h4>
+
+          <PrimeInputGroup>
+            <PrimeInputGroupAddon>Name</PrimeInputGroupAddon>
+            <PrimeInputText placeholder="API Name" v-model="editedEndpoint.name" />
+          </PrimeInputGroup>
+
+          <PrimeInputGroup>
+            <PrimeInputGroupAddon>URL</PrimeInputGroupAddon>
+            <PrimeInputText placeholder="API URL" v-model="editedEndpoint.url" />
+          </PrimeInputGroup>
+
+          <div v-for="(option, index) in editedRequestOptions" :key="index">
+            <PrimeInputGroup>
+              <PrimeInputGroupAddon :style="{ minWidth: `${maxAddonLength}ch` }">{{ option.key }}</PrimeInputGroupAddon>
+              <PrimeInputText placeholder="Enter value" v-model="option.value" />
+            </PrimeInputGroup>
+          </div>
+        </div>
+      </PrimeSplitterPanel>
+    </PrimeSplitter>
+  </div>
 </template>
 
 <style>
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-  table-layout: auto;
-}
-th, td {
-  padding: 8px;
-  text-align: left;
-  white-space: nowrap;
-}
-col:first-child {
-  width: 1%;
-  white-space: nowrap;
-}
-col:nth-child(2) {
+.header-buttons {
+  display: flex;
+  justify-content: space-between;
   width: 100%;
 }
 
+.spacer {
+  flex: 1;
+}
+
+.splitter-container {
+  display: flex;
+  justify-content: space-between;
+}
+
+.left-panel {
+  flex-grow: 1;
+}
+
+InputGroupAddon {
+  flex-shrink: 0;
+}
+
+.right-panel-container {
+  margin: 10px;
+}
 </style>
