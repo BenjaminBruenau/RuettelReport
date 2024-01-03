@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
+import {set} from "vue-demi";
 
 const struct = ref({
   requestOptions: {
@@ -128,18 +129,26 @@ const editedEndpoint = ref({});
 const maxAddonLength = ref(0);
 const editedRequestOptions = ref([]);
 
+const originalEndpointName = ref('');
+
+const temporaryEditedParams = ref([]);
+
 const openEditDialog = (endpoint) => {
-  editedEndpoint.value = endpoint;
+  editedEndpoint.value = { ...endpoint };
+  originalEndpointName.value = endpoint.name;
   editDialogHeader.value = `Edit ${endpoint.name}`;
   editDialogVisible.value = true;
 
-  editedRequestOptions.value = Object.entries(struct.value.requestOptions).map(([key, value]) => ({
-    key,
-    ...value,
-  }));
-
-  maxAddonLength.value = Math.max(...editedRequestOptions.value.map(option => option.key.length));
+  // Initialisieren der temporären Parameter
+  temporaryEditedParams.value = Object.entries(api_endpoint_mapping.value.api_endpoints[endpoint.name].params).map(([key, value]) => ({ key, value }));
 };
+
+const editedEndpointParams = computed(() => {
+  if (!editedEndpoint.value || !api_endpoint_mapping.value.api_endpoints[editedEndpoint.value.name]) {
+    return [];
+  }
+  return Object.entries(api_endpoint_mapping.value.api_endpoints[editedEndpoint.value.name].params).map(([key, value]) => ({ key, value }));
+});
 
 const deleteSelectedEndpoints = () => {
   selectedEndpoints.value.forEach((endpoint) => {
@@ -148,9 +157,48 @@ const deleteSelectedEndpoints = () => {
   selectedEndpoints.value = [];
 };
 
+const saveChanges = () => {
+  if (editedEndpoint.value) {
+    const newEndpointName = editedEndpoint.value.name;
+    const endpointParamsPairs = temporaryEditedParams.value.map(param => [param.key, param.value]);
+
+    // Prüfen, ob der Name geändert wurde
+    if (originalEndpointName.value !== newEndpointName) {
+      // Aktualisieren Sie die API-Endpunkte mit dem neuen Namen
+      const updatedEndpoint = {
+        ...api_endpoint_mapping.value.api_endpoints[originalEndpointName.value],
+        url: editedEndpoint.value.url,
+        params: Object.fromEntries(endpointParamsPairs)
+      };
+
+      // Fügen Sie den aktualisierten Endpunkt unter dem neuen Namen hinzu
+      set(api_endpoint_mapping.value.api_endpoints, newEndpointName, updatedEndpoint);
+
+      // Entfernen Sie den alten Endpunkt
+      delete api_endpoint_mapping.value.api_endpoints[originalEndpointName.value];
+
+      // Aktualisieren Sie auch die Liste der Endpunkte auf der linken Seite
+      const endpointIndex = endpoints.value.findIndex(e => e.name === originalEndpointName.value);
+      if (endpointIndex !== -1) {
+        endpoints.value.splice(endpointIndex, 1, { ...updatedEndpoint, name: newEndpointName });
+      }
+    } else {
+      // Aktualisieren Sie nur die URL und Parameter des bestehenden Endpunkts
+      const endpoint = api_endpoint_mapping.value.api_endpoints[newEndpointName];
+      endpoint.url = editedEndpoint.value.url;
+      endpoint.params = Object.fromEntries(endpointParamsPairs);
+    }
+
+    // Setzen Sie den ursprünglichen Namen und die temporären Parameter zurück
+    originalEndpointName.value = '';
+    temporaryEditedParams.value = [];
+  }
+};
+
 const addNewEndpoint = () => {
   // Logik zum Hinzufügen eines neuen Endpunkts
 };
+
 </script>
 
 <template>
@@ -180,26 +228,28 @@ const addNewEndpoint = () => {
         </div>
       </PrimeSplitterPanel>
       <PrimeSplitterPanel size="80">
-        <div class="right-panel-container" v-if="editedEndpoint">
-          <h4>{{ editDialogHeader }}</h4>
-
-          <PrimeInputGroup>
-            <PrimeInputGroupAddon>Name</PrimeInputGroupAddon>
-            <PrimeInputText placeholder="API Name" v-model="editedEndpoint.name" />
-          </PrimeInputGroup>
-
-          <PrimeInputGroup>
-            <PrimeInputGroupAddon>URL</PrimeInputGroupAddon>
-            <PrimeInputText placeholder="API URL" v-model="editedEndpoint.url" />
-          </PrimeInputGroup>
-
-          <div v-for="(option, index) in editedRequestOptions" :key="index">
-            <PrimeInputGroup>
-              <PrimeInputGroupAddon :style="{ minWidth: `${maxAddonLength}ch` }">{{ option.key }}</PrimeInputGroupAddon>
-              <PrimeInputText placeholder="Enter value" v-model="option.value" />
-            </PrimeInputGroup>
-          </div>
-        </div>
+        <PrimeDataTable :value="temporaryEditedParams" dataKey="key" paginator :rows="5" :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 50rem">
+          <template #header>
+            <div class="header-buttons">
+              <PrimeInputGroup>
+                <PrimeInputGroupAddon>Name</PrimeInputGroupAddon>
+                <PrimeInputText v-model="editedEndpoint.name" />
+              </PrimeInputGroup>
+              <PrimeInputGroup>
+                <PrimeInputGroupAddon>URL</PrimeInputGroupAddon>
+                <PrimeInputText v-model="editedEndpoint.url" />
+              </PrimeInputGroup>
+              <div class="spacer"></div>
+              <PrimeButton label="Save" @click="saveChanges" class="p-button-outlined" icon="pi pi-save" />
+            </div>
+          </template>
+          <PrimeColumn field="key" header="RüttelReport API ref." sortable style="width: 25%"></PrimeColumn>
+          <PrimeColumn header="Custom API ref.">
+            <template #body="slotProps">
+              <PrimeInputText v-model="slotProps.data.value" />
+            </template>
+          </PrimeColumn>
+        </PrimeDataTable>
       </PrimeSplitterPanel>
     </PrimeSplitter>
   </div>
@@ -211,7 +261,6 @@ const addNewEndpoint = () => {
   justify-content: space-between;
   width: 100%;
 }
-
 .spacer {
   flex: 1;
 }
@@ -232,4 +281,28 @@ InputGroupAddon {
 .right-panel-container {
   margin: 10px;
 }
+.options-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.param-key {
+  white-space: nowrap;
+  padding-right: 1em; /* Abstand zwischen den Spalten */
+}
+
+.param-value {
+  width: 100%;
+}
+
+.header-buttons {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.spacer {
+  flex: 1;
+}
+
 </style>
