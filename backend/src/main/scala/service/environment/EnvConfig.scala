@@ -6,7 +6,7 @@ import scala.util.{Failure, Success, Try}
 
 
 case class MissingEnvVariableException(variableName: String)
-  extends RuntimeException(s"Environment variable '$variableName' not found and no default secretValue provided.")
+  extends RuntimeException(s"Environment variable '$variableName' not found and no default value provided.")
 
 trait Secret[A]:
   def secretValue: A
@@ -40,7 +40,6 @@ object EnvConfig:
     Option(System.getenv(name))
 
   given EnvConfig[Int] = string.map(_.toInt)
-  given EnvConfig[Long] = string.map(_.toLong)
   given EnvConfig[Boolean] = string.map(_.toBoolean)
 
 

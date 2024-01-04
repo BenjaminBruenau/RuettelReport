@@ -14,7 +14,7 @@ import dataTransformer.parser.MappingRulesParser
 import dataTransformer.protocol.{DynamicProtocolGenerator, given}
 import dataTransformer.{DataTransformer, DataTransformerAppConfig}
 import org.slf4j.LoggerFactory
-import queryBuilder.impl.HttpQueryBuilder
+import queryBuilder.{QueryBuilder, QueryBuilderBackend}
 import queryBuilder.model.{QueryRequestStructure, QueryStructureJsonProtocol}
 import service.http.HttpServiceInterface
 import service.http.httpServiceBaseImpl.HttpService
@@ -39,37 +39,48 @@ class DataTransformerHttpController(messageService: MessageService)(implicit exe
         get {
           entity(as[QueryRequestStructure]) {
             queryRequestStructure =>
+              val queryBuilder = QueryBuilder(QueryBuilderBackend.HTTP)
+              
+              queryRequestStructure.mappingRules match
+                case None =>
+                  // DO same procedure as below without data transformation
+                  // or redirect to query service
+                  // or cancel since no mapping rules provided -> nothing to transform
+                  complete(StatusCodes.BadRequest, "No mapping rules provided")
 
-              val parseResult = MappingRulesParser.parseMappingRules(queryRequestStructure.mappingRules.get).toOption
-              val dynamicProtocol = protocolGeneratorJs.generateProtocol(parseResult.get)
+                case Some(rules) =>
+                  val parseResult = MappingRulesParser.parseMappingRules(rules)
 
-              //ToDo: use typeclass instances and companion objects to handle queryBuilding Logic
-              val queryBuilder = HttpQueryBuilder(queryRequestStructure.queryStructure)
+                  parseResult match
+                    case Left(parseFailureReason) => complete(StatusCodes.BadRequest, parseFailureReason)
+                    case Right(mappingRules) =>
+                      val dynamicProtocol = protocolGeneratorJs.generateProtocol(mappingRules)
 
-              val externalApiQueryUrl = queryBuilder.buildQuery(queryRequestStructure.endpoint)
-              val responseFuture: Future[HttpResponse] = httpService.sendGET(externalApiQueryUrl)
+                      queryBuilder.buildQuery(queryRequestStructure.queryStructure, queryRequestStructure.endpoint) match
+                        case None => complete(StatusCodes.BadRequest, "Cannot generate Query from provided Structure")
+                        case Some(externalApiQueryUrl) =>
+                          val responseFuture: Future[HttpResponse] = httpService.sendGET(externalApiQueryUrl)
 
-              val dataTransformFlow = Flow[JsValue].map(chunk => DataTransformer.transform(chunk, dynamicProtocol))
+                          val dataTransformFlow = Flow[JsValue].map(chunk => DataTransformer.transform(chunk, dynamicProtocol))
 
+                          val apiSource = Source.futureSource(responseFuture.map {
+                            case HttpResponse(StatusCodes.OK, _, entity, _) =>
+                              entity.dataBytes
+                                .via(jsonStreamingSupport.framingDecoder)
+                                .map(_.utf8String.parseJson)
+                            case HttpResponse(status, _, _, _) =>
+                              throw new RuntimeException(s"Request failed with status code $status")
+                          })
 
-              val apiSource = Source.futureSource(responseFuture.map {
-                case HttpResponse(StatusCodes.OK, _, entity, _) =>
-                  entity.dataBytes
-                    .via(jsonStreamingSupport.framingDecoder)
-                    .map(_.utf8String.parseJson)
-                case HttpResponse(status, _, _, _) =>
-                  throw new RuntimeException(s"Request failed with status code $status")
-              })
+                          // Branch the flow to send to Kafka and complete the request
+                          val kafkaSink = messageService.produceMessagesSink("your_kafka_topic") //ToDo: generate appropriate topic name (tenant + endpoint + requestTime)
+                          val responseFlow = Flow[JsValue].alsoToMat(kafkaSink)(Keep.left)
 
-              // Branch the flow to send to Kafka and complete the request
-              val kafkaSink = messageService.produceMessagesSink("your_kafka_topic") //ToDo: generate appropriate topic name (tenant + endpoint + requestTime)
-              val responseFlow = Flow[JsValue].alsoToMat(kafkaSink)(Keep.left)
-
-              Try(apiSource) match
-                case Success(source: Source[JsValue, Future[Any]]) =>
-                  complete(source.via(dataTransformFlow).via(responseFlow))
-                case Failure(exception) =>
-                  complete(StatusCodes.InternalServerError, exception.getMessage)
+                          Try(apiSource) match
+                            case Success(source: Source[JsValue, Future[Any]]) =>
+                              complete(source.via(dataTransformFlow).via(responseFlow))
+                            case Failure(exception) =>
+                              complete(StatusCodes.InternalServerError, exception.getMessage)
           }
         }
       }

@@ -1,26 +1,25 @@
 package queryBuilder
 
+import queryBuilder.QueryBuilderBackend.HTTP
 import queryBuilder.impl.HttpQueryBuilder
 import queryBuilder.model.{QueryStructure, QueryStructureJsonProtocol}
-import spray.json.*
 
-trait QueryBuilder {
-  def buildQuery(endpoint: String): String
-}
+trait QueryBuilder:
+  def buildQuery(structure: QueryStructure, endpoint: Option[String] = None): Option[String]
+
+  def buildQuery(structure: QueryStructure, endpoint: String): Option[String] =
+    buildQuery(structure, Some(endpoint))
+
 
 object QueryBuilder extends QueryStructureJsonProtocol:
-
-
-  def fromJson(json: String): QueryBuilder =
-    JsonParser(json).convertTo[QueryStructure] match {
-      case structure => createQueryBuilder(structure)
+  
+  def apply(backend: QueryBuilderBackend): QueryBuilder =
+    backend match {
+      case HTTP => HttpQueryBuilder()
+      // e.g. case INFLUX => new InfluxQueryBuilder(structure)
+      case _ => throw new IllegalArgumentException(s"Unsupported backend: $backend")
     }
 
 
-  private def createQueryBuilder(structure: QueryStructure): QueryBuilder =
-    structure.requestOptions.format.value match {
-      case Some("geojson") => new HttpQueryBuilder(structure)
-      case _ => throw new IllegalArgumentException("Unsupported format")
-    }
-
-
+enum QueryBuilderBackend:
+  case HTTP

@@ -73,23 +73,3 @@ object KafkaMessageService:
     KafkaMessageService(producerSettings, consumerSettings)
 
 
-/*
-trait KafkaServiceComponent {
-val kafkaService: KafkaMessageService
-}
-
-class KafkaServiceComponentImpl extends KafkaServiceComponent {
-val kafkaService: KafkaMessageService = new KafkaMessageService()
-}
-
-
-// Singleton to share e.g. Kafka Producer instances across streams
-object KafkaMessageService extends KafkaServiceComponent {
-
-val kafkaService: KafkaMessageService = new KafkaServiceComponentImpl().kafkaService
-}
-
-
-*/
-
-
