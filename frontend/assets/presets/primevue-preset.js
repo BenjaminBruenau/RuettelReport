@@ -1,13 +1,14 @@
+import {TRANSITIONS as props} from "primevue/passthrough/tailwind/index.esm.js";
 
 
 const PrimevueDesignPreset = {
     inputtext: {
-        root: ({ props: InputTextProps, context: InputTextContext }) => ({
+        root: ({ props, context, parent }) => ({
             class: [
                 'm-0',
                 'font-sans text-gray-600 dark:text-white/80 bg-white dark:bg-gray-900 border border-gray-300 dark:border-blue-900/40 transition-colors duration-200 appearance-none rounded-lg',
                 {
-                    'hover:border-blue-500 focus:outline-none focus:outline-offset-0 focus:shadow-[0_0_0_0.2rem_rgba(191,219,254,1)] dark:focus:shadow-[0_0_0_0.2rem_rgba(147,197,253,0.5)]': !context.disabled,
+                    'hover:border-primary-1  focus:outline-none focus:outline-offset-0 focus:shadow-[0_0_0_0.2rem_rgba(191,219,254,1)] dark:focus:shadow-[0_0_0_0.2rem_rgba(147,197,253,0.5)]': !context.disabled,
                     'opacity-60 select-none pointer-events-none cursor-default': context.disabled
                 },
                 {
@@ -231,6 +232,41 @@ const PrimevueDesignPreset = {
 
             ]
         })
+    },
+    splitter: {
+        root: ({ props }) => ({
+            class: [
+                'flex', // Flex-Container
+                'w-full', // Volle Breite
+                'h-full', // Volle Höhe
+                // Weitere globale Styles für den Splitter-Container
+            ]
+        }),
+        panel: ({ props }) => ({
+            class: [
+                'flex-grow', // Lässt das Panel innerhalb des Splitters wachsen
+                'overflow-auto', // Automatischer Scroll, falls Inhalt größer als Panel
+                // Weitere Styles für einzelne Panels
+                'bg-primary-1',
+            ]
+        }),
+        bar: ({ props }) => ({
+            class: [
+                'bg-gray-300', // Hintergrundfarbe der Splitter-Leiste
+                'cursor-col-resize', // Cursor-Stil für horizontale Anpassung
+                'w-2', // Breite der Splitter-Leiste
+                // Weitere Styles für die Splitter-Leiste
+            ]
+        }),
+        handle: ({ props }) => ({
+            class: [
+                'bg-primary-500', // Hintergrundfarbe des Griffs
+                'h-full', // Volle Höhe des Griffs
+                'w-1', // Breite des Griffs
+                // Weitere Styles für den Griff der Splitter-Leiste
+            ]
+        })
+        // Weitere spezifische Elemente und ihre Styles
     }
 
 }
