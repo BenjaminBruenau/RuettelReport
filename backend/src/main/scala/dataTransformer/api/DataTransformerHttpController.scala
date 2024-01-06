@@ -31,7 +31,7 @@ class DataTransformerHttpController(messageService: MessageService)(implicit exe
   val protocolGeneratorJs: DynamicProtocolGenerator[JsValue] = summon[DynamicProtocolGenerator[JsValue]]
   val protocolGeneratorXml: DynamicProtocolGenerator[Elem] = summon[DynamicProtocolGenerator[Elem]]
 
-  implicit val jsonStreamingSupport: JsonEntityStreamingSupport = EntityStreamingSupport.json()
+  implicit val jsonStreamingSupport: JsonEntityStreamingSupport = EntityStreamingSupport.json(500 * 1024) // 500kb ToDo: Decide on a max size, what about logging such big messages?
 
   val route: Route =
     concat(
@@ -43,9 +43,10 @@ class DataTransformerHttpController(messageService: MessageService)(implicit exe
               
               queryRequestStructure.mappingRules match
                 case None =>
-                  // DO same procedure as below without data transformation
+                  // ToDo: Decide on how to proceed here
+                  // Do same procedure as below without data transformation
                   // or redirect to query service
-                  // or cancel since no mapping rules provided -> nothing to transform
+                  // or reject since no mapping rules provided -> nothing to transform
                   complete(StatusCodes.BadRequest, "No mapping rules provided")
 
                 case Some(rules) =>
@@ -81,6 +82,40 @@ class DataTransformerHttpController(messageService: MessageService)(implicit exe
                               complete(source.via(dataTransformFlow).via(responseFlow))
                             case Failure(exception) =>
                               complete(StatusCodes.InternalServerError, exception.getMessage)
+          }
+        }
+      },
+      // ToDo: Extract this into separate Service (QueryService / RootService)
+      path("api" / "query") {
+        get {
+          entity(as[QueryRequestStructure]) {
+            queryRequestStructure =>
+              val queryBuilder = QueryBuilder(QueryBuilderBackend.HTTP)
+              queryBuilder.buildQuery(queryRequestStructure.queryStructure, queryRequestStructure.endpoint) match
+                case None => complete(StatusCodes.BadRequest, "Cannot generate Query from provided Structure")
+                case Some(externalApiQueryUrl) =>
+                  println(externalApiQueryUrl)
+                  val responseFuture: Future[HttpResponse] = httpService.sendGET(externalApiQueryUrl)
+
+                  val apiSource = Source.futureSource(responseFuture.map {
+                    case HttpResponse(StatusCodes.OK, _, entity, _) =>
+                      entity.dataBytes
+                        .via(jsonStreamingSupport.framingDecoder)
+                        .map(_.utf8String.parseJson)
+                    case HttpResponse(status, _, _, _) =>
+                      throw new RuntimeException(s"Request failed with status code $status")
+                  })
+
+                  // Branch the flow to send to Kafka and complete the request
+                  val kafkaSink = messageService.produceMessagesSink("your_kafka_topic") //ToDo: generate appropriate topic name (tenant + endpoint + requestTime)
+                  val responseFlow = Flow[JsValue].alsoToMat(kafkaSink)(Keep.left)
+
+                  Try(apiSource) match
+                    case Success(source: Source[JsValue, Future[Any]]) =>
+                      complete(source.via(responseFlow))
+                    case Failure(exception) =>
+                      complete(StatusCodes.InternalServerError, exception.getMessage)
+
           }
         }
       }
