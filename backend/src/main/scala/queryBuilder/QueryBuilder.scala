@@ -1,26 +1,25 @@
 package queryBuilder
 
+import queryBuilder.QueryBuilderBackend.HTTP
 import queryBuilder.impl.HttpQueryBuilder
-import queryBuilder.model.{EarthquakeQueryStructure, EarthquakeQueryStructureJsonProtocol}
-import spray.json.*
+import queryBuilder.model.{QueryStructure, QueryStructureJsonProtocol}
 
-trait QueryBuilder {
-  def buildQuery(endpoint: String): String
-}
+trait QueryBuilder:
+  def buildQuery(structure: QueryStructure, endpoint: Option[String] = None): Option[String]
 
-object QueryBuilder extends EarthquakeQueryStructureJsonProtocol:
+  def buildQuery(structure: QueryStructure, endpoint: String): Option[String] =
+    buildQuery(structure, Some(endpoint))
 
 
-  def fromJson(json: String): QueryBuilder =
-    JsonParser(json).convertTo[EarthquakeQueryStructure] match {
-      case structure => createQueryBuilder(structure)
+object QueryBuilder extends QueryStructureJsonProtocol:
+  
+  def apply(backend: QueryBuilderBackend): QueryBuilder =
+    backend match {
+      case HTTP => HttpQueryBuilder()
+      // e.g. case INFLUX => new InfluxQueryBuilder(structure)
+      case _ => throw new IllegalArgumentException(s"Unsupported backend: $backend")
     }
 
 
-  private def createQueryBuilder(structure: EarthquakeQueryStructure): QueryBuilder =
-    structure.requestOptions.format.value match {
-      case Some("geojson") => new HttpQueryBuilder(structure)
-      case _ => throw new IllegalArgumentException("Unsupported format")
-    }
-
-
+enum QueryBuilderBackend:
+  case HTTP

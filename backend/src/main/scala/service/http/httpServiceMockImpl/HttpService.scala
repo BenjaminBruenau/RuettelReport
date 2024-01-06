@@ -1,11 +1,11 @@
-package service.httpServiceMockImpl
+package service.http.httpServiceMockImpl
 
 import akka.actor.typed.ActorSystem
 import akka.actor.typed.scaladsl.Behaviors
 import akka.http.scaladsl.model.HttpResponse
 import com.typesafe.config.{Config, ConfigFactory}
 import model.{Feature, FeatureCollection, Geometry, Metadata, Properties}
-import service.HttpServiceInterface
+import service.http.HttpServiceInterface
 
 import scala.concurrent.{ExecutionContextExecutor, Future}
 

@@ -1,8 +1,8 @@
 import akka.actor.typed.ActorSystem
 import akka.actor.typed.scaladsl.Behaviors
 import akka.http.scaladsl.model.HttpResponse
-import service.HttpServiceInterface
-import service.httpServiceBaseImpl.HttpService
+import service.http.HttpServiceInterface
+import service.http.httpServiceBaseImpl.HttpService
 
 import scala.concurrent.{ExecutionContextExecutor, Future}
 import scala.util.{Failure, Success}
