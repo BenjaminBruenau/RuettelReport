@@ -20,6 +20,8 @@ import service.http.HttpServiceInterface
 import service.http.httpServiceBaseImpl.HttpService
 import service.message.kafka.KafkaMessageService
 import spray.json.*
+import akka.stream.alpakka.json.scaladsl.JsonReader
+import akka.util.ByteString
 
 import scala.concurrent.duration.*
 import scala.concurrent.{ExecutionContextExecutor, Future}
@@ -96,6 +98,42 @@ class DataTransformerStreamHttpController extends DefaultJsonProtocol with Spray
           Try(apiSource) match
             case Success(source: Source[JsValue, Future[Any]]) =>
               complete(source.via(dataTransformFlow).via(responseFlow))
+            case Failure(exception) =>
+              complete(StatusCodes.InternalServerError, exception.getMessage)
+
+        }
+      },
+      path("api" / "data-transformer-message" / "features") {
+        get {
+          val apiUrl = "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&starttime=2023-09-10T00:00:00,&endtime=2023-09-10T00:10:00,&minmagnitude=0&orderby=time&format=geojson"
+          val httpRequest = HttpRequest(uri = apiUrl)
+          val responseFuture: Future[HttpResponse] = httpService.sendGET(apiUrl)
+
+
+          val apiSource = Source.futureSource(responseFuture.map {
+            case HttpResponse(StatusCodes.OK, _, entity, _) =>
+              entity.dataBytes
+            case HttpResponse(status, _, _, _) =>
+              throw new RuntimeException(s"Request failed with status code $status")
+          })
+
+            //.map(_.utf8String.parseJson)
+
+          val jsonKafkaFlow = Flow[ByteString].via(JsonReader.select("$.features[*]")).map(_.utf8String.parseJson) // We want to save each feature as a message
+          val jsonResponseFlow = Flow[ByteString].via(jsonStreamingSupport.framingDecoder).map(_.utf8String.parseJson)
+
+
+
+          val kafkaSink = kafkaService.produceMessagesSink("feature_test")
+          //val responseFlow = Flow[JsValue].alsoToMat(kafkaSink)(Keep.left)
+
+
+          Try(apiSource) match
+            case Success(source) =>
+              // Branch the flow to send to Kafka and complete the request
+              val connectedSource = source.alsoToMat(jsonKafkaFlow.toMat(kafkaSink)(Keep.right))(Keep.right)
+
+              complete(connectedSource.via(jsonResponseFlow))
             case Failure(exception) =>
               complete(StatusCodes.InternalServerError, exception.getMessage)
 
