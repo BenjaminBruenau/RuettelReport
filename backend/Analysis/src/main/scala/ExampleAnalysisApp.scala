@@ -65,7 +65,6 @@ import org.apache.spark.sql.functions.{col, count, from_json, schema_of_json}
              }
 
    */
-
   def batchOperations(ds: DataFrame, n: Long): Unit = {
     // Infer JSON schema from the first record in the batch
     val jsonSchema = schema_of_json(ds.select("value").first().getString(0))
@@ -80,6 +79,7 @@ import org.apache.spark.sql.functions.{col, count, from_json, schema_of_json}
     aggregationResult.show()
 
     // Write to some sink
+    // ToDo: Advantage: WE could write to multiple sinks here (e.g. MongoDB and WebSocket) as we only want to aggregate batched data (one http request result to external api) anyway
     aggregationResult.write
       .format("console")
       .mode("append")
@@ -98,3 +98,9 @@ import org.apache.spark.sql.functions.{col, count, from_json, schema_of_json}
     .foreachBatch(batchOperations _)
     .start()
     .awaitTermination()
+
+    /*
+      ToDo:
+      how about json daten (feature array fields aufsplitten) type, properties, id, geometry  als columns in kafka
+      -> data frame so laden und dann direkt json transformationen drauf ausführen statt forEachBatch
+     */
