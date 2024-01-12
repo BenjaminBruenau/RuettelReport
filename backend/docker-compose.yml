@@ -21,3 +21,20 @@ services:
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+
+
+  mongo-ruttelreport:
+    image: mongo:latest
+    container_name: mongo-ruttelreport
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+      MONGO_INITDB_DATABASE: admin
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb-ruttelreport:/data/db
+      - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js
+
+volumes:
+  mongodb-ruttelreport:
