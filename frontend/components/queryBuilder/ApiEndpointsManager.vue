@@ -20,85 +20,6 @@ const originalEndpointName = ref('');
 const temporaryEditedParams = ref([]);
 const apiSelected = ref(false);
 
-const struct = ref({
-  requestOptions: {
-    format: {
-      type: 'string',
-      include: true,
-      default: 'geojson',
-      value: 'geojson',
-    },
-    endtime: {
-      type: 'dateTime',
-      include: true,
-    },
-    starttime: {
-      type: 'dateTime',
-      include: true,
-    },
-    minmagnitude: {
-      type: 'float',
-      include: true,
-      value: 0.0,
-      attr: {
-        default: 0.0,
-        min: 0.0,
-        max: 10.0,
-      },
-    },
-    maxmagnitude: {
-      type: 'float',
-      include: true,
-      value: 10.0,
-      attr: {
-        default: 10.0,
-        min: 0.0,
-        max: 10.0,
-      },
-    },
-    minlongitude: {
-      type: 'float',
-      include: true,
-      value: -180.0,
-      attr: {
-        default: -180.0,
-        min: -180.0,
-        max: 180.0,
-      },
-    },
-    maxlongitude: {
-      type: 'float',
-      include: true,
-      value: 180.0,
-      attr: {
-        default: 180.0,
-        min: -180.0,
-        max: 180.0,
-      },
-    },
-    minlatitude: {
-      type: 'float',
-      include: true,
-      value: -90.0,
-      attr: {
-        default: -90.0,
-        min: -90.0,
-        max: 90.0,
-      },
-    },
-    maxlatitude: {
-      type: 'float',
-      include: true,
-      value: 90.0,
-      attr: {
-        default: 90.0,
-        min: -90.0,
-        max: 90.0,
-      },
-    },
-  },
-});
-
 const default_api_endpointStructure =ref({
   name: 'New Endpoint',
   url: '',
@@ -259,7 +180,6 @@ const onAdvancedUpload = async (event) => {
         }
       }
     };
-
     reader.readAsText(file);
   }
 };
@@ -270,7 +190,6 @@ const updateColor = (endpointName, color) => {
     props.initialEndpoints.api_endpoints[endpointName].color = color;
     toast.add({ severity: 'info', summary: 'Farbe geändert', detail: `Farbe für ${endpointName} aktualisiert`, life: 3000 });
   }
-
 };
 
 </script>
@@ -359,8 +278,6 @@ const updateColor = (endpointName, color) => {
 </template>
 
 <style>
-.marginer{
-}
 
 .header-buttons {
   display: flex;
@@ -397,16 +314,16 @@ InputGroupAddon {
 
 .header-buttons {
   display: flex;
-  justify-content: space-between; /* Behält die horizontale Ausrichtung bei */
-  align-items: flex-start; /* Ausrichtung der Elemente am Anfang des Containers (oben) */
-  width: 100%; /* Stellt sicher, dass der Container die volle Breite einnimmt */
+  justify-content: space-between;
+  align-items: flex-start;
+  width: 100%;
 }
 
 .input-fields {
   display: flex;
   flex-direction: column;
-  flex-grow: 1; /* Lässt die Input-Felder den verfügbaren Platz ausfüllen */
-  margin-right: 1rem; /* Abstand zum "Save"-Button */
+  flex-grow: 1;
+  margin-right: 1rem;
 }
 
 .placeholder-text {

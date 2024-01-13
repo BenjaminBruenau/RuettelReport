@@ -16,6 +16,9 @@ const path = d3.geoPath().projection(projection);
 const mapContainer = ref(null);
 
 onMounted(() => {
+
+  useColorMode().preference;
+
   const container = mapContainer.value;
 
   if (container) {
@@ -50,9 +53,9 @@ onMounted(() => {
 
 <style scoped>
 ::v-deep path {
-  stroke: #dfe7ef;
-  stroke-width: 0.1em;
-  fill: #eff3f8;
+  stroke: #00000030;
+  stroke-width: 0.05em;
+  fill: #ffffff5c;
 }
 
 .map-container {
@@ -66,4 +69,7 @@ onMounted(() => {
   width: 100%;
   position: absolute;
 }
+
+
+
 </style>

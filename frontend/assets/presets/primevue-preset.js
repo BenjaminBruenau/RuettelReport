@@ -1,12 +1,16 @@
 import {TRANSITIONS as props} from "primevue/passthrough/tailwind/index.esm.js";
 
+const customColor = '[#93c5fd]';
+
+console.log(`bg-${customColor}`)
 
 const PrimevueDesignPreset = {
+
     inputtext: {
         root: ({ props, context, parent }) => ({
             class: [
                 'm-0',
-                'font-sans text-gray-600 dark:text-white/80 bg-white dark:bg-gray-900 border border-gray-300 dark:border-blue-900/40 transition-colors duration-200 appearance-none rounded-lg',
+                'font-sans text-gray-600 dark:text-white/80 bg-tile_color_light dark:bg-tile_color_dark border border-gray-300 dark:border-blue-900/40 transition-colors duration-200 appearance-none rounded-lg',
                 {
                     'hover:border-primary-1  focus:outline-none focus:outline-offset-0 focus:shadow-[0_0_0_0.2rem_rgba(191,219,254,1)] dark:focus:shadow-[0_0_0_0.2rem_rgba(147,197,253,0.5)]': !context.disabled,
                     'opacity-60 select-none pointer-events-none cursor-default': context.disabled
@@ -49,9 +53,39 @@ const PrimevueDesignPreset = {
             ] // padding, borders, and colors
         }
     },
+    toolbar:{
+        root: ({ props }) => ({
+            class: [
+                'bg-tile_color_light dark:bg-tile_color_dark',
+                'border-b_color_light dark:border-b_color_dark',
+            ]
+        }),
+    },
+    menubar:{
+        root: ({ props }) => ({
+            class: [
+                'bg-tile_color_light dark:bg-tile_color_dark',
+                'border-b_color_light dark:border-b_color_dark',
+                'text-tile_color_light dark:text-tile_color_dark',
+            ]
+        }),
+        content: ({ props }) => ({
+            class: [
+                'text-tile_color_light dark:text-tile_color_dark',
+            ]
+        }),
+        action: ({ props }) => ({
+            class: [
+                'text-tile_color_light dark:text-tile_color_dark',
+            ]
+        }),
+    },
     button: {
         root: ({ props, context }) => ({
             class: [
+                'bg-prime_color_1',
+                'border-prime_color_1',
+                /*
                 'items-center cursor-pointer inline-flex overflow-hidden relative select-none text-center align-bottom border-none',
                 'transition duration-200 ease-in-out',
                 'focus:outline-none focus:outline-offset-0',
@@ -115,9 +149,13 @@ const PrimevueDesignPreset = {
                     'text-purple-500 dark:text-purple-400 border border-purple-500 dark:border-purple-400 hover:bg-purple-300/20': props.outlined && props.severity === 'help' && !props.plain,
                     'text-red-500 dark:text-red-400 border border-red-500 dark:border-red-400 hover:bg-red-300/20': props.outlined && props.severity === 'danger' && !props.plain
                 },
+                */
+
                 { 'px-4 py-3 text-base': props.size === null, 'text-xs py-2 px-3': props.size === 'small', 'text-xl py-3 px-4': props.size === 'large' },
                 { 'flex-column': props.iconPos == 'top' || props.iconPos == 'bottom' },
                 { 'opacity-60 pointer-events-none cursor-default': context.disabled }
+
+
             ]
         }),
         label: ({ props }) => ({
@@ -125,6 +163,7 @@ const PrimevueDesignPreset = {
                 'flex-1',
                 'duration-200',
                 'font-bold',
+
                 {
                     'hover:underline': props.link
                 },
@@ -153,6 +192,7 @@ const PrimevueDesignPreset = {
         }),
         slider: ({ props }) => ({
             class: [
+                'bg-tile_color_light dark:bg-tile_color_dark',
                 'border border-transparent',
                 'focus:outline-none focus:outline-offset-0 shadow-none',
                 {
@@ -207,7 +247,7 @@ const PrimevueDesignPreset = {
         }),
         range: ({ props }) => ({
             class: [
-                'bg-primary-1',
+                'bg-textColor_dark',
                 'block absolute',
             ]
         }),
@@ -233,41 +273,102 @@ const PrimevueDesignPreset = {
             ]
         })
     },
-    splitter: {
-        root: ({ props }) => ({
+
+    grid:{
+        content: ({ props }) => ({
             class: [
-                'flex', // Flex-Container
-                'w-full', // Volle Breite
-                'h-full', // Volle Höhe
-                // Weitere globale Styles für den Splitter-Container
+                'text-white-200'
             ]
         }),
-        panel: ({ props }) => ({
+    },
+
+    calendar:{
+        input: ({ props }) => ({
             class: [
-                'flex-grow', // Lässt das Panel innerhalb des Splitters wachsen
-                'overflow-auto', // Automatischer Scroll, falls Inhalt größer als Panel
-                // Weitere Styles für einzelne Panels
-                'bg-primary-1',
+                'bg-tile_color_light dark:bg-tile_color_dark border-border_color_light dark:border-border_color_dark'
             ]
         }),
-        bar: ({ props }) => ({
+
+    },
+
+    column: {
+        columnTitle: ({props}) => ({
             class: [
-                'bg-gray-300', // Hintergrundfarbe der Splitter-Leiste
-                'cursor-col-resize', // Cursor-Stil für horizontale Anpassung
-                'w-2', // Breite der Splitter-Leiste
-                // Weitere Styles für die Splitter-Leiste
+                'm-0',
+                'text-white',
+                {},
             ]
         }),
-        handle: ({ props }) => ({
+    },
+
+    accordiontab: {
+        headerTitle: ({ }) => ({
             class: [
-                'bg-primary-500', // Hintergrundfarbe des Griffs
-                'h-full', // Volle Höhe des Griffs
-                'w-1', // Breite des Griffs
-                // Weitere Styles für den Griff der Splitter-Leiste
+                'text-white dark:text-black',
+            ]}),
+    },
+
+    accordion:{
+        root:{
+            class: [
+                'text-tile_color_light dark:text-tile_color_dark',
             ]
-        })
-        // Weitere spezifische Elemente und ihre Styles
-    }
+        },
+
+        accordiontab: {
+
+            toggleableContent: ({ props }) => ({
+                class: [
+                    'm-0',
+                    'bg-tile_color_light dark:bg-tile_color_dark',
+
+                    {
+                    },
+                ]
+            }),
+
+            content: {
+                class: [
+                    //'bg-red-200 dark:bg-blue-200',
+                    'bg-tile_color_light dark:bg-tile_color_dark',
+                    'color-white-200',
+                    'border-b_color_light dark:border-b_color_dark',
+                    'text-textColor_light dark:text-textColor_dark',
+                ]
+            },
+
+            header: ({ }) => ({
+                class: [
+                    'm-0',
+                    'color-gray-600',
+                    'text-textColor_light dark:text-textColor_dark',
+
+                    {
+                    },
+                ]}),
+
+
+            headerAction: ({ }) => ({
+                class: [
+                    'm-0',
+                    'bg-tile_color_light dark:bg-tile_color_dark',
+                    'border-b_color_light dark:border-b_color_dark',
+                    'text-textColor_light dark:text-textColor_dark',
+                    {
+                    },
+                ]}),
+
+            headerTitle: ({ }) => ({
+                class: [
+                    'text-white dark:text-black',
+                ]}),
+        },
+
+    },
+
+
+
+
 
 }
 

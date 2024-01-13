@@ -227,7 +227,8 @@ onMounted(() => {
         <div class="header-content">
           {{ api_endpoint_name }}
         </div>
-        <PrimeColorPicker v-model="api_endpoint[api_endpoint_name].color" />
+        <PrimeButton icon="pi pi-cog" class="mr-2" ></PrimeButton>
+
       </template>
       <div class="grid-container">
         <div v-for="(item, index) in formattedItems" :key="index" class="flex align-items-center p-2 grid-row">

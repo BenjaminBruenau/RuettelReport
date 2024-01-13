@@ -5,14 +5,26 @@ export default <Partial<Config>>{
     theme: {
         extend: {
             colors: {
-                mainColor_1_1: "#4B5471", //Gradient - Start
-                mainColor_1_2: "#394253", //Gradient - End
+
+                prime_color_1: "#cc4736",
+
+                mainColor_1_1_dark: "#020202", //Gradient - Start
+                mainColor_1_2_dark: "#020202", //Gradient - End
+
+                mainColor_1_1_light: "#d8d8d8", //Gradient - Start
+                mainColor_1_2_light: "#d8d8d8", //Gradient - End
+
+                tile_color_light:"rgba(170, 170, 170, 0.15)",
+                tile_color_dark: "rgba(255, 255, 255, 0.04)",
+
+                b_color_light:"rgb(216, 216, 216)",
+                b_color_dark:"rgba(2,2,2)",
 
                 mainColor_2_1: "#EFF0F2", //Gradient - Start
                 mainColor_2_2: "#E6E7E9", //Gradient - End
 
-                textColor_dark: "#3B3C3E", //Für hellen Hintergrund
-                textColor_light: "#EFF0F2",  //Für dunklen Hintergrund
+                textColor_dark: "#b4b4b4", //Für hellen Hintergrund
+                textColor_light: "#3b3c3e",  //Für dunklen Hintergrund
 
                 //Akzentfarben muss ich noch schauen
                 //#FF9F1C
