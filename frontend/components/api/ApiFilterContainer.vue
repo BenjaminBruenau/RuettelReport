@@ -2,11 +2,20 @@
 
 import {ref} from "vue";
 
+const props = defineProps({
+  project_settings: {
+    type: Object,
+    default: () => ({data: {}})
+  },
+});
+
+
+
 const api_endpoint = ref({
   'earthquake.usgs.gov': {
     url: 'https://earthquake.usgs.gov/fdsnws/event/1/query',
     method: 'GET',
-    color: '#ff0000',
+    color: '#8d59ff',
     params: {
       format: 'format',
       starttime: 'starttime',
@@ -18,7 +27,26 @@ const api_endpoint = ref({
       minlatitude: 'minlatitude',
       maxlatitude: 'maxlatitude',
     },
-  }
+  },
+});
+
+const api_endpoint2 = ref({
+  'earthquake.usgs.gov2': {
+    url: 'https://earthquake.usgs.gov/fdsnws/event/1/query',
+    method: 'GET',
+    color: '#59fda0',
+    params: {
+      format: 'format',
+      starttime: 'starttime',
+      endtime: 'endtime',
+      minmagnitude: 'minmagnitude',
+      maxmagnitude: 'maxmagnitude',
+      minlongitude: 'minlongitude',
+      maxlongitude: 'maxlongitude',
+      minlatitude: 'minlatitude',
+      maxlatitude: 'maxlatitude',
+    },
+  },
 });
 
 const structure = ref({
@@ -117,10 +145,34 @@ const structure = ref({
   },
 });
 
+
+/*
 const apiFilterBlocks = ref([
-  { structure: structure.value, api_endpoint: api_endpoint.value },
-  { structure: structure.value, api_endpoint: api_endpoint.value },
-]);
+  {
+    structure: structure.value, api_endpoint: api_endpoint, index:0,
+  },
+  {
+    structure: structure.value, api_endpoint: api_endpoint2,  index:1,
+  },
+]);*/
+
+const apiFilterBlocks = ref([]);
+
+const createApiFilterBlocks = () => {
+  apiFilterBlocks.value = Object.keys(props.project_settings.api_endpoints).map((apiKey, index) => {
+    return {
+      structure: structure.value,
+      project_settings: props.project_settings,
+      index
+    };
+  });
+};
+
+watch(() => props.project_settings.api_endpoints, () => {
+  createApiFilterBlocks();
+}, { deep: true });
+
+createApiFilterBlocks();
 
 </script>
 
@@ -141,7 +193,7 @@ const apiFilterBlocks = ref([
   <div class="virtual-scroller-container">
     <PrimeVirtualScroller :items="apiFilterBlocks" itemSize="50">
       <template v-slot:item="{ item }">
-        <ApiFilterBlock :structure="item.structure" :api_endpoint="item.api_endpoint" />
+        <ApiFilterBlock :structure="item.structure" :project_settings="item.project_settings" :index="item.index"/>
       </template>
     </PrimeVirtualScroller>
   </div>

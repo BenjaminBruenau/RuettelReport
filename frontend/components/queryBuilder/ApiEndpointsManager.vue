@@ -49,9 +49,6 @@ const endpoints = computed(() => {
   }));
 });
 
-const copyDefaultEndpointsToMapping = () => {
-  props.initialEndpoints.api_endpoints = { ...default_api_endpoints.value.api_endpoints };
-};
 
 onBeforeMount(() => {
   //copyDefaultEndpointsToMapping();
@@ -76,13 +73,20 @@ const deleteSelectedEndpoints = () => {
 
 const saveChanges = () => {
   if (editedEndpoint.value) {
+
     const newEndpointName = editedEndpoint.value.name;
     const endpointParamsPairs = temporaryEditedParams.value.map(param => [param.key, param.value]);
+
+    const colorEntry = temporaryEditedParams.value.find(entry => entry.key === 'Color');
+    editedEndpoint.value.color = colorEntry ? colorEntry.value : editedEndpoint.value.color;
+
+    console.log(editedEndpoint.value.color);
 
     if (originalEndpointName.value !== newEndpointName) {
       const updatedEndpoint = {
         ...props.initialEndpoints.api_endpoints[originalEndpointName.value],
         url: editedEndpoint.value.url,
+        color: editedEndpoint.value.color,
         params: Object.fromEntries(endpointParamsPairs)
       };
 
@@ -97,6 +101,7 @@ const saveChanges = () => {
     } else {
       const endpoint = props.initialEndpoints.api_endpoints[newEndpointName];
       endpoint.url = editedEndpoint.value.url;
+      endpoint.color = editedEndpoint.value.color;
       endpoint.params = Object.fromEntries(endpointParamsPairs);
     }
     originalEndpointName.value = '';
@@ -108,6 +113,13 @@ const saveChanges = () => {
     }
     toast.add({ severity: 'success', summary: 'Gespeichert', detail: 'Änderungen gespeichert', life: 3000 });
   }
+
+  apiSelected.value = false;
+  editedEndpoint.value = {};
+  originalEndpointName.value = '';
+  temporaryEditedParams.value = [];
+
+  console.log(JSON.stringify(props.initialEndpoints,null,2));
 
 };
 
@@ -186,61 +198,62 @@ const onAdvancedUpload = async (event) => {
 
 
 const updateColor = (endpointName, color) => {
+  console.log(JSON.stringify(props.initialEndpoints.api_endpoints,null,2));
   if (props.initialEndpoints.api_endpoints[endpointName]) {
     props.initialEndpoints.api_endpoints[endpointName].color = color;
-    toast.add({ severity: 'info', summary: 'Farbe geändert', detail: `Farbe für ${endpointName} aktualisiert`, life: 3000 });
   }
 };
 
 </script>
 
 <template>
-  <div>
-    <PrimeSplitter>
-      <h3>API - Endpoints</h3>
-      <PrimeSplitterPanel size="50">
-        <div class="splitter-container">
-          <div class="left-panel">
-            <PrimeDataTable v-model:selection="selectedEndpoints" :value="endpoints" dataKey="name" selectionMode="checkbox">
-              <template #header>
-                <div class="header-buttons">
-                  <PrimeButton label="+ Endpoint" @click="addNewEndpoint" class="p-button-outlined" />
-                  <div class="spacer"></div>
-                  <PrimeButton label="Download" icon="pi pi-download" @click="downloadSelectedEndpoints" class="p-button-outlined" />
-                  <div class="spacer_vert"></div>
-                  <PrimeButton label="Del" class="p-button-danger p-button-outlined" @click="deleteSelectedEndpoints" />
-                </div>
-              </template>
-              <PrimeColumn selectionMode="multiple" style="width:3em"></PrimeColumn>
-              <PrimeColumn header="Color" style="width:6em">
-                <template #body="slotProps">
-                  <PrimeColorPicker v-model="slotProps.data.color" @input="updateColor(slotProps.data.name, slotProps.data.color)" />
+  <div class="flex-container">
+    <PrimeScrollPanel class="flex-item">
+      <PrimeSplitter   layout="vertical">
+        <h3>API - Endpoints</h3>
+        <PrimeSplitterPanel size="50">
+          <div class="splitter-container">
+            <div class="left-panel">
+              <PrimeDataTable v-model:selection="selectedEndpoints" :value="endpoints" dataKey="name" selectionMode="checkbox">
+                <template #header>
+                  <div class="header-buttons">
+                    <PrimeButton label="+ Endpoint" @click="addNewEndpoint" class="p-button-outlined" />
+                    <div class="spacer"></div>
+                    <PrimeButton label="Download" icon="pi pi-download" @click="downloadSelectedEndpoints" class="p-button-outlined" />
+                    <div class="spacer_vert"></div>
+                    <PrimeButton label="Del" class="p-button-danger p-button-outlined" @click="deleteSelectedEndpoints" />
+                  </div>
                 </template>
-              </PrimeColumn>
-              <PrimeColumn field="name" header="Endpoint"></PrimeColumn>
-              <PrimeColumn style="width:6em">
-                <template #body="slotProps">
-                  <PrimeButton label="Edit" icon="pi pi-pencil" @click="() => openEditDialog(slotProps.data)" />
-                </template>
-              </PrimeColumn>
-            </PrimeDataTable>
-            <div class="file-upload-container">
-              <PrimeToast />
-              <PrimeFileUpload name="demo[]" url="/api/upload" @upload="onAdvancedUpload" :multiple="true" accept="application/json" :maxFileSize="1000000">
-                <template #empty>
-                  <p>Drag and drop JSON files to here to upload.</p>
-                </template>
-              </PrimeFileUpload>
+                <PrimeColumn selectionMode="multiple" style="width:3em"></PrimeColumn>
+                <PrimeColumn header="Color" style="width:6em">
+                  <template #body="slotProps">
+                    <PrimeColorPicker
+                        v-model="slotProps.data.color"
+                        @input="() => updateColor(slotProps.data.name, slotProps.data.color)"
+                    />
+                  </template>
+                </PrimeColumn>
+                <PrimeColumn field="name" header="Endpoint"></PrimeColumn>
+                <PrimeColumn style="width:6em">
+                  <template #body="slotProps">
+                    <PrimeButton label="Edit" icon="pi pi-pencil" @click="() => openEditDialog(slotProps.data)" />
+                  </template>
+                </PrimeColumn>
+              </PrimeDataTable>
+              <div class="file-upload-container">
+                <PrimeToast />
+                <PrimeFileUpload name="demo[]" url="/api/upload" @upload="onAdvancedUpload" :multiple="true" accept="application/json" :maxFileSize="1000000">
+                  <template #empty>
+                    <p>Drag and drop JSON files to here to upload.</p>
+                  </template>
+                </PrimeFileUpload>
+              </div>
             </div>
           </div>
-        </div>
-      </PrimeSplitterPanel>
-      <PrimeSplitterPanel size="50">
-          <div v-if="!apiSelected" class="placeholder-text">
-            Bitte wählen Sie eine API zur Bearbeitung aus, oder erstellen Sie eine neue!
-          </div>
-          <div v-else>
-            <PrimeDataTable :value="temporaryEditedParams" dataKey="key" paginator :rows="5" :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 50rem" v-model:filters="filters">
+        </PrimeSplitterPanel>
+        <PrimeSplitterPanel size="50">
+          <div v-if="apiSelected">
+            <PrimeDataTable :value="temporaryEditedParams" dataKey="key"  tableStyle="min-width: 50rem" v-model:filters="filters"> <!--paginator :rows="5" :rowsPerPageOptions="[5, 10, 20, 50]"-->
               <template #header>
                 <div class="header-buttons">
                   <div class="input-fields">
@@ -252,9 +265,13 @@ const updateColor = (endpointName, color) => {
                       <PrimeInputGroupAddon>API-Endpoint</PrimeInputGroupAddon>
                       <PrimeInputText v-model="editedEndpoint.url" />
                     </PrimeInputGroup>
+                    <PrimeInputGroup>
+                      <PrimeInputGroupAddon>API-Color</PrimeInputGroupAddon>
+                      <PrimeColorPicker v-model="editedEndpoint.color" />
+                    </PrimeInputGroup>
                   </div>
                   <div class="spacer"></div>
-                  <PrimeButton label="Save" @click="saveChanges" class="p-button-outlined" icon="pi pi-save" />
+                  <PrimeButton label="Save" @click="saveChanges" class="p-button-outlined" icon="pi pi-save" :disabled="!apiSelected" />
                 </div>
               </template>
               <PrimeColumn field="key" header="RüttelReport API ref." :filter="true" filterPlaceholder="Filter" filterMatchMode="startsWith">
@@ -272,12 +289,30 @@ const updateColor = (endpointName, color) => {
               </PrimeColumn>
             </PrimeDataTable>
           </div>
-      </PrimeSplitterPanel>
-    </PrimeSplitter>
+        </PrimeSplitterPanel>
+      </PrimeSplitter>
+    </PrimeScrollPanel>
+
   </div>
 </template>
 
 <style>
+
+.flex-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%; /* Nutzt die Höhe des übergeordneten Elements */
+}
+
+.flex-item {
+  flex-grow: 1; /* Ermöglicht dem ScrollPanel, den verfügbaren Platz auszufüllen */
+  overflow: auto; /* Stellt sicher, dass der Inhalt scrollbar ist, wenn er die Höhe übersteigt */
+}
+
+.scroll-panel-container {
+  height: 100%; /* Verwenden Sie die volle Höhe des Viewports */
+  width: 100%; /* Verwenden Sie die volle Breite */
+}
 
 .header-buttons {
   display: flex;
@@ -291,6 +326,11 @@ const updateColor = (endpointName, color) => {
 .splitter-container {
   display: flex;
   justify-content: space-between;
+}
+
+/* Add this to make the left panel flexible */
+.splitter-container > div:first-child {
+  flex: 1;
 }
 
 

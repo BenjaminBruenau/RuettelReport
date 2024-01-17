@@ -53,9 +53,10 @@ onMounted(() => {
 
 <style scoped>
 ::v-deep path {
-  stroke: #00000030;
-  stroke-width: 0.05em;
+  stroke: #ccc;
+  stroke-width: 0.03em;
   fill: #ffffff5c;
+  filter: drop-shadow(10px 10px 10px rgb(0, 0, 0,0.1));
 }
 
 .map-container {

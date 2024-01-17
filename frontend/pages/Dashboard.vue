@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref } from "vue";
 
+import {ref} from "vue";
 
 const props = defineProps({
   project_settings: {
@@ -27,7 +27,7 @@ const project_settings = ref({
     'earthquake.usgs.gov': {
       url: 'https://earthquake.usgs.gov/fdsnws/event/1/query',
       method: 'GET',
-      color: '#00ffc4',
+      color: '#ff0000',
       params: {
         format: 'format',
         starttime: 'starttime',
@@ -43,37 +43,31 @@ const project_settings = ref({
   },
   'theme':{
     'primary_color_light':'#fff',
-    'primary_color_dark':'#000',
-    'gradient_from_light':"#d8d8d8",
-    'gradient_to_light':"#d8d8d8",
-    'gradient_from_dark':"#020202",
-    'gradient_to_dark':"#020202",
+    'primary_color_dark':'#fff',
     'default_theme': 'light',
   },
 });
 
-
-const visible = ref(false);
-
-const darkMode = ref(false)
-
-const savedTheme = localStorage.getItem('theme')
-
-console.log('DARK MODE: ', darkMode.value)
-if (savedTheme) {
-  console.log(savedTheme)
-  useColorMode().preference = savedTheme
-}
-
-const changeTheme = (theme: string) => {
-  console.log('THEME CHANGE: ', theme)
-  useColorMode().preference = theme
-  //localStorage.setItem('theme', theme)
-}
-
-const toggleDarkMode = (newValue: boolean) => {
-  useColorMode().preference = darkMode.value ? 'dark' : 'light'
-}
+const default_api_endpoints = ref({
+  'api_endpoints':{
+    'earthquake.usgs.gov': {
+      url: 'https://earthquake.usgs.gov/fdsnws/event/1/query',
+      method: 'GET',
+      color: '#ff0000',
+      params: {
+        format: 'format',
+        starttime: 'starttime',
+        endtime: 'endtime',
+        minmagnitude: 'minmagnitude',
+        maxmagnitude: 'maxmagnitude',
+        minlongitude: 'minlongitude',
+        maxlongitude: 'maxlongitude',
+        minlatitude: 'minlatitude',
+        maxlatitude: 'maxlatitude',
+      },
+    }
+  }
+});
 
 const activeWindow = ref(1);
 
@@ -82,16 +76,13 @@ const setActiveWindow = (windowNumber) => {
   console.log(activeWindow.value);
 }
 
-function setupTheme(){
-
-}
-
 </script>
+
 <template>
   <div class="dashboard">
     <div class="container">
       <div class="tile tile_left first-column">
-          <ApiFilterContainer :project_settings="project_settings"></ApiFilterContainer>
+        <ApiFilterContainer></ApiFilterContainer>
       </div>
       <div class="second-column">
         <div class="second-column-content">
@@ -107,10 +98,9 @@ function setupTheme(){
             </PrimeToolbar>
           </div>
           <div class="tile tile_right_2 map-content" v-if="activeWindow===1">
-              <Map></Map>
+            <Map></Map>
           </div>
           <div class="tile tile_right_2 map-content" v-if="activeWindow===2">
-
           </div>
           <div class="tile tile_right_2 map-content" v-if="activeWindow===3">
             <Settings :project_settings="project_settings"></Settings>
@@ -124,69 +114,5 @@ function setupTheme(){
 </template>
 
 <style scoped>
-.dashboard {
-  width: 100%;
-  height: calc(100vh);
-  overflow: auto;
-  margin: 0px;
-}
 
-.container {
-  display: grid;
-  grid-template-columns: 1fr 3fr;
-  gap: 10px;
-  height: 100%;
-}
-
-.tile{
-  @apply bg-tile_color_light dark:bg-tile_color_dark;
-  border-radius: 20px;
-  padding: 15px;
-}
-
-.tile_left {
-  margin: 15px 5px 15px 15px;
-}
-
-.tile_right {
-  margin: 15px 15px 15px 5px;
-}
-
-.tile_right_1{
-  margin: 15px 15px 10px 5px;
-}
-.tile_right_2{
-  margin: 10px 15px 15px 5px;
-}
-.tile_right_3{
-  margin: 10px 15px 15px 5px;
-}
-
-
-.first-column {
-  display: flex;
-  flex-direction: column;
-}
-
-.second-column {
-  display: flex;
-  flex-direction: column;
-}
-
-.second-column-content {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-}
-
-.map-content {
-  flex: 9; /* Erste Zeile mit 8/10 Höhe */
-}
-
-.second-row-content {
-  flex: 1; /* Zweite Zeile mit 2/10 Höhe */
-}
-.second-row-content2 {
-  flex:0.5; /* Zweite Zeile mit 2/10 Höhe */
-}
 </style>
