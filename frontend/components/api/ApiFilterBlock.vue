@@ -20,103 +20,8 @@ const props = defineProps({
 
 
 import {ref} from "vue";
-
-
-const structure = ref({
-  requestOptions: {
-    format: {
-      type: 'string',
-      include: true,
-      value: 'geojson',
-      attr: {
-        default: 'geojson',
-        title: 'Format',
-      }
-    },
-    endtime: {
-      type: 'dateTime',
-      include: true,
-      attr:{
-        default: 'lastMonth',
-        title: 'End time',
-      }
-    },
-    starttime: {
-      type: 'dateTime',
-      include: true,
-      attr:{
-        default: 'today',
-        title: 'Start time',
-      }
-    },
-    minmagnitude: {
-      type: 'float_span',
-      include: true,
-      value: 0.0,
-      attr: {
-        default: 0.0,
-        title: 'min. Magnitude',
-        min: 0.0,
-        max: 10.0,
-      },
-    },
-    maxmagnitude: {
-      type: 'float_span',
-      include: true,
-      value: 10.0,
-      attr: {
-        default: 10.0,
-        title: 'max. Magnitude',
-        min: 0.0,
-        max: 10.0,
-      },
-    },
-    minlongitude: {
-      type: 'float_span',
-      include: true,
-      value: -180.0,
-      attr: {
-        default: -180.0,
-        title: 'min. Longitude',
-        min: -180.0,
-        max: 180.0,
-      },
-    },
-    maxlongitude: {
-      type: 'float_span',
-      include: true,
-      value: 180.0,
-      attr: {
-        default: 180.0,
-        title: 'max. Longitude',
-        min: -180.0,
-        max: 180.0,
-      },
-    },
-    minlatitude: {
-      type: 'float_span',
-      include: true,
-      value: -90.0,
-      attr: {
-        default: -90.0,
-        title: 'min. Latitude',
-        min: -90.0,
-        max: 90.0,
-      },
-    },
-    maxlatitude: {
-      type: 'float_span',
-      include: true,
-      value: 90.0,
-      attr: {
-        default: 90.0,
-        title: 'max. Latitude',
-        min: -90.0,
-        max: 90.0,
-      },
-    },
-  },
-});
+import {set} from "vue-demi";
+import {EventBus} from "~/components/event-bus";
 
 const selectedApiEndpoint = computed(() => {
   const keys = Object.keys(props.project_settings.api_endpoints);
@@ -135,25 +40,22 @@ function getDate(key: string): Date {
   const today = new Date();
 
   switch(key) {
-    case 'today':
+    case 'case_today':
       return today;
-
-    case 'lastWeek':
+    case 'case_lastWeek':
       return new Date(today.getFullYear(), today.getMonth(), today.getDate() - 7);
-
-    case 'lastMonth':
+    case 'case_lastMonth':
       return new Date(today.getFullYear(), today.getMonth() - 1, today.getDate());
-
-    case 'lastYear':
+    case 'case_lastYear':
       return new Date(today.getFullYear() - 1, today.getMonth(), today.getDate());
-
     default:
-      throw new Error("Invalid key");
+      console.error("Invalid key provided:", key);
+      return today;
   }
 }
 
 
-const formattedItems = computed(() => {
+const formattedItems = computed(() =>{
 
   const endpoint = selectedApiEndpoint.value.endpoint;
 
@@ -161,8 +63,9 @@ const formattedItems = computed(() => {
 
   for (const key in endpoint.params) {
     const paramValue = endpoint.params[key];
-    if (paramValue !== '' && structure.value.requestOptions[key]) {
-      const option = structure.value.requestOptions[key];
+
+    if (paramValue !== '' && props.structure.requestOptions[key]) {
+      const option = props.structure.requestOptions[key];
       if (option.attr && option.attr.title) {
         let item = [];
         // First column: title
@@ -218,8 +121,6 @@ const maxWidth = ref('100px');
 
 onMounted(() => {
 
-  console.log(JSON.stringify(props.project_settings,null,2));
-
   let maxContentLength = 0;
   formattedItems.value.forEach(item => {
     maxContentLength = Math.max(maxContentLength, item[0].length);
@@ -228,11 +129,17 @@ onMounted(() => {
 
   setColor(props.index, selectedApiEndpoint.value.endpoint?.color);
 
+  resetToDefault();
+
+
 });
+
+
 
 function entferne_rauten(text){
   return text.replace("#", "")
 }
+
 
 
 function setColor(index, color) {
@@ -243,17 +150,17 @@ function setColor(index, color) {
 const rangeClass = (props, parent, index, color) => {
   setColor(index,color);
   return [
-      {
-        'bg-api_color_1': index === 0,
-        'bg-api_color_2': index === 1,
-        'bg-api_color_3': index === 2,
-        'bg-api_color_4': index === 3,
-        'bg-api_color_5': index === 4,
-        'bg-api_color_6': index === 5,
-        'bg-api_color_7': index === 6,
-        'bg-api_color_8': index === 7,
-        'bg-api_color_9': index === 8,
-        'bg-api_color_10': index === 9,
+    {
+      'bg-api_color_1': index === 0,
+      'bg-api_color_2': index === 1,
+      'bg-api_color_3': index === 2,
+      'bg-api_color_4': index === 3,
+      'bg-api_color_5': index === 4,
+      'bg-api_color_6': index === 5,
+      'bg-api_color_7': index === 6,
+      'bg-api_color_8': index === 7,
+      'bg-api_color_9': index === 8,
+      'bg-api_color_10': index === 9,
     },
   ];
 };
@@ -284,6 +191,49 @@ watch(
 );
 
 
+const resetToDefault = () => {
+  for (const key in props.structure.requestOptions) {
+    const option = props.structure.requestOptions[key];
+    if (option.attr && option.attr.default !== undefined) {
+      if (option.type === 'dateTime') {
+        set(option, 'value', getDate(option.attr.default));
+      } else {
+        set(option, 'value', option.attr.default);
+      }
+    }
+  }
+};
+
+const handleReplayClick = (event: MouseEvent) => {
+  event.stopPropagation();
+  resetToDefault();
+};
+
+const minLat = ref(props.structure.requestOptions.minlatitude.value);
+const maxLat = ref(props.structure.requestOptions.maxlatitude.value);
+const minLon = ref(props.structure.requestOptions.minlongitude.value);
+const maxLon = ref(props.structure.requestOptions.maxlongitude.value);
+
+// Beobachten Sie die Werte der Slider
+watch([minLat, maxLat, minLon, maxLon], ([newMinLat, newMaxLat, newMinLon, newMaxLon]) => {
+  console.log('Slider-Werte geändert:', newMinLat, newMaxLat, newMinLon, newMaxLon);
+  updateRectangle(newMinLat, newMaxLat, newMinLon, newMaxLon);
+});
+
+
+function updateRectangle(minLat, maxLat,minLon, maxLon){
+  EventBus.emit('add-rectangle', {
+    id: 'neuesRechteck',
+    minLatitude: minLat,
+    maxLatitude: maxLat,
+    minLongitude: minLon,
+    maxLongitude: maxLon,
+    color: selectedApiEndpoint.value.endpoint?.color
+  });
+  console.log(minLat,maxLat,minLon, maxLon);
+}
+
+
 </script>
 
 
@@ -294,7 +244,7 @@ watch(
         <div class="header-content">
           {{ apiEndpointName }}
         </div>
-        <PrimeButton icon="pi pi-cog" class="mr-2" ></PrimeButton>
+        <PrimeButton icon="pi pi-replay" class="mr-2" @click="handleReplayClick"></PrimeButton>
 
       </template>
       <div class="grid-container">
@@ -307,6 +257,7 @@ watch(
               <PrimeCalendar showIcon iconDisplay="input" v-model="item[1].value" :defaultDate="getDate(item[1].default )"/>
             </div>
             <div v-else-if="item[1].type === 'float_span'">
+              <PrimeInputText v-model.number="item[1].value" />
               <PrimeSlider v-model="item[1].value" :min="item[1].min" :max="item[1].max" :pt="
               {
                 range: ({ props, parent }) => ({class: rangeClass(props, parent, item[1].index, item[1].color)}),
@@ -339,6 +290,7 @@ watch(
   display: flex;
   align-items: center;
   height: 50px;
+  margin-bottom: 10px;
 }
 
 .grid-column-title {

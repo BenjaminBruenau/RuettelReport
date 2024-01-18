@@ -9,46 +9,6 @@ const props = defineProps({
   },
 });
 
-
-
-const api_endpoint = ref({
-  'earthquake.usgs.gov': {
-    url: 'https://earthquake.usgs.gov/fdsnws/event/1/query',
-    method: 'GET',
-    color: '#8d59ff',
-    params: {
-      format: 'format',
-      starttime: 'starttime',
-      endtime: 'endtime',
-      minmagnitude: 'minmagnitude',
-      maxmagnitude: 'maxmagnitude',
-      minlongitude: 'minlongitude',
-      maxlongitude: 'maxlongitude',
-      minlatitude: 'minlatitude',
-      maxlatitude: 'maxlatitude',
-    },
-  },
-});
-
-const api_endpoint2 = ref({
-  'earthquake.usgs.gov2': {
-    url: 'https://earthquake.usgs.gov/fdsnws/event/1/query',
-    method: 'GET',
-    color: '#59fda0',
-    params: {
-      format: 'format',
-      starttime: 'starttime',
-      endtime: 'endtime',
-      minmagnitude: 'minmagnitude',
-      maxmagnitude: 'maxmagnitude',
-      minlongitude: 'minlongitude',
-      maxlongitude: 'maxlongitude',
-      minlatitude: 'minlatitude',
-      maxlatitude: 'maxlatitude',
-    },
-  },
-});
-
 const structure = ref({
   requestOptions: {
     format: {
@@ -64,7 +24,7 @@ const structure = ref({
       type: 'dateTime',
       include: true,
       attr:{
-        default: 'case_lastMonth',
+        default: 'case_today',
         title: 'End time',
       }
     },
@@ -72,7 +32,7 @@ const structure = ref({
       type: 'dateTime',
       include: true,
       attr:{
-        default: 'case_today',
+        default: 'case_lastMonth',
         title: 'Start time',
       }
     },
@@ -145,23 +105,12 @@ const structure = ref({
   },
 });
 
-
-/*
-const apiFilterBlocks = ref([
-  {
-    structure: structure.value, api_endpoint: api_endpoint, index:0,
-  },
-  {
-    structure: structure.value, api_endpoint: api_endpoint2,  index:1,
-  },
-]);*/
-
 const apiFilterBlocks = ref([]);
 
 const createApiFilterBlocks = () => {
   apiFilterBlocks.value = Object.keys(props.project_settings.api_endpoints).map((apiKey, index) => {
     return {
-      structure: structure.value,
+      structure: structure,
       project_settings: props.project_settings,
       index
     };
@@ -174,17 +123,19 @@ watch(() => props.project_settings.api_endpoints, () => {
 
 createApiFilterBlocks();
 
+
 </script>
 
 <template>
 
   <PrimeToolbar>
     <template #start>
-      <PrimeButton icon="pi pi-replay" class="mr-2" ></PrimeButton>
+      <!--<PrimeButton icon="pi pi-replay" class="mr-2"></PrimeButton>-->
+      <PrimeButton icon="pi pi-cog" class="mr-2" label="APIs"></PrimeButton>
     </template>
 
     <template #end>
-      <PrimeButton icon="pi pi-cog" class="mr-2" label="APIs"></PrimeButton>
+
       <PrimeButton icon="pi pi-play" class="mr-2" label="RUN"></PrimeButton>
 
     </template>

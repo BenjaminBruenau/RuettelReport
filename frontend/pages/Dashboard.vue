@@ -27,7 +27,7 @@ const project_settings = ref({
     'earthquake.usgs.gov': {
       url: 'https://earthquake.usgs.gov/fdsnws/event/1/query',
       method: 'GET',
-      color: '#ff0000',
+      color: '#009b91',
       params: {
         format: 'format',
         starttime: 'starttime',
