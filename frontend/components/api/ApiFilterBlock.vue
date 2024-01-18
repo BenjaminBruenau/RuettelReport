@@ -23,6 +23,12 @@ import {ref} from "vue";
 import {set} from "vue-demi";
 import {EventBus} from "~/components/event-bus";
 
+const maxWidth = ref('100px');
+const requestOptions = ref(props.structure.requestOptions);
+
+let filterModified = ref(false);
+
+
 const selectedApiEndpoint = computed(() => {
   const keys = Object.keys(props.project_settings.api_endpoints);
   if (props.index < keys.length) {
@@ -54,7 +60,6 @@ function getDate(key: string): Date {
   }
 }
 
-
 const formattedItems = computed(() =>{
 
   const endpoint = selectedApiEndpoint.value.endpoint;
@@ -66,6 +71,7 @@ const formattedItems = computed(() =>{
 
     if (paramValue !== '' && props.structure.requestOptions[key]) {
       const option = props.structure.requestOptions[key];
+
       if (option.attr && option.attr.title) {
         let item = [];
         // First column: title
@@ -75,6 +81,7 @@ const formattedItems = computed(() =>{
         let api_color = endpoint.color;
 
         // Second column: data based on type
+
         if (option.type === 'dateTime') {
           item.push({
             type: option.type,
@@ -88,7 +95,7 @@ const formattedItems = computed(() =>{
         else if (option.type === 'float_span') {
           item.push({
             type: option.type,
-            value: option.attr.default,
+            value: option.value,
             min: option.attr.min,
             max: option.attr.max,
             index: api_index,
@@ -106,7 +113,6 @@ const formattedItems = computed(() =>{
         }
 
         else {
-          // Handle other types or add a placeholder if necessary
           item.push('Other data or placeholder');
         }
 
@@ -117,7 +123,22 @@ const formattedItems = computed(() =>{
   return items;
 });
 
-const maxWidth = ref('100px');
+const localRequestOptions = ref(JSON.parse(JSON.stringify(props.structure.requestOptions)));
+
+
+watch(formattedItems, (newItems) => {
+
+  newItems.forEach((item, index) => {
+    const key = Object.keys(localRequestOptions.value)[index];
+    if (localRequestOptions.value[key] && item[1]) {
+      localRequestOptions.value[key].value = item[1].value;
+    }
+  });
+  filterModified.value = true;
+}, { deep: true });
+
+
+const emit = defineEmits(['update-request-options']);
 
 onMounted(() => {
 
@@ -129,18 +150,14 @@ onMounted(() => {
 
   setColor(props.index, selectedApiEndpoint.value.endpoint?.color);
 
-  resetToDefault();
-
+  //resetToDefault();
 
 });
-
 
 
 function entferne_rauten(text){
   return text.replace("#", "")
 }
-
-
 
 function setColor(index, color) {
   const colorVarName = `--api-color-${index + 1}`;
@@ -204,34 +221,19 @@ const resetToDefault = () => {
   }
 };
 
+
+
 const handleReplayClick = (event: MouseEvent) => {
   event.stopPropagation();
   resetToDefault();
+  emit('update-request-options', { index: props.index, newValues: localRequestOptions });
 };
 
-const minLat = ref(props.structure.requestOptions.minlatitude.value);
-const maxLat = ref(props.structure.requestOptions.maxlatitude.value);
-const minLon = ref(props.structure.requestOptions.minlongitude.value);
-const maxLon = ref(props.structure.requestOptions.maxlongitude.value);
-
-// Beobachten Sie die Werte der Slider
-watch([minLat, maxLat, minLon, maxLon], ([newMinLat, newMaxLat, newMinLon, newMaxLon]) => {
-  console.log('Slider-Werte geändert:', newMinLat, newMaxLat, newMinLon, newMaxLon);
-  updateRectangle(newMinLat, newMaxLat, newMinLon, newMaxLon);
-});
-
-
-function updateRectangle(minLat, maxLat,minLon, maxLon){
-  EventBus.emit('add-rectangle', {
-    id: 'neuesRechteck',
-    minLatitude: minLat,
-    maxLatitude: maxLat,
-    minLongitude: minLon,
-    maxLongitude: maxLon,
-    color: selectedApiEndpoint.value.endpoint?.color
-  });
-  console.log(minLat,maxLat,minLon, maxLon);
-}
+const handleApiSave = (event: MouseEvent) => {
+  event.stopPropagation();
+  emit('update-request-options', { index: props.index, newValues: localRequestOptions });
+  filterModified.value = false;
+};
 
 
 </script>
@@ -244,10 +246,12 @@ function updateRectangle(minLat, maxLat,minLon, maxLon){
         <div class="header-content">
           {{ apiEndpointName }}
         </div>
-        <PrimeButton icon="pi pi-replay" class="mr-2" @click="handleReplayClick"></PrimeButton>
+        <!--<PrimeButton icon="pi pi-replay" class="mr-2" @click="handleReplayClick"></PrimeButton>-->
+        <PrimeButton icon="pi pi-save" class="mr-2" @click="handleApiSave" :disabled="!filterModified"></PrimeButton>
 
       </template>
       <div class="grid-container">
+
         <div v-for="(item, index) in formattedItems" :key="index" class="flex align-items-center p-2 grid-row">
           <!-- First column: Title -->
           <div class="grid-column-title" :style="{ flexBasis: maxWidth, flexGrow: 0, flexShrink: 0 }"><b>{{ item[0] }}</b></div>

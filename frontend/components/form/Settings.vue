@@ -109,17 +109,73 @@ watch(gradient_to_dark, (newColor) => {
   document.documentElement.style.setProperty('--gradient_to_dark', unifyHex(newColor));
 });
 
+
+
+//----------- Projekt Management --------------------------------
+
+const users = ref([]); // Hier könnten Sie Ihre initialen Benutzerdaten laden
+const selectedUsers = ref([]);
+const userDialog = ref(false);
+const user = ref({});
+
+const openNew = () => {
+  user.value = { id: null, name: '', email: '' };
+  userDialog.value = true;
+};
+
+const editUser = (userData) => {
+  user.value = { ...userData };
+  userDialog.value = true;
+};
+
+const saveUser = () => {
+  const index = users.value.findIndex(u => u.email === user.value.email);
+
+  if (index !== -1) {
+    users.value[index] = { ...user.value };
+  } else {
+    const emailExists = users.value.some(u => u.email === user.value.email);
+    if (!emailExists) {
+      users.value.push({ ...user.value });
+    } else {
+      alert('Diese E-Mail-Adresse wird bereits verwendet.');
+      return;
+    }
+  }
+
+  userDialog.value = false;
+};
+
+const hideDialog = () => {
+  userDialog.value = false;
+};
+
+const confirmDeleteSelected = () => {
+  users.value = users.value.filter(u => !selectedUsers.value.includes(u));
+  selectedUsers.value = [];
+};
+
+function  btn_projectSettings_reload(){
+  console.log("TODO: RELOAD")
+}
+
+function  btn_projectSettings_save(){
+  console.log("TODO: SAVE")
+  console.log(JSON.stringify(users,null,2));
+}
+
+
 </script>
 
 <template>
   <div class="parent-container">
     <PrimeTabView class="container">
-      <PrimeTabPanel header="Account" :pt="{headeraction: ({ props, parent }) => ({class: panelClass(props, parent, 0)})}">
-      </PrimeTabPanel>
+      <!--<PrimeTabPanel header="Account" :pt="{headeraction: ({ props, parent }) => ({class: panelClass(props, parent, 0)})}">
+      </PrimeTabPanel>-->
       <PrimeTabPanel header="Endpoint Manager" :pt="{headeraction: ({ props, parent }) => ({class: panelClass(props, parent, 1)})}">
         <ApiEndpointsManager :initialEndpoints="{ api_endpoints: props.project_settings['api_endpoints'] }" />
       </PrimeTabPanel>
-      <PrimeTabPanel header="Theming" :pt="{headeraction: ({ props, parent }) => ({class: panelClass(props, parent, 2)})}">
+      <PrimeTabPanel header="★ Theming" :pt="{headeraction: ({ props, parent }) => ({class: panelClass(props, parent, 2)})}">
         <div style="margin:15px">
         <div class="grid-container">
 
@@ -145,7 +201,56 @@ watch(gradient_to_dark, (newColor) => {
           </div>
         </div>
       </PrimeTabPanel>
-      <PrimeTabPanel header="Projects" :pt="{headeraction: ({ props, parent }) => ({class: panelClass(props, parent, 3)})}">
+      <PrimeTabPanel header="★ Projects" :pt="{headeraction: ({ props, parent }) => ({class: panelClass(props, parent, 3)})}">
+        
+        <div>
+          <div class="card">
+            <PrimeToolbar>
+              <template #start>
+                <PrimeButton label="New" icon="pi pi-plus" @click="openNew" />
+                <div style="width: 10px"></div>
+                <PrimeButton label="Delete" icon="pi pi-trash" @click="confirmDeleteSelected" :disabled="!selectedUsers || !selectedUsers.length" />
+              </template>
+              <template #end>
+                <PrimeButton label="" icon="pi pi-replay" @click="btn_projectSettings_reload"/>
+                <div style="width: 10px"></div>
+                <PrimeButton label="Save" icon="pi pi-save" @click="btn_projectSettings_save"/>
+              </template>
+            </PrimeToolbar>
+
+            <PrimeDataTable :value="users" v-model:selection="selectedUsers" dataKey="id">
+              <PrimeColumn selectionMode="multiple"></PrimeColumn>
+              <PrimeColumn field="name" header="Name"></PrimeColumn>
+              <PrimeColumn field="email" header="Email"></PrimeColumn>
+              <PrimeColumn :exportable="false">
+                <template #body="slotProps">
+                  <PrimeButton icon="pi pi-pencil" @click="editUser(slotProps.data)" />
+                </template>
+              </PrimeColumn>
+            </PrimeDataTable>
+          </div>
+
+          <PrimeDialog v-model:visible="userDialog" header="User Details" :modal="true">
+            <div class="form-grid">
+              <div class="field">
+                <label for="name">Name</label>
+                <PrimeInputText id="name" v-model="user.name" required />
+              </div>
+              <div class="field">
+                <label for="email">Email</label>
+                <PrimeInputText id="email" v-model="user.email" required />
+              </div>
+            </div>
+            <template #footer>
+              <PrimeButton label="Cancel" icon="pi pi-times" @click="hideDialog"/>
+              <PrimeButton label="Save" icon="pi pi-check" @click="saveUser" />
+            </template>
+          </PrimeDialog>
+
+        </div>
+
+
+
       </PrimeTabPanel>
     </PrimeTabView>
   </div>
@@ -196,4 +301,18 @@ watch(gradient_to_dark, (newColor) => {
   --contrast-text_dark: rgb(0,0,0);
 }
 
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+}
+
+.field label {
+  margin-bottom: 5px;
+}
 </style>

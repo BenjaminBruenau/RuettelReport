@@ -23,6 +23,7 @@ const structure = ref({
     endtime: {
       type: 'dateTime',
       include: true,
+      value: '',
       attr:{
         default: 'case_today',
         title: 'End time',
@@ -31,6 +32,7 @@ const structure = ref({
     starttime: {
       type: 'dateTime',
       include: true,
+      value: '',
       attr:{
         default: 'case_lastMonth',
         title: 'Start time',
@@ -108,21 +110,52 @@ const structure = ref({
 const apiFilterBlocks = ref([]);
 
 const createApiFilterBlocks = () => {
-  apiFilterBlocks.value = Object.keys(props.project_settings.api_endpoints).map((apiKey, index) => {
+
+  const newApiFilterBlocks = Object.keys(props.project_settings.api_endpoints).map((apiKey, index) => {
+    const existingBlock = apiFilterBlocks.value.find(block => block.index === index);
+
+    const blockStructure = existingBlock ? existingBlock.structure : ref(JSON.parse(JSON.stringify(structure.value)));
+
     return {
-      structure: structure,
-      project_settings: props.project_settings,
-      index
+      index,
+      structure: blockStructure,
+      project_settings: ref(JSON.parse(JSON.stringify(props.project_settings)))
     };
   });
+
+  if (JSON.stringify(apiFilterBlocks.value) !== JSON.stringify(newApiFilterBlocks)) {
+    apiFilterBlocks.value = newApiFilterBlocks;
+  }
 };
 
 watch(() => props.project_settings.api_endpoints, () => {
   createApiFilterBlocks();
 }, { deep: true });
 
+
 createApiFilterBlocks();
 
+const handleUpdateRequestOptions = (payload) => {
+  const { index, newValues } = payload;
+
+  if (index >= 0 && index < apiFilterBlocks.value.length) {
+
+    const block = apiFilterBlocks.value[index];
+    const actualNewValues = newValues._rawValue || newValues._value;
+
+    Object.entries(actualNewValues).forEach(([key, newValue]) => {
+      if (block.structure.requestOptions[key]) {
+        block.structure.requestOptions[key].value = newValue.value;
+      }
+    });
+    createApiFilterBlocks();
+  }
+};
+
+function runButton(){
+  // HIER AN SERVER SCHICKEN UM REPORT ZU ERHALTEN!
+  console.log(JSON.stringify(apiFilterBlocks.value,null,2));
+}
 
 </script>
 
@@ -131,31 +164,34 @@ createApiFilterBlocks();
   <PrimeToolbar>
     <template #start>
       <!--<PrimeButton icon="pi pi-replay" class="mr-2"></PrimeButton>-->
-      <PrimeButton icon="pi pi-cog" class="mr-2" label="APIs"></PrimeButton>
-    </template>
+      <!--<PrimeButton icon="pi pi-cog" class="mr-2" label="APIs"></PrimeButton>-->
+   </template>
 
-    <template #end>
+   <template #end>
 
-      <PrimeButton icon="pi pi-play" class="mr-2" label="RUN"></PrimeButton>
+     <PrimeButton icon="pi pi-play" class="mr-2" label="RUN" @click="runButton"></PrimeButton>
 
-    </template>
-  </PrimeToolbar>
-  <div style="height: 5px"/>
-  <div class="virtual-scroller-container">
-    <PrimeVirtualScroller :items="apiFilterBlocks" itemSize="50">
-      <template v-slot:item="{ item }">
-        <ApiFilterBlock :structure="item.structure" :project_settings="item.project_settings" :index="item.index"/>
-      </template>
-    </PrimeVirtualScroller>
-  </div>
+   </template>
+ </PrimeToolbar>
+ <div style="height: 5px"/>
+ <div class="virtual-scroller-container">
+   <PrimeVirtualScroller :items="apiFilterBlocks" itemSize="50">
+     <template v-slot:item="{ item }">
+       <ApiFilterBlock :structure="item.structure"
+                       :project_settings="item.project_settings"
+                       :index="item.index"
+                       @update-request-options="handleUpdateRequestOptions"/>
+     </template>
+   </PrimeVirtualScroller>
+ </div>
 </template>
 
 
 
 <style scoped>
 .virtual-scroller-container{
-  height:100%;
-  border-radius:15px;
+ height:100%;
+ border-radius:15px;
 }
 
 </style>

@@ -1,4 +1,5 @@
 import type { Config } from 'tailwindcss'
+
 // Default are on https://tailwindcss.nuxtjs.org/tailwind/config#default-configuration
 export default <Partial<Config>>{
     darkMode: 'class',
@@ -9,21 +10,29 @@ export default <Partial<Config>>{
                 primary: 'var(--color-primary)',
                 secondary: 'rgb(var(--color-secondary) / <alpha-value>)',
 
-                contrastText: 'var(--contrast-text)',
+                primary_light: 'var(--color-primary_light)',
+                primary_dark: 'var(--color-primary_dark)',
+
+                contrastText_light: 'var(--contrast-text_light)',
+                contrastText_dark: 'var(--contrast-text_dark)',
 
                 prime_color_1: 'rgb(var(--color-primary)',//"rgba(203,71,54,0.8)",
 
-                mainColor_1_1_dark: "#020202", //Gradient - Start
-                mainColor_1_2_dark: "#020202", //Gradient - End
+                mainColor_1_1_dark: 'var(--gradient_from_dark)', //Gradient - Start
+                mainColor_1_2_dark: 'var(--gradient_to_dark)', //Gradient - End
 
-                mainColor_1_1_light: "#d8d8d8", //Gradient - Start
-                mainColor_1_2_light: "#d8d8d8", //Gradient - End
+                mainColor_1_1_light: 'var(--gradient_from_light)', //Gradient - Start
+                mainColor_1_2_light: 'var(--gradient_to_light)', //Gradient - End
 
-                tile_color_light:"rgba(255, 255, 255, 0.25)",//tile_color_light:"rgba(170, 170, 170, 0.15)",
-                tile_color_dark: "rgba(255, 255, 255, 0.04)",
+                tile_color_light:"rgba(255, 255, 255, 0.15)",//tile_color_light:"rgba(170, 170, 170, 0.15)",
+                tile_color_dark: "rgba(255, 255, 255, 0.02)",
 
-                b_color_light:"rgb(216, 216, 216)",
-                b_color_dark:"rgba(2,2,2)",
+                //b_color_light:"rgb(216, 216, 216)",
+                //b_color_dark:"rgba(2,2,2)",
+
+                b_color_light:'var(--b_color_light)',
+                b_color_dark:'var(--b_color_dark)',
+
 
                 mainColor_2_1: "#EFF0F2", //Gradient - Start
                 mainColor_2_2: "#E6E7E9", //Gradient - End
