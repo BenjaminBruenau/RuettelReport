@@ -12,7 +12,8 @@ def getDataEveryDay(): Unit = {
     val order_by = "time"
     val format_type = "geojson"
 
-    var current_time = LocalDateTime.of(2023, 12, 1, 0, 0, 0)
+    var current_time = LocalDateTime.now()
+    var yesterday = current_time.minusDays(1)
 
     val existingDataFile = "existing_data.json"
     val existingJson: Option[String] = try {
@@ -21,15 +22,15 @@ def getDataEveryDay(): Unit = {
         case _: java.io.FileNotFoundException => None
     }
 
-    while (current_time.isBefore(LocalDateTime.of(2024, 1, 1, 0, 0, 0))) {
-        // Calculate the end time by adding 15 days to the current time
-        val end_time = current_time.plusMonths(1)
+    while (yesterday.isBefore(current_time)) {
+        // Calculate the end time by adding 1 day to the start time
+        val oneDayStep = yesterday.plusMonths(1)
 
         // Build the parameters for the GET request
         val params = Map(
             "format" -> format_type,
-            "starttime" -> current_time.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")),
-            "endtime" -> end_time.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")),
+            "starttime" -> yesterday.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")),
+            "endtime" -> oneDayStep.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")),
             "minmagnitude" -> min_magnitude.toString,
             "orderby" -> order_by
         )
@@ -57,11 +58,11 @@ def getDataEveryDay(): Unit = {
         outputFile.write(uniqueJsonSet.mkString("\n"))
         outputFile.close()
 
-        println(s"Data collected for ${current_time.toLocalDate}")
+        println(s"Data collected for ${yesterday.toLocalDate}")
 
 
-        // Update the current_time for the next iteration by adding 15 days
-        current_time = end_time
+        // Update the yesterday variable for the next iteration by adding 15 days
+        yesterday = oneDayStep
     }
     // Start Spark session
     val spark = SparkSession.builder
@@ -73,14 +74,11 @@ def getDataEveryDay(): Unit = {
     // Create a Spark DataFrame from the merged JSON file
     val merged_json: DataFrame = spark.read.json("existing_data.json")
 
-    // Perform Spark operations on the DataFrame as needed
-
     // Save the merged JSON to a single JSON file using Spark
     val output_path = "new_response"
     merged_json.write.mode("overwrite").json(output_path)
 
     println(s"Data collection complete. Merged JSON saved to: $output_path")
 
-    // Stop Spark session
     spark.stop()
 }
