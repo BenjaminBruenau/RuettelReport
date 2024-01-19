@@ -82,7 +82,13 @@ def statistics(): Unit =
 //  println("Mean of Difference: " + meanTimeDiffs)
 //  println("Std Deviation of Difference: " + stdDevTimeDiffs)
 
-  // Stop Spark session
+  // Load the DataFrame from the Parquet file
+  val loadedDistributionDF = spark.read.parquet("C:\\Users\\marco\\OneDrive\\Desktop\\MSI_ALL\\MSI\\RuettelReport\\backend\\Analysis\\distribution.parquet")
 
+  // Extract mean and std values from the loaded DataFrame
+  val loadedMean = loadedDistributionDF.select("mean").first().getDouble(0) / 1000
+  val loadedStd = loadedDistributionDF.select("std").first().getDouble(0) / 1000
+  println(s"Loaded mean: $loadedMean")
+  println(s"Loaded std: $loadedStd")
 
   spark.stop()

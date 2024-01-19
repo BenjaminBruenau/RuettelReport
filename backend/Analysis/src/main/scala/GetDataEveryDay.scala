@@ -14,9 +14,16 @@ def getDataEveryDay(): Unit = {
 
     var current_time = LocalDateTime.of(2023, 12, 1, 0, 0, 0)
 
+    val existingDataFile = "existing_data.json"
+    val existingJson: Option[String] = try {
+        Some(scala.io.Source.fromFile(existingDataFile).mkString)
+    } catch {
+        case _: java.io.FileNotFoundException => None
+    }
+
     while (current_time.isBefore(LocalDateTime.of(2024, 1, 1, 0, 0, 0))) {
         // Calculate the end time by adding 15 days to the current time
-        val end_time = current_time.plusDays(15)
+        val end_time = current_time.plusMonths(1)
 
         // Build the parameters for the GET request
         val params = Map(
@@ -39,12 +46,19 @@ def getDataEveryDay(): Unit = {
         val current_json = Stream.continually(reader.readLine()).takeWhile(_ != null).mkString("\n")
         reader.close()
 
-        // Append the new data to the existing file
-        val outputFile = new BufferedWriter(new FileWriter("existing_data.json", true))
-        outputFile.write(current_json)
+        // Append the new data to the existing content
+        val updatedJson = existingJson.getOrElse("") + current_json
+
+        // Convert the JSON strings to a Set to remove duplicates
+        val uniqueJsonSet = updatedJson.split("\n").toSet
+
+        // Write the unique data to the existing file
+        val outputFile = new BufferedWriter(new FileWriter(existingDataFile))
+        outputFile.write(uniqueJsonSet.mkString("\n"))
         outputFile.close()
 
         println(s"Data collected for ${current_time.toLocalDate}")
+
 
         // Update the current_time for the next iteration by adding 15 days
         current_time = end_time
