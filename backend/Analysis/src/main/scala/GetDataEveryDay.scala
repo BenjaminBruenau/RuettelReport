@@ -74,11 +74,24 @@ def getDataEveryDay(): Unit = {
     // Create a Spark DataFrame from the merged JSON file
     val merged_json: DataFrame = spark.read.json("existing_data.json")
 
-    // Save the merged JSON to a single JSON file using Spark
-    val output_path = "new_response"
-    merged_json.write.mode("overwrite").json(output_path)
+    // Save the JSON string to a single JSON file
+//    val output_path = "C:\\Users\\marco\\OneDrive\\Desktop\\MSI_ALL\\MSI\\RuettelReport\\backend\\Analysis\\new_response.json"
+//    val outputFile = new BufferedWriter(new FileWriter(output_path))
+//    outputFile.write(merged_json)
+//    outputFile.close()
+    merged_json.write
+      .format("mongodb")
+      .mode("overwrite")
+      .option("checkpointLocation", "/tmp/")
+      .option("forceDeleteTempCheckpointLocation", "true")
+      .option("spark.mongodb.connection.uri", "mongodb://media:media1234@127.0.0.1:27017/ruettelreport")
+      .option("spark.mongodb.database", "ruettelreport")
+      .option("spark.mongodb.collection", "dataModel") // tenant-name + realtime_analytics
+      .save()
 
-    println(s"Data collection complete. Merged JSON saved to: $output_path")
+//    val output_path = "C:\\Users\\marco\\OneDrive\\Desktop\\MSI_ALL\\MSI\\RuettelReport\\backend\\Analysis\\new_response.json"
+//    merged_json.write.mode("overwrite").json(output_path)
+    //println(s"Data collection complete. Merged JSON saved to: $output_path")
 
     spark.stop()
 }
