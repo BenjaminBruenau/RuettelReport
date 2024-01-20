@@ -25,6 +25,9 @@ jobs:
       uses: olafurpg/setup-scala@v10
       with:
         java-version: "openjdk@1.17.0"
+    - name: Get commons lib
+      run: sbt publishLocal
+      working-directory: ./backend/commons
     - name: Run Tests
       run: sbt clean coverage test
       working-directory: ${{ env.working-directory }}
