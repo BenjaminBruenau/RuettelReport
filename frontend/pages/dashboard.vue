@@ -61,40 +61,28 @@ const project_settings = ref({
       },
     }
   },
-
-  'theme':{
-    'primary_color_light':'#009b91',
-    'primary_color_dark':'#009b91',
-    'gradient_from_light':"#dde6eb",
-    'gradient_to_light':"#dde6eb",
-    'gradient_from_dark':"#334152",
-    'gradient_to_dark':"#334152",
-    'default_theme': 'light',
-  },
   /*
-  'theme':{
-    'primary_color_light':'#ffffff',
-    'primary_color_dark':'#9e9e9e',
-    'gradient_from_light':"#d8d8d8",
-    'gradient_to_light':"#d8d8d8",
-    'gradient_from_dark':"#020202",
-    'gradient_to_dark':"#020202",
-    'default_theme': 'light',
-  },
-
-   */
+    'theme':{
+      'primary_color_light':'#009b91',
+      'primary_color_dark':'#009b91',
+      'gradient_from_light':"#dde6eb",
+      'gradient_to_light':"#dde6eb",
+      'gradient_from_dark':"#334152",
+      'gradient_to_dark':"#334152",
+      'default_theme': 'light',
+    },
+    */
+    'theme':{
+      'primary_color_light':'#ffffff',
+      'primary_color_dark':'#9e9e9e',
+      'gradient_from_light':"#d8d8d8",
+      'gradient_to_light':"#d8d8d8",
+      'gradient_from_dark':"#1f1f1f",
+      'gradient_to_dark':"#1f1f1f",
+      'default_theme': 'light',
+    },
 
 });
-
-
-
-const activeWindow = ref(1);
-
-const setActiveWindow = (windowNumber) => {
-  activeWindow.value = windowNumber;
-  console.log(activeWindow.value);
-}
-
 
 const savedTheme = localStorage.getItem('theme')
 
@@ -103,8 +91,16 @@ if (savedTheme) {
   useColorMode().preference = savedTheme
 }
 
+const activeWindow = ref(1);
+
+const setActiveWindow = (windowNumber) => {
+  activeWindow.value = windowNumber;
+  console.log(activeWindow.value);
+}
+
 function setupTheme() {
   const themeSettings = project_settings.value.theme;
+  document.documentElement.style.setProperty('--color-primary', themeSettings.primary_color_light);
   document.documentElement.style.setProperty('--color-primary_light', themeSettings.primary_color_light);
   document.documentElement.style.setProperty('--color-primary_dark', themeSettings.primary_color_dark);
   document.documentElement.style.setProperty('--gradient_to_light', themeSettings.primary_color_dark);
@@ -146,7 +142,7 @@ const updateProjectUsers = (payload) => {
   <div class="dashboard">
     <div class="container">
       <div class="tile tile_left first-column">
-          <ApiFilterContainer :project_settings="project_settings"></ApiFilterContainer>
+        <ApiFilterContainer :project_settings="project_settings"></ApiFilterContainer>
       </div>
       <div class="second-column">
         <div class="second-column-content">
@@ -162,7 +158,7 @@ const updateProjectUsers = (payload) => {
             </PrimeToolbar>
           </div>
           <div class="tile tile_right_2 map-content" v-if="activeWindow===1">
-              <Map></Map>
+            <Map></Map>
           </div>
           <div class="tile tile_right_2 map-content" v-if="activeWindow===2">
 
@@ -196,6 +192,7 @@ const updateProjectUsers = (payload) => {
   @apply bg-tile_color_light dark:bg-tile_color_dark;
   border-radius: 20px;
   padding: 15px;
+  backdrop-filter: blur(100px);
 }
 
 .tile_left {
@@ -250,6 +247,10 @@ const updateProjectUsers = (payload) => {
   --gradient_to_light: rgb(0,0,0);
   --gradient_from_dark: rgb(0,0,0);
   --gradient_to_dark: rgb(0,0,0);
+}
+:root {
+  --color-primary: #7a7a7a;
+  --contrast-text: #7a7a7a;
 }
 
 </style>
