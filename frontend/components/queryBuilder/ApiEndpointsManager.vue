@@ -225,6 +225,7 @@ const updateColor = (endpointName, color) => {
                   </div>
                 </template>
                 <PrimeColumn selectionMode="multiple" style="width:3em"></PrimeColumn>
+                <!--
                 <PrimeColumn header="Color" style="width:6em">
                   <template #body="slotProps">
                     <PrimeColorPicker
@@ -233,6 +234,7 @@ const updateColor = (endpointName, color) => {
                     />
                   </template>
                 </PrimeColumn>
+                -->
                 <PrimeColumn field="name" header="Endpoint"></PrimeColumn>
                 <PrimeColumn style="width:6em">
                   <template #body="slotProps">

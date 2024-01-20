@@ -77,8 +77,6 @@ onMounted(() => {
   gradient_to_light.value = unifyHex(document.documentElement.style.getPropertyValue('--gradient_from_light'));
   gradient_from_dark.value = unifyHex(document.documentElement.style.getPropertyValue('--gradient_from_dark'));
   gradient_to_dark.value = unifyHex(document.documentElement.style.getPropertyValue('--gradient_to_dark'));
-
-
 });
 
 watch(color_primary_light, (newColor) => {
@@ -91,6 +89,7 @@ watch(color_primary_dark, (newColor) => {
   document.documentElement.style.setProperty('--color-primary_dark', unifyHex(newColor));
   const contrastColor = getContrastYIQ(unifyHex(newColor)) === 'black' ? '#FFFFFF' : '#000000';
   document.documentElement.style.setProperty('var(--contrast-text_dark)', contrastColor);
+  document.documentElement.style.setProperty('--color-primary', unifyHex(newColor));
 });
 
 watch(gradient_from_light, (newColor) => {
@@ -108,6 +107,15 @@ watch(gradient_from_dark, (newColor) => {
 watch(gradient_to_dark, (newColor) => {
   document.documentElement.style.setProperty('--gradient_to_dark', unifyHex(newColor));
 });
+
+watch(darkMode,(b)=>{
+  if(b){
+    document.documentElement.style.setProperty('--color-primary', unifyHex(color_primary_dark.value));
+  } else{
+    document.documentElement.style.setProperty('--color-primary', unifyHex(color_primary_light.value));
+  }
+});
+
 
 
 
@@ -159,10 +167,13 @@ function  btn_projectSettings_reload(){
   console.log("TODO: RELOAD")
 }
 
+const emit = defineEmits(['update-project-users'])
+
 function  btn_projectSettings_save(){
-  console.log("TODO: SAVE")
-  console.log(JSON.stringify(users,null,2));
+  emit('update-project-users', { users: users });
 }
+
+
 
 
 </script>
@@ -172,10 +183,10 @@ function  btn_projectSettings_save(){
     <PrimeTabView class="container">
       <!--<PrimeTabPanel header="Account" :pt="{headeraction: ({ props, parent }) => ({class: panelClass(props, parent, 0)})}">
       </PrimeTabPanel>-->
-      <PrimeTabPanel header="Endpoint Manager" :pt="{headeraction: ({ props, parent }) => ({class: panelClass(props, parent, 1)})}">
+      <PrimeTabPanel header="Endpoint Manager" :pt="{headeraction: ({ props, parent }) => ({class: panelClass(props, parent, 0)})}">
         <ApiEndpointsManager :initialEndpoints="{ api_endpoints: props.project_settings['api_endpoints'] }" />
       </PrimeTabPanel>
-      <PrimeTabPanel header="★ Theming" :pt="{headeraction: ({ props, parent }) => ({class: panelClass(props, parent, 2)})}">
+      <PrimeTabPanel header="★ Theming" :pt="{headeraction: ({ props, parent }) => ({class: panelClass(props, parent, 1)})}">
         <div style="margin:15px">
         <div class="grid-container">
 
@@ -201,8 +212,8 @@ function  btn_projectSettings_save(){
           </div>
         </div>
       </PrimeTabPanel>
-      <PrimeTabPanel header="★ Projects" :pt="{headeraction: ({ props, parent }) => ({class: panelClass(props, parent, 3)})}">
-        
+      <PrimeTabPanel header="★ Projects" :pt="{headeraction: ({ props, parent }) => ({class: panelClass(props, parent, 2)})}">
+
         <div>
           <div class="card">
             <PrimeToolbar>
@@ -315,4 +326,16 @@ function  btn_projectSettings_save(){
 .field label {
   margin-bottom: 5px;
 }
+</style>
+
+<style lang="postcss">
+
+html {
+  @apply bg-gradient-to-r from-mainColor_1_1_light to-mainColor_1_2_light
+  dark:bg-gradient-to-r dark:from-mainColor_1_1_dark dark:to-mainColor_1_2_dark
+  text-text-light dark:text-text-dark;
+}
+
+
+
 </style>

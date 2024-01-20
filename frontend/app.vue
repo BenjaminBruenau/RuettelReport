@@ -2,12 +2,8 @@
 
   <div>
     <NuxtLayout>
-      <div class="w-screen h-screen flex"><!--sticky flex h-full space-x-4-->
-      <!--<Sidebar></Sidebar>-->
-
-        <!--<div class="ml-[25%] w-full">-->
+      <div class="w-screen h-screen flex">
           <NuxtPage/>
-        <!--</div>-->
       </div>
     </NuxtLayout>
   </div>
@@ -16,7 +12,7 @@
 <script setup
         lang="ts">
 
-import {onMounted} from "vue";
+import {onMounted, ref} from "vue";
 
 function resetHeight(){
   document.body.style.height = window.innerHeight + "px";
@@ -24,9 +20,6 @@ function resetHeight(){
 window.addEventListener("resize", resetHeight);
 resetHeight();
 
-onMounted(() => {
-  document.documentElement.style.setProperty('--color-primary', '#838383');
-});
 
 </script>
 
@@ -39,6 +32,11 @@ body {
           text-text-light dark:text-text-dark;
 }
 
+
+:root {
+  --color-primary: #7a7a7a;
+  --contrast-text: #7a7a7a;
+}
 
 
 </style>

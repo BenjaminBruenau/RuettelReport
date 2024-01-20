@@ -290,6 +290,10 @@ const handleApiSave = (event: MouseEvent) => {
   width: 100%;
 }
 
+.p-datepicker:not(.p-datepicker-inline){
+  background: linear-gradient(90deg, #f35454 0%, #88fc00 100%);
+}
+
 .grid-row {
   display: flex;
   align-items: center;
@@ -320,12 +324,14 @@ const handleApiSave = (event: MouseEvent) => {
   width: 100%;
 }
 
-.color-indicator {
-  width: 30px;
-  height: 30px;
-  background-color: red;
-  border-radius: 7px;
+:root{
+  .p-datepicker:not(.p-datepicker-inline) {
+    background: linear-gradient(90deg, #7254f3 0%, #000000 100%);
+    border: 0 none;
+    box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+  }
 }
+
 
 :root {
   --api-color-1: #000000;

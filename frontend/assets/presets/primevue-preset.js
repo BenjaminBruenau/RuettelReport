@@ -168,8 +168,8 @@ const PrimevueDesignPreset = {
                 'border border-transparent',
                 'focus:outline-none focus:outline-offset-0 shadow-none',
                 {
-                    'bg-gray-200': !props.modelValue,
-                    'bg-primary-2': props.modelValue
+                    'bg-grey-500': !props.modelValue,
+                    'bg-grey-400': props.modelValue
                 }
             ]
         })
@@ -262,7 +262,7 @@ const PrimevueDesignPreset = {
         }),
         root: ({ props }) => ({
             class: [
-                //'bg-tile_color_light dark:bg-tile_color_dark border-border_color_light dark:border-border_color_dark',
+                'bg-tile_color_light dark:bg-tile_color_dark border-border_color_light dark:border-border_color_dark',
                 'border-b_color_light dark:border-b_color_dark',
                 'text-textColor_light dark:text-textColor_dark',
             ]
@@ -274,8 +274,56 @@ const PrimevueDesignPreset = {
                 'text-textColor_light dark:text-textColor_dark',
             ]
         }),
+        panel: ({ props }) => ({
+            class: [
+                'bg-tile_color_light dark:bg-tile_color_dark border-border_color_light dark:border-border_color_dark',
+                'border-b_color_light dark:border-b_color_dark',
+                'text-textColor_light dark:text-textColor_dark',
+            ]
+        }),
+        container: ({ props }) => ({
+            class: [
+                'bg-tile_color_light dark:bg-tile_color_dark border-border_color_light dark:border-border_color_dark',
+                'border-b_color_light dark:border-b_color_dark',
+                'text-textColor_light dark:text-textColor_dark',
+            ]
+        }),
+        group: ({ props }) => ({
+            class: [
+                'bg-tile_color_light dark:bg-tile_color_dark border-border_color_light dark:border-border_color_dark',
+                'border-b_color_light dark:border-b_color_dark',
+                'text-textColor_light dark:text-textColor_dark',
+            ]
+        }),
+        groupcontainer: ({ props }) => ({
+            class: [
+                'bg-tile_color_light dark:bg-tile_color_dark border-border_color_light dark:border-border_color_dark',
+                'border-b_color_light dark:border-b_color_dark',
+                'text-textColor_light dark:text-textColor_dark',
+            ]
+        }),
+        table: ({ props }) => ({
+            class: [
+                'bg-tile_color_light dark:bg-tile_color_dark border-border_color_light dark:border-border_color_dark',
+                'border-b_color_light dark:border-b_color_dark',
+                'text-textColor_light dark:text-textColor_dark',
+            ]
+        }),
+        hiddenSelectedDay: ({ props }) => ({
+            class: [
+                'bg-tile_color_light dark:bg-tile_color_dark border-border_color_light dark:border-border_color_dark',
+                'border-b_color_light dark:border-b_color_dark',
+                'text-textColor_light dark:text-textColor_dark',
+            ]
+        }),
+        component : ({ props }) => ({
+            class: [
+                'bg-tile_color_light dark:bg-tile_color_dark border-border_color_light dark:border-border_color_dark',
+                'border-b_color_light dark:border-b_color_dark',
+                'text-textColor_light dark:text-textColor_dark',
+            ]
+        }),
     },
-
 
 
     accordiontab: {
@@ -341,6 +389,31 @@ const PrimevueDesignPreset = {
                 ]}),
         },
 
+    },
+
+    card:{
+        root: ({ }) => ({
+            class: [
+                'bg-tile_color_light dark:bg-tile_color_dark',
+                'border-b_color_light dark:border-b_color_dark',
+                'text-textColor_light dark:text-textColor_dark',
+            ]}),
+        header: ({ }) => ({
+            class: [
+                'bg-tile_color_light dark:bg-tile_color_dark',
+                'border-b_color_light dark:border-b_color_dark',
+                'text-textColor_light dark:text-textColor_dark',
+            ]}),
+        body: ({ }) => ({
+            class: [
+                'bg-tile_color_light dark:bg-tile_color_dark',
+                'border-b_color_light dark:border-b_color_dark',
+                'text-textColor_light dark:text-textColor_dark',
+            ]}),
+        subtitle: ({ }) => ({
+            class: [
+                'text-textColor_light dark:text-textColor_dark',
+            ]}),
     },
 
     dialog:{

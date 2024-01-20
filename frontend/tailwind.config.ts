@@ -60,6 +60,7 @@ export default <Partial<Config>>{
                 api_color_8 : 'var(--api-color-8)',
                 api_color_9 : 'var(--api-color-9)',
                 api_color_10 : 'var(--api-color-10)',
+
             }
         }
 

@@ -8,14 +8,13 @@
 import {ref, onMounted, computed} from 'vue';
 import * as d3 from 'd3';
 import * as topojson from 'topojson-client';
-import {EventBus} from '~/components/event-bus.js'; // Stellen Sie sicher, dass der Pfad korrekt ist
+import {EventBus} from '~/components/event-bus.js';
 
 const projection = d3.geoMercator().center([0, 45]);
 const path = d3.geoPath().projection(projection);
 const mapContainer = ref(null);
 const rectangles = ref([]);
 
-// Beispiel für definierte Props (müssen entsprechend Ihrer Anwendung angepasst werden)
 const props = defineProps({
   project_settings: Object,
   index: Number
@@ -96,7 +95,7 @@ onMounted(() => {
 
 <style scoped>
 ::v-deep path {
-  stroke: #ccc;
+  stroke: #b9b9b978;
   stroke-width: 0.03em;
   fill: #ffffff5c;
   filter: drop-shadow(10px 10px 10px rgb(0, 0, 0, 0.1));
