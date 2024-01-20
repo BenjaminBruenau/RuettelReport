@@ -13,7 +13,7 @@
     <appender name="FILE" class="ch.qos.logback.core.FileAppender">
         <level>INFO</level>
         <append>true</append>
-        <file>./backend/logs/backend.log</file>
+        <file>./logs/backend.log</file>
 
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <fileNamePattern>logFile.%d{yyyy-MM-dd}.log</fileNamePattern>

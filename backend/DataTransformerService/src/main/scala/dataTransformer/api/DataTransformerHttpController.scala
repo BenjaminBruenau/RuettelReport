@@ -6,18 +6,17 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.common.{EntityStreamingSupport, JsonEntityStreamingSupport}
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import akka.http.scaladsl.marshallers.xml.ScalaXmlSupport
-import akka.http.scaladsl.model.{HttpResponse, StatusCodes}
+import akka.http.scaladsl.model.{HttpResponse, StatusCodes, HttpRequest}
 import akka.http.scaladsl.server.Directives.*
 import akka.http.scaladsl.server.Route
 import akka.stream.scaladsl.{Flow, Keep, Source}
+import akka.util.ByteString
 import dataTransformer.parser.MappingRulesParser
 import dataTransformer.protocol.{DynamicProtocolGenerator, given}
 import dataTransformer.{DataTransformer, DataTransformerAppConfig}
 import org.slf4j.LoggerFactory
 import commons.queryBuilder.{QueryBuilder, QueryBuilderBackend}
 import commons.queryBuilder.model.{QueryRequestStructure, QueryStructureJsonProtocol}
-import commons.http.HttpServiceInterface
-import commons.http.httpServiceBaseImpl.HttpService
 import commons.message.MessageService
 import spray.json.*
 
@@ -26,8 +25,7 @@ import scala.io.StdIn
 import scala.util.{Failure, Success, Try}
 import scala.xml.Elem
 
-class DataTransformerHttpController(messageService: MessageService)(implicit executionContext: ExecutionContextExecutor) extends QueryStructureJsonProtocol with SprayJsonSupport with ScalaXmlSupport:
-  private val httpService: HttpServiceInterface = new HttpService
+class DataTransformerHttpController(messageService: MessageService)(implicit val system: ActorSystem[Nothing], executionContext: ExecutionContextExecutor) extends QueryStructureJsonProtocol with SprayJsonSupport with ScalaXmlSupport:
   val protocolGeneratorJs: DynamicProtocolGenerator[JsValue] = summon[DynamicProtocolGenerator[JsValue]]
   val protocolGeneratorXml: DynamicProtocolGenerator[Elem] = summon[DynamicProtocolGenerator[Elem]]
 
@@ -56,7 +54,7 @@ class DataTransformerHttpController(messageService: MessageService)(implicit exe
                       queryBuilder.buildQuery(queryRequestStructure.queryStructure, queryRequestStructure.endpoint) match
                         case None => complete(StatusCodes.BadRequest, "Cannot generate Query from provided Structure")
                         case Some(externalApiQueryUrl) =>
-                          val responseFuture: Future[HttpResponse] = httpService.sendGET(externalApiQueryUrl)
+                          val responseFuture: Future[HttpResponse] = Http().singleRequest(HttpRequest(uri = externalApiQueryUrl))
 
                           val dataTransformFlow = Flow[JsValue].map(chunk => DataTransformer.transform(chunk, dynamicProtocol))
 
@@ -96,4 +94,3 @@ object DataTransformerHttpServer:
 
     val bindingFuture = Http().newServerAt(host, port).bind(route)
     LoggerFactory.getLogger(this.getClass).info(s"Server started at http://$host:$port/")
-

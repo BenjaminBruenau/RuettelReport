@@ -2,7 +2,7 @@ name := "DataTransformerService"
 version := "0.1.0"
 scalaVersion := "3.3.1"
 
-
+fork := true // When running locally HttpServer will otherwise shutdown immediately
 resolvers += "Akka library repository".at("https://repo.akka.io/maven")
 
 libraryDependencies ++= dependencies
@@ -30,3 +30,8 @@ lazy val dependencies = Seq(
   "default" %% "commons" % "0.1.0" excludeAll ExclusionRule("*") // We already have all of those dependencies here
 )
 
+enablePlugins(JavaAppPackaging)
+enablePlugins(DockerPlugin)
+
+dockerBaseImage := "pnavato/amazoncorretto-jre:17-alpine"
+dockerExposedPorts ++= Seq(8080)

@@ -5,7 +5,7 @@ import akka.actor.typed.scaladsl.Behaviors
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.common.{EntityStreamingSupport, JsonEntityStreamingSupport}
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
-import akka.http.scaladsl.model.{HttpResponse, StatusCodes}
+import akka.http.scaladsl.model.{HttpResponse, StatusCodes, HttpRequest}
 import akka.http.scaladsl.server.Directives.*
 import akka.http.scaladsl.server.Route
 import akka.stream.alpakka.json.scaladsl.JsonReader
@@ -14,8 +14,6 @@ import akka.util.ByteString
 import org.slf4j.LoggerFactory
 import commons.queryBuilder.{QueryBuilder, QueryBuilderBackend}
 import commons.queryBuilder.model.{QueryRequestStructure, QueryStructureJsonProtocol}
-import commons.http.HttpServiceInterface
-import commons.http.httpServiceBaseImpl.HttpService
 import commons.message.MessageService
 import spray.json.*
 
@@ -23,8 +21,7 @@ import scala.concurrent.{ExecutionContextExecutor, Future}
 import scala.io.StdIn
 import scala.util.{Failure, Success, Try}
 
-class QueryServiceHttpController(messageService: MessageService)(implicit executionContext: ExecutionContextExecutor) extends QueryStructureJsonProtocol with SprayJsonSupport:
-  private val httpService: HttpServiceInterface = new HttpService
+class QueryServiceHttpController(messageService: MessageService)(implicit val system: ActorSystem[Nothing], executionContext: ExecutionContextExecutor) extends QueryStructureJsonProtocol with SprayJsonSupport:
 
   implicit val jsonStreamingSupport: JsonEntityStreamingSupport = EntityStreamingSupport.json(500 * 1024) // 500kb ToDo: Decide on a max size, what about logging such big messages?
 
@@ -39,7 +36,7 @@ class QueryServiceHttpController(messageService: MessageService)(implicit execut
                 case None => complete(StatusCodes.BadRequest, "Cannot generate Query from provided Structure")
                 case Some(externalApiQueryUrl) =>
                   println(externalApiQueryUrl)
-                  val responseFuture: Future[HttpResponse] = httpService.sendGET(externalApiQueryUrl)
+                  val responseFuture: Future[HttpResponse] = Http().singleRequest(HttpRequest(uri = externalApiQueryUrl))
 
                   val apiSource = Source.futureSource(responseFuture.map {
                     case HttpResponse(StatusCodes.OK, _, entity, _) =>
