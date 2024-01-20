@@ -8,8 +8,8 @@ const project_settings = ref({
     'primary_color_dark':'#9e9e9e',
     'gradient_from_light':"#d8d8d8",
     'gradient_to_light':"#d8d8d8",
-    'gradient_from_dark':"#020202",
-    'gradient_to_dark':"#020202",
+    'gradient_from_dark':"#1f1f1f",
+    'gradient_to_dark':"#1f1f1f",
     'default_theme': 'light',
   },
 });
@@ -128,7 +128,7 @@ function setPremiumAccount(){
 
 .card-content {
   min-width: 25em;
-  backdrop-filter: blur(20px);
+  backdrop-filter: blur(100px);
 }
 
 .list{

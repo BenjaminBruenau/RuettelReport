@@ -192,6 +192,7 @@ const updateProjectUsers = (payload) => {
   @apply bg-tile_color_light dark:bg-tile_color_dark;
   border-radius: 20px;
   padding: 15px;
+  backdrop-filter: blur(100px);
 }
 
 .tile_left {

@@ -149,7 +149,7 @@ const toggleDarkMode = (newValue: boolean) => {
   <div class="card-container">
     <PrimeCard class="card-content">
       <template #header>
-        <!--<img alt="user header" src="https://primefaces.org/cdn/primevue/images/usercard.png" />-->
+        <PrimeImage src="./assets/img/logo_dark.png"  alt=""/>
       </template>
       <template #title>Login</template>
       <template #subtitle>Please enter your credentials</template>
@@ -217,7 +217,7 @@ const toggleDarkMode = (newValue: boolean) => {
 
 .card-content {
   max-width: 25em;
-  backdrop-filter: blur(20px);
+  backdrop-filter: blur(100px);
 }
 
 .form {
