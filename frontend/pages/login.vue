@@ -83,13 +83,22 @@ const panelClass = (props, parent, index) => {
 
 
 const project_settings = ref({
-  'theme':{
+  /*'theme':{
     'primary_color_light':'#ffffff',
     'primary_color_dark':'#9e9e9e',
     'gradient_from_light':"#d8d8d8",
     'gradient_to_light':"#d8d8d8",
     'gradient_from_dark':"#1f1f1f",
     'gradient_to_dark':"#1f1f1f",
+    'default_theme': 'light',
+  },*/
+  'theme':{
+    'primary_color_light':'#009b91',
+    'primary_color_dark':'#009b91',
+    'gradient_from_light':"#dde6eb",
+    'gradient_to_light':"#dde6eb",
+    'gradient_from_dark':"#334152",
+    'gradient_to_dark':"#334152",
     'default_theme': 'light',
   },
 
@@ -142,7 +151,7 @@ const toggleDarkMode = (newValue: boolean) => {
   <div>
     <Map style="position:absolute"></Map>
   </div>
-
+<!--
   <div style="margin:20px; position:absolute"  class="switch">
     <PrimeInputSwitch v-model="darkMode" @update:model-value="toggleDarkMode"></PrimeInputSwitch>
   </div>
@@ -195,6 +204,7 @@ const toggleDarkMode = (newValue: boolean) => {
       </template>
     </PrimeCard>
   </div>
+  -->
 </template>
 
 <style scoped>

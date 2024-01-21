@@ -9,7 +9,7 @@ const props = defineProps({
   },
 });
 
-const currentData =ref({});
+const currentData = ref([]);
 
 watch(currentData,()=>{
   console.log('CURRENT',currentData.value);
@@ -40,10 +40,11 @@ const project_settings = ref({
       },
       mappingRules: '',
     },
+
     'earthquake.usgs.gov2': {
       url: 'https://earthquake.usgs.gov/fdsnws/event/1/query',
       method: 'GET',
-      color: '#009b4e',
+      color: '#e1967a',
       params: {
         format: 'format',
         starttime: 'starttime',
@@ -57,8 +58,9 @@ const project_settings = ref({
       },
       mappingRules: '',
     }
+
   },
-  /*
+
     'theme':{
       'primary_color_light':'#009b91',
       'primary_color_dark':'#009b91',
@@ -68,7 +70,7 @@ const project_settings = ref({
       'gradient_to_dark':"#334152",
       'default_theme': 'light',
     },
-    */
+    /*
     'theme':{
       'primary_color_light':'#ffffff',
       'primary_color_dark':'#9e9e9e',
@@ -78,6 +80,8 @@ const project_settings = ref({
       'gradient_to_dark':"#1f1f1f",
       'default_theme': 'light',
     },
+
+     */
 
 });
 
@@ -134,23 +138,25 @@ const updateProjectUsers = (payload) => {
 
 }
 
+function to_color(text){
+  return '#'+text.replace("#", "")
+}
+
 const update_api_response = (payload) => {
-  const { index, data } = payload;
+  const { index, data, color } = payload;
   const actualNewValues = data._rawValue || data._value;
 
-  // Finden Sie das Element mit dem entsprechenden Index
   const existingElementIndex = currentData.value.findIndex(el => el.index === index);
 
   if (existingElementIndex !== -1) {
-    // Aktualisieren Sie nur die Daten, wenn das Element bereits existiert
+    currentData.value[existingElementIndex].color = to_color(color);
     currentData.value[existingElementIndex].data = actualNewValues;
-  } else {
-    // Fügen Sie ein neues Element hinzu, wenn es noch nicht existiert
-    currentData.value.push({ index, data: actualNewValues });
-  }
 
-  console.log('Aktualisierte Daten:', currentData.value);
+  } else {
+    currentData.value.push({ index, color:to_color(color), data: actualNewValues });
+  }
 }
+
 
 </script>
 <template>

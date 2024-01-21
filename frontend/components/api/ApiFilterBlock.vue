@@ -41,23 +41,9 @@ const selectedApiEndpoint = computed(() => {
 const apiEndpointName = computed(() => selectedApiEndpoint.value.key);
 
 
-
-function getDate(key: string): Date {
-  const today = new Date();
-
-  switch(key) {
-    case 'case_today':
-      return today;
-    case 'case_lastWeek':
-      return new Date(today.getFullYear(), today.getMonth(), today.getDate() - 7);
-    case 'case_lastMonth':
-      return new Date(today.getFullYear(), today.getMonth() - 1, today.getDate());
-    case 'case_lastYear':
-      return new Date(today.getFullYear() - 1, today.getMonth(), today.getDate());
-    default:
-      console.error("Invalid key provided:", key);
-      return today;
-  }
+function updateDateValue(item, newValue) {
+  const date = new Date(newValue);
+  item.value = date.toISOString();
 }
 
 const formattedItems = computed(() =>{
@@ -83,12 +69,18 @@ const formattedItems = computed(() =>{
         // Second column: data based on type
 
         if (option.type === 'dateTime') {
+          let isoDateString = option.value;
+          if (!isoDateString) {
+            let nd = new Date();
+            isoDateString = nd.toISOString();
+          }
+
           item.push({
             type: option.type,
-            value: option.value,
+            value: isoDateString,
             default: option.attr.default,
             index: api_index,
-            color:api_color,
+            color: api_color,
           });
         }
 
@@ -150,7 +142,6 @@ onMounted(() => {
 
   setColor(props.index, selectedApiEndpoint.value.endpoint?.color);
 
-  //resetToDefault();
 
 });
 
@@ -208,26 +199,6 @@ watch(
 );
 
 
-const resetToDefault = () => {
-  for (const key in props.structure.requestOptions) {
-    const option = props.structure.requestOptions[key];
-    if (option.attr && option.attr.default !== undefined) {
-      if (option.type === 'dateTime') {
-        set(option, 'value', getDate(option.attr.default));
-      } else {
-        set(option, 'value', option.attr.default);
-      }
-    }
-  }
-};
-
-
-
-const handleReplayClick = (event: MouseEvent) => {
-  event.stopPropagation();
-  resetToDefault();
-  emit('update-request-options', { index: props.index, newValues: localRequestOptions });
-};
 
 const handleApiSave = (event: MouseEvent) => {
   event.stopPropagation();
@@ -258,7 +229,13 @@ const handleApiSave = (event: MouseEvent) => {
           <!-- Second column: Content -->
           <div class="grid-column-content" style="flex-grow: 1; flex-shrink: 1; padding-left: 10px;">
             <div v-if="item[1].type === 'dateTime'">
-              <PrimeCalendar showIcon iconDisplay="input" v-model="item[1].value" :defaultDate="getDate(item[1].default )"/>
+              <PrimeCalendar
+                  showIcon
+                  iconDisplay="input"
+                  v-model="item[1].value"
+                  @input="updateDateValue(item[1], $event)"
+                  :defaultDate="new Date()"
+              />
             </div>
             <div v-else-if="item[1].type === 'float_span'">
               <PrimeInputText v-model.number="item[1].value" />

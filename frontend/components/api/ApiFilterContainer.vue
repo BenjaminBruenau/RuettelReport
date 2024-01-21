@@ -173,6 +173,8 @@ createApiFilterBlocks();
 const handleUpdateRequestOptions = (payload) => {
   const { index, newValues } = payload;
 
+  console.log(JSON.stringify(newValues,null,2));
+
   if (index >= 0 && index < apiFilterBlocks.value.length) {
 
     const block = apiFilterBlocks.value[index];
@@ -283,7 +285,7 @@ watch(() => result, () =>{
 
 const emit = defineEmits(['update-api-response']);
 
-const sendRequest = async (queryParams,index) => {
+const sendRequest = async (queryParams,index,color) => {
   console.log("Trying to send!");
   const {
     data: features,
@@ -306,18 +308,33 @@ const sendRequest = async (queryParams,index) => {
       if (response._data) {
         //console.debug('Result: ', response._data);
         result.value = response._data;
-        emit('update-api-response', { index: index, data: result });
+        emit('update-api-response', { index: index, data: result,color: color });
       }
     },
   });
 }
 
+function getApiColors(projectSettings) {
+  const apiEndpoints = projectSettings.api_endpoints;
+  const colors = [];
+
+  for (const key in apiEndpoints) {
+    if (apiEndpoints[key].color) {
+      colors.push(apiEndpoints[key].color);
+    }
+  }
+  return colors;
+}
+
 
 async function runButton() {
+
+  console.log("RUN!");
   for (let index = 0; index < apiFilterBlocks.value.length; index++) {
     const blockString = getApiFilterBlock(index);
     if (blockString) {
-      await sendRequest(blockString,index);
+      console.log(JSON.stringify(blockString,null,2));
+      await sendRequest(blockString,index,getApiColors(props.project_settings)[index]);
     }
   }
 }

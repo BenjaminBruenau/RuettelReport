@@ -33,72 +33,19 @@ const props = defineProps({
 
 watch(() => props.currentData, (newValue, oldValue) => {
   if (Array.isArray(newValue)) {
-    newValue.forEach(dataElement => {
-      updateEarthquakes(dataElement);
+    newValue.forEach((dataElement, index) => {
+      if (dataElement && dataElement.data && dataElement.color) {
+        updateEarthquakes(dataElement.data[0], dataElement.color, index);
+      }
     });
   }
 }, {
   deep: true
 });
-
-/*
-const selectedApiEndpoint = computed(() => {
-  const keys = Object.keys(props.project_settings.api_endpoints);
-  if (props.index < keys.length) {
-    const key = keys[props.index];
-    return {key, endpoint: props.project_settings.api_endpoints[key]};
-  }
-  return {key: null, endpoint: null};
-});
-
-const apiEndpointName = computed(() => selectedApiEndpoint.value.key);
-*/
-
-/*
-
-function drawRectangle(minLat, maxLat, minLon, maxLon, color) {
-  const svg = d3.select('#map-container-inner svg');
-  const g = svg.select('g');
-
-  const topLeft = projection([minLon, maxLat]);
-  const bottomRight = projection([maxLon, minLat]);
-  const width = Math.abs(bottomRight[0] - topLeft[0]);
-  const height = Math.abs(bottomRight[1] - topLeft[1]);
-
-  g.append('rect')
-      .attr('x', topLeft[0])
-      .attr('y', topLeft[1])
-      .attr('width', width)
-      .attr('height', height)
-      .attr('stroke', color)
-      .attr('stroke-width', 2)
-      .attr('fill', 'rgba(255,255,255,0)')
-
-}
-
-function addOrUpdateRectangle(id, minLatitude, maxLatitude, minLongitude, maxLongitude, color) {
-  const existingIndex = rectangles.value.findIndex(r => r.id === id);
-  const rectangle = {id, minLatitude, maxLatitude, minLongitude, maxLongitude, color};
-
-  if (existingIndex > -1) {
-    rectangles.value[existingIndex] = rectangle;
-  } else {
-    rectangles.value.push(rectangle);
-  }
-
-  drawRectangle(minLatitude, maxLatitude, minLongitude, maxLongitude, color);
-}
-*/
-
 const g = ref(null);
 
 
 onMounted(() => {
-  /*
-  EventBus.on('add-rectangle', (params) => {
-    addOrUpdateRectangle(params.id, params.minLatitude, params.maxLatitude, params.minLongitude, params.maxLongitude, params.color);
-  });
-  */
   const container = mapContainer.value;
   if (container) {
     const parentElement = container.parentElement;
@@ -109,27 +56,22 @@ onMounted(() => {
         .translate([parentWidth / 2, parentHeight / 4]);
 
     const svg = d3.select(container).append('svg').attr('width', '100%').attr('height', '100%');
-    //const g = svg.append('g');
     g.value = svg.append('g');
 
     d3.json('https://gist.githubusercontent.com/d3noob/5193723/raw/world-110m2.json').then(topology => {
-      svg.selectAll('path').data(topojson.feature(topology, topology.objects.countries).features).enter().append('path').attr('d', path);
+      g.value.selectAll('path').data(topojson.feature(topology, topology.objects.countries).features).enter().append('path').attr('d', path);
     });
 
+    // Anwenden des Zooms auf das übergeordnete SVG-Element
     const zoom = d3.zoom().scaleExtent([1, 8]).on("zoom", (event) => {
-      g.value.attr('transform', event.transform);
+      svg.selectAll('g').attr('transform', event.transform);
     });
     svg.call(zoom);
   }
 });
 
-// Funktionen zur Festlegung von Kreisfüllungen, Strichfarben und Opazität
-function getCircleFill(d) {
-  return "#f07178"; // Farbe basierend auf Magnitude
-}
-function getCircleStrokeColor(d) {
-  return "#f07178"; // Stroke-Farbe entspricht der Füllfarbe
-}
+
+
 function getCircleOpacity(d) {
   // Die Opazität basiert auf der Magnitude exponentiell
   var minOpacity = 30; // Mindestopazität (5%)
@@ -168,30 +110,31 @@ function hideTooltip() {
 }
 
 
-var colors = {
-  mainColor_1: "#282d3f",
-  mainColor_2: "#30364c",
-  color_1: "#f07178", //Rot
-  color_2: "#c3e88d", //Grün
-  color_3: "#ffcb6b", //Orange
-  color_4: "#82aaff", //Blau
-  color_5: "#c792ea", //Rosa
-  color_6: "#89ddff", //Hellblau
-  color_7: "#d53f51", //Magenta
-  color_8: "#5cafa8", //Türkis
-  color_9: "#ea7e62", //Strange Orange
-};
+/*
 
-function updateEarthquakes(data) {
+function updateEarthquakes(data, color, index) {
+  const group = g.value.selectAll(`.group-${index}`)
+    .data([data]) // Binden Sie die Daten an eine Gruppe
+    .join("g") // Erstellen oder aktualisieren Sie die Gruppe
+    .attr("class", `group-${index}`);
 
-  data.features.sort(function (a, b) {
-    return a.properties.mag - b.properties.mag;
-  });
+  group.selectAll("circle")
+    .data(d => d.features)
 
-  //g.value.selectAll("circle").remove();
+* */
 
-  g.value.selectAll("circle")
-      .data(data.features)
+function updateEarthquakes(data, color, index) {
+  g.value.selectAll(`.group-${index} circle`).remove();
+
+  // Erstellen oder wählen Sie die Gruppe für diese spezielle Datenquelle
+  const group = g.value.selectAll(`.group-${index}`)
+      .data([data]) // Binden Sie die Daten an die Gruppe
+      .join("g") // Erstellen Sie die Gruppe, falls sie nicht existiert
+      .attr("class", `group-${index}`); // Weisen Sie eine einzigartige Klasse zu
+
+  // Fügen Sie Kreise innerhalb dieser Gruppe basierend auf den Daten hinzu
+  group.selectAll("circle")
+      .data(d => d.features)
       .enter()
       .append("circle")
       .attr("cx", function (d) {
@@ -206,22 +149,20 @@ function updateEarthquakes(data) {
         return getCircleRadius(d, 1);
       })
       .style("fill", function (d) {
-        var circleFill = getCircleFill(d);
         var opacity = 0.2;
-        return `rgba(${d3.rgb(circleFill).r}, ${d3.rgb(circleFill).g}, ${d3.rgb(circleFill).b}, ${opacity})`;
+        return `rgba(${d3.rgb(color).r}, ${d3.rgb(color).g}, ${d3.rgb(color).b}, ${opacity})`;
       })
-      .style("stroke", getCircleStrokeColor)
+      .style("stroke", color)
       .style("stroke-opacity", 1)
       .style("stroke-width", "0.1em")
       .style("opacity", function (d) {
         return getCircleOpacity(d) / 100;
       });
 
-  g.value.selectAll("circle")
+  // Fügen Sie Interaktionen hinzu, falls benötigt
+  group.selectAll("circle")
       .on("mouseover", showTooltip)
       .on("mouseout", hideTooltip);
-
-
 }
 
 
