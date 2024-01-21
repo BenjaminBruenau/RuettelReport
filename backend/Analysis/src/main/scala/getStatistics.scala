@@ -2,7 +2,6 @@ import org.apache.spark.sql.{DataFrame, Row, SparkSession}
 import org.apache.spark.sql.functions.*
 import org.apache.spark.sql.expressions.Window
 import org.apache.spark.sql.types.{DoubleType, StructField, StructType}
-import org.apache.commons.math3.distribution.NormalDistribution
 
 @main
 def statistics(): Unit =
