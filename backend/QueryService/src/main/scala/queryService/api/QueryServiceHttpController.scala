@@ -31,49 +31,44 @@ class QueryServiceHttpController(messageService: MessageService)(implicit val sy
     concat(
       path("api" / "query") {
         get {
-          entity(as[QueryRequestStructure]) {
-            queryRequestStructure =>
-              val queryBuilder = QueryBuilder(QueryBuilderBackend.HTTP)
-              queryBuilder.buildQuery(queryRequestStructure.queryStructure, queryRequestStructure.endpoint) match
-                case None => complete(StatusCodes.BadRequest, "Cannot generate Query from provided Structure")
-                case Some(externalApiQueryUrl) =>
-                  println(externalApiQueryUrl)
-                  val responseFuture: Future[HttpResponse] = Http().singleRequest(HttpRequest(uri = externalApiQueryUrl))
-
-                  val apiSource = Source.futureSource(responseFuture.map {
-                    case HttpResponse(StatusCodes.OK, _, entity, _) =>
-                      entity.dataBytes
-                    case HttpResponse(status, _, _, _) =>
-                      throw new RuntimeException(s"Request failed with status code $status")
-                  })
-
-                  val jsonKafkaFlow = Flow[ByteString].via(JsonReader.select("$.features[*]")).map(_.utf8String.parseJson) // We want to save each feature as a message
-                  val jsonResponseFlow = Flow[ByteString].via(jsonStreamingSupport.framingDecoder).map(_.utf8String.parseJson)
-
-                  val kafkaSink = messageService.produceMessagesSink("feature_test")
-
-                  Try(apiSource) match
-                    case Success(source) =>
-                      // Branch the flow to send to Kafka and complete the request
-                      val connectedSource = source.alsoToMat(jsonKafkaFlow.toMat(kafkaSink)(Keep.right))(Keep.right)
-
-                      respondWithHeaders(
-                        // Allow all origins (restrict this in production)
-                        `Access-Control-Allow-Origin`.*,
-                        // Allow the headers that might be sent by the client during the actual request
-                        `Access-Control-Allow-Headers`("Content-Type", "Authorization"),
-                        // Allow all HTTP methods (restrict this in production)
-                        `Access-Control-Allow-Methods`(OPTIONS, POST, PUT, GET, DELETE)
-                      ) {
-                        complete(connectedSource.via(jsonResponseFlow))
-                      }
-                    case Failure(exception) =>
-                      complete(StatusCodes.InternalServerError, exception.getMessage)
-
-          }
+          handleQueryRequest()
+        } ~
+        post {
+          handleQueryRequest()
         }
       }
     )
+
+  def handleQueryRequest(): Route = {
+    entity(as[QueryRequestStructure]) { queryRequestStructure =>
+      val queryBuilder = QueryBuilder(QueryBuilderBackend.HTTP)
+      queryBuilder.buildQuery(queryRequestStructure.queryStructure, queryRequestStructure.endpoint) match {
+        case None =>
+          complete(StatusCodes.BadRequest, "Cannot generate Query from provided Structure")
+        case Some(externalApiQueryUrl) =>
+          val responseFuture: Future[HttpResponse] = Http().singleRequest(HttpRequest(uri = externalApiQueryUrl))
+
+          val apiSource = Source.futureSource(responseFuture.map {
+            case HttpResponse(StatusCodes.OK, _, entity, _) =>
+              entity.dataBytes
+            case HttpResponse(status, _, _, _) =>
+              throw new RuntimeException(s"Request failed with status code $status")
+          })
+
+          val jsonKafkaFlow = Flow[ByteString].via(JsonReader.select("$.features[*]")).map(_.utf8String.parseJson)
+          val jsonResponseFlow = Flow[ByteString].via(jsonStreamingSupport.framingDecoder).map(_.utf8String.parseJson)
+          val kafkaSink = messageService.produceMessagesSink("feature_test")
+
+          Try(apiSource) match {
+            case Success(source) =>
+              val connectedSource = source.alsoToMat(jsonKafkaFlow.toMat(kafkaSink)(Keep.right))(Keep.right)
+              complete(connectedSource.via(jsonResponseFlow))
+            case Failure(exception) =>
+              complete(StatusCodes.InternalServerError, exception.getMessage)
+          }
+      }
+    }
+  }
 
 
 object QueryServiceHttpServer:
