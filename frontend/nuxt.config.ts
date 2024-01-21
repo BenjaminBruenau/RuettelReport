@@ -13,6 +13,11 @@ export default defineNuxtConfig({
       pathPrefix: false,
     },
   ],
+  routeRules: {
+    '/api/**': {
+      proxy: { to: `http://localhost:8080/api/**`, },
+    }
+  },
   modules: ['@nuxtjs/tailwindcss', 'nuxt-primevue', '@nuxtjs/color-mode'],
   primevue: {
     usePrimeVue: true,

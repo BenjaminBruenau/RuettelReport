@@ -1,7 +1,7 @@
-package dataTransformer.model
+package examples.dataTransformer.model
 
 import dataTransformer.model.MappingExpr.{->, ->/}
-import dataTransformer.model.executeMapping
+import dataTransformer.model.{MappingExpr, MappingRules, MappingType, executeMapping}
 import dataTransformer.protocol.DynamicProtocolGenerator
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
