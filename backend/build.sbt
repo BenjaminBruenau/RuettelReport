@@ -1,3 +1,22 @@
+enablePlugins(JavaAppPackaging)
+enablePlugins(DockerPlugin)
+
+dockerBaseImage := "pnavato/amazoncorretto-jre:17-alpine"
+dockerExposedPorts ++= Seq(8080)
+//dockerEntrypoint := Seq("/opt/docker/bin/ruettel-report-backend", "-main api.HttpMain")
+
+/*
+import com.typesafe.sbt.packager.docker._
+
+dockerCommands ++= Seq(
+  //ExecCmd("RUN", "apk add --no-
+  ExecCmd("RUN", "jlink \\\n  --add-modules ALL-MODULE-PATH \\\n  --strip-debug \\\n  --no-man-pages \\\n  --no-header-files \\\n  --compress=2 \\\n  --output /jre"),
+  Cmd("FROM", "alpine:latest"),
+  Cmd("ENV", "JAVA_HOME=/jre"),
+  Cmd("ENV" , "PATH=\"${JAVA_HOME}/bin:${PATH}\""),
+  Cmd("COPY", "--from=mainstage /jre $JAVA_HOME")
+)
+*/
 
 
 ThisBuild / version := "0.1.0-SNAPSHOT"
@@ -28,14 +47,25 @@ lazy val dependencies = Seq(
   "com.typesafe.akka" %% "akka-http-spray-json" % AkkaHttpVersion cross CrossVersion.for3Use2_13,
   "com.typesafe.akka" %% "akka-http-xml" % AkkaHttpVersion cross CrossVersion.for3Use2_13,
   "com.typesafe.akka" %% "akka-stream-kafka" % "5.0.0" cross CrossVersion.for3Use2_13,
-  ("com.lightbend.akka" %% "akka-stream-alpakka-json-streaming" % "7.0.1" cross CrossVersion.for3Use2_13),
+  ("com.lightbend.akka" %% "akka-stream-alpakka-json-streaming" % "7.0.1" cross CrossVersion.for3Use2_13), 
+  // all akka dependencies need to be made 2.13 as this only works with the 2.13 dependencies
+  // when excluding their streams dependency to prevent cross-version conflicts in scala 3 the NoSuchMethodError is thrown
     //.exclude("com.typesafe.akka", "akka-stream_2.13"), //->java.lang.NoSuchMethodError: 'void akka.stream.stage.InHandler.$init$(akka.stream.stage.InHandler)
 
   // Logging
   "com.typesafe.akka" %% "akka-slf4j" % AkkaVersion cross CrossVersion.for3Use2_13,
   "ch.qos.logback" % "logback-classic" % "1.2.13",
+
+  // > cd backend/commons  > sbt publishLocal
+  "default" %% "commons" % "0.1.0" excludeAll ExclusionRule("*") // We already have all of those dependencies here
 )
 
 
 
 lazy val analysis = (project in file("Analysis"))
+
+lazy val commons = (project in file("commons"))
+
+lazy val queryService = (project in file("QueryService"))
+
+lazy val dataTransformerService = (project in file("DataTransformerService"))
