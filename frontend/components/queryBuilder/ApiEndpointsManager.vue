@@ -87,7 +87,8 @@ const saveChanges = () => {
         ...props.initialEndpoints.api_endpoints[originalEndpointName.value],
         url: editedEndpoint.value.url,
         color: editedEndpoint.value.color,
-        params: Object.fromEntries(endpointParamsPairs)
+        params: Object.fromEntries(endpointParamsPairs),
+        mappingRules: editedEndpoint.value.mappingRules
       };
 
       set(props.initialEndpoints.api_endpoints, newEndpointName, updatedEndpoint);
@@ -103,6 +104,7 @@ const saveChanges = () => {
       endpoint.url = editedEndpoint.value.url;
       endpoint.color = editedEndpoint.value.color;
       endpoint.params = Object.fromEntries(endpointParamsPairs);
+      endpoint.mappingRules = editedEndpoint.value.mappingRules;
     }
     originalEndpointName.value = '';
     temporaryEditedParams.value = [];
@@ -271,6 +273,9 @@ const updateColor = (endpointName, color) => {
                       <PrimeInputGroupAddon>API-Color</PrimeInputGroupAddon>
                       <PrimeColorPicker v-model="editedEndpoint.color" />
                     </PrimeInputGroup>
+                    <div style="height: 5px"></div>
+                    <h3>Mapping Rules:</h3>
+                    <PrimeTextarea v-model="editedEndpoint.mappingRules" autoResize rows="5" cols="30" />
                   </div>
                   <div class="spacer"></div>
                   <PrimeButton label="Save" @click="saveChanges" class="p-button-outlined" icon="pi pi-save" :disabled="!apiSelected" />

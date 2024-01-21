@@ -133,6 +133,56 @@ watch(() => props.project_settings.api_endpoints, () => {
 }, { deep: true });
 
 
+function getApiFilterBlock(index) {
+  const block = apiFilterBlocks.value[index];
+  if (!block) {
+    return null;
+  }
+
+  const { structure, project_settings } = block;
+  const apiEndpoints = project_settings.api_endpoints;
+  const apiEndpointKeys = Object.keys(apiEndpoints);
+
+  if (apiEndpointKeys.length === 0) {
+    return null;
+  }
+
+  const endpointName = apiEndpointKeys[index % apiEndpointKeys.length];
+  const apiEndpoint = apiEndpoints[endpointName];
+
+  const mappingRules = apiEndpoint.mappingRules || {};
+
+  return {
+    structure,
+    endpoint: endpointName,
+    api_endpoints: {
+      [endpointName]: apiEndpoint
+    },
+    mappingRules: mappingRules
+  };
+}
+
+async function fetchApiData(jsonBody) {
+  const url = `http://localhost:8080/api/query`;
+  const body = {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(jsonBody)
+  };
+
+  try {
+    const response = await fetch(url, body);
+    if (!response.ok) {
+      throw new Error(`Error: ${response.statusText}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('There was an error fetching the data:', error);
+    return null;
+  }
+}
+
+
 createApiFilterBlocks();
 
 const handleUpdateRequestOptions = (payload) => {
@@ -152,9 +202,19 @@ const handleUpdateRequestOptions = (payload) => {
   }
 };
 
-function runButton(){
-  // HIER AN SERVER SCHICKEN UM REPORT ZU ERHALTEN!
-  console.log(JSON.stringify(apiFilterBlocks.value,null,2));
+function runButton() {
+  let blockString = getApiFilterBlock(0);
+  if (blockString) {
+    //console.log(JSON.stringify(blockString,null,2));
+    fetchApiData(blockString)
+        .then(data => {
+          console.log('API response data:', data);
+        })
+        .catch(error => {
+          console.error('Error in fetchApiData:', error);
+
+        });
+  }
 }
 
 </script>

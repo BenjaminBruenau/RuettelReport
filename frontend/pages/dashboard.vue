@@ -43,6 +43,7 @@ const project_settings = ref({
         minlatitude: 'minlatitude',
         maxlatitude: 'maxlatitude',
       },
+      mappingRules: '',
     },
     'earthquake.usgs.gov2': {
       url: 'https://earthquake.usgs.gov/fdsnws/event/1/query',
@@ -59,6 +60,7 @@ const project_settings = ref({
         minlatitude: 'minlatitude',
         maxlatitude: 'maxlatitude',
       },
+      mappingRules: '',
     }
   },
   /*
