@@ -5,7 +5,7 @@ import org.apache.spark.sql.SparkSession
 // TODO: call it like this "getPredictionOfEventTime(1000)"
 
 @main
-def getPredictionOfEventTime(predTime: Int = 1000): Unit =
+def getPredictionOfEventTime(predTime: Int): Unit =
   val spark = SparkSession.builder
     .appName("getPrediction")
     .config("spark.master", "local")
@@ -21,17 +21,18 @@ def getPredictionOfEventTime(predTime: Int = 1000): Unit =
   val loadedStd = loadedDistributionDF.select("std").first().getDouble(0) / 1000
   println(s"Loaded mean: $loadedMean")
   println(s"Loaded std: $loadedStd")
-  
+
   val normalDistribution = new NormalDistribution(loadedMean, loadedStd)
 
-  // Example: Calculate the probability density function (PDF) at a specific point
-  val pdfValue = normalDistribution.density(predTime)
+  // Calculate the cumulative distribution function (CDF) at a specific point
+  val cdfValue = normalDistribution.cumulativeProbability(predTime) * 100
 
-  println(s"Probability density at $predTime: $pdfValue")
+  val threshold = 0.0001
 
-  // Example: Calculate the cumulative distribution function (CDF) at a specific point
-  val cdfValue = normalDistribution.cumulativeProbability(predTime)
-
-  println(s"Cumulative probability up to $predTime: $cdfValue")
+  if (cdfValue > threshold) {
+    println(f"Probability of event happening in the next $predTime seconds is $cdfValue%.4f %%")
+  } else {
+    println("The percentage is too low. Try a lower number of seconds.")
+  }
 
   spark.stop()

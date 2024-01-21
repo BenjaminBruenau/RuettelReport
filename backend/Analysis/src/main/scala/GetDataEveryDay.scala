@@ -79,15 +79,15 @@ def getDataEveryDay(): Unit = {
 //    val outputFile = new BufferedWriter(new FileWriter(output_path))
 //    outputFile.write(merged_json)
 //    outputFile.close()
-    merged_json.write
-      .format("mongodb")
-      .mode("overwrite")
-      .option("checkpointLocation", "/tmp/")
-      .option("forceDeleteTempCheckpointLocation", "true")
-      .option("spark.mongodb.connection.uri", "mongodb://media:media1234@127.0.0.1:27017/ruettelreport")
-      .option("spark.mongodb.database", "ruettelreport")
-      .option("spark.mongodb.collection", "dataModel") // tenant-name + realtime_analytics
-      .save()
+//    merged_json.write
+//      .format("mongodb")
+//      .mode("overwrite")
+//      .option("checkpointLocation", "/tmp/")
+//      .option("forceDeleteTempCheckpointLocation", "true")
+//      .option("spark.mongodb.connection.uri", "mongodb://media:media1234@127.0.0.1:27017/ruettelreport")
+//      .option("spark.mongodb.database", "ruettelreport")
+//      .option("spark.mongodb.collection", "dataModel") // tenant-name + realtime_analytics
+//      .save()
 
 //    val output_path = "C:\\Users\\marco\\OneDrive\\Desktop\\MSI_ALL\\MSI\\RuettelReport\\backend\\Analysis\\new_response.json"
 //    merged_json.write.mode("overwrite").json(output_path)
