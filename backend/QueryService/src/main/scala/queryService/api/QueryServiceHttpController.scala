@@ -7,6 +7,8 @@ import akka.http.scaladsl.common.{EntityStreamingSupport, JsonEntityStreamingSup
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import akka.http.scaladsl.model.{HttpResponse, StatusCodes, HttpRequest}
 import akka.http.scaladsl.server.Directives.*
+import akka.http.scaladsl.model.headers.*
+import akka.http.scaladsl.model.HttpMethods.*
 import akka.http.scaladsl.server.Route
 import akka.stream.alpakka.json.scaladsl.JsonReader
 import akka.stream.scaladsl.{Flow, Keep, Source}
@@ -55,7 +57,16 @@ class QueryServiceHttpController(messageService: MessageService)(implicit val sy
                       // Branch the flow to send to Kafka and complete the request
                       val connectedSource = source.alsoToMat(jsonKafkaFlow.toMat(kafkaSink)(Keep.right))(Keep.right)
 
-                      complete(connectedSource.via(jsonResponseFlow))
+                      respondWithHeaders(
+                        // Allow all origins (restrict this in production)
+                        `Access-Control-Allow-Origin`.*,
+                        // Allow the headers that might be sent by the client during the actual request
+                        `Access-Control-Allow-Headers`("Content-Type", "Authorization"),
+                        // Allow all HTTP methods (restrict this in production)
+                        `Access-Control-Allow-Methods`(OPTIONS, POST, PUT, GET, DELETE)
+                      ) {
+                        complete(connectedSource.via(jsonResponseFlow))
+                      }
                     case Failure(exception) =>
                       complete(StatusCodes.InternalServerError, exception.getMessage)
 
