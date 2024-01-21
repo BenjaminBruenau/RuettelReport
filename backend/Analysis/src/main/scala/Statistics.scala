@@ -20,7 +20,8 @@ def statistics(): Unit =
     col("properties.dmin").alias("duration"),
     col("properties.sig").alias("significance"),
     col("properties.time").alias("event_time"),
-    col("geometry.coordinates").alias("coordinates")
+    col("geometry.coordinates").alias("coordinates"),
+    col("properties.type").alias("type")
   )
 
   // Explode the coordinates array to individual columns
@@ -37,6 +38,9 @@ def statistics(): Unit =
   // Perform Spark operations on the DataFrame, e.g., describe
   explodedData.describe().show()
 
+  /*
+  // Calculate the time differences between events
+   */
   val timeDiffs = explodedData.select("event_time").sort("event_time")
 
   timeDiffs.show()
@@ -61,6 +65,8 @@ def statistics(): Unit =
   val mean = summaryDF.select("time_diff").where("summary = 'mean'").first().getString(0).toDouble
   val std = summaryDF.select("time_diff").where("summary = 'stddev'").first().getString(0).toDouble
 
+  // TODO: Write to MongoDB
+
   // Create a DataFrame with mean and std values
   val distributionData = Seq((mean, std))
   val schema = StructType(Seq(
@@ -72,16 +78,6 @@ def statistics(): Unit =
   // Save the DataFrame to a file (in Parquet format)
   distributionDF.write.mode("overwrite").parquet("C:\\Users\\marco\\OneDrive\\Desktop\\MSI_ALL\\MSI\\RuettelReport\\backend\\Analysis\\distribution.parquet")
 
-//  val timeDiffsArray = timeDiffs.sliding(2).map(x => x(1) - x(0)).toArray
-//
-//  val meanTimeDiffs = timeDiffsArray.sum.toDouble / timeDiffsArray.length
-//  val stdDevTimeDiffs = math.sqrt(timeDiffsArray.map(x => math.pow(x - meanTimeDiffs, 2)).sum / timeDiffsArray.length)
-//
-//  println("Time Differences:")
-//  println("Difference timestamps: " + timeDiffsArray.mkString(", "))
-//  println("Mean of Difference: " + meanTimeDiffs)
-//  println("Std Deviation of Difference: " + stdDevTimeDiffs)
-
   // Load the DataFrame from the Parquet file
   val loadedDistributionDF = spark.read.parquet("C:\\Users\\marco\\OneDrive\\Desktop\\MSI_ALL\\MSI\\RuettelReport\\backend\\Analysis\\distribution.parquet")
 
@@ -90,5 +86,23 @@ def statistics(): Unit =
   val loadedStd = loadedDistributionDF.select("std").first().getDouble(0) / 1000
   println(s"Loaded mean: $loadedMean")
   println(s"Loaded std: $loadedStd")
+
+  // TODO: Get probabilities of different types and write them to a JSON file and write it to MongoDB
+
+  var typeData = explodedData.select("type")
+  typeData = typeData.na.drop()
+  typeData.show()
+
+  val typeCounts = typeData.groupBy("type").count().sort(desc("count"))
+  typeCounts.show()
+
+  // Now give me the possibilities of the different types
+  val total = typeCounts.select("count").agg(sum("count")).first().getLong(0)
+  val probabilities = typeCounts.withColumn("probability", col("count") / total)
+  probabilities.show()
+
+  // TODO: Write to MongoDB
+  // Save the DataFrame into a json file
+  probabilities.write.mode("overwrite").parquet("C:\\Users\\marco\\OneDrive\\Desktop\\MSI_ALL\\MSI\\RuettelReport\\backend\\Analysis\\probabilities.parquet")
 
   spark.stop()

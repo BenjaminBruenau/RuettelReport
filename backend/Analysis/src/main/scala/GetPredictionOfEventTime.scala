@@ -1,8 +1,11 @@
 import org.apache.commons.math3.distribution.NormalDistribution
 import org.apache.spark.sql.SparkSession
 
+// Number of predTime should exceed like 2 Hours because a event is happening every 2 hours
+// TODO: call it like this "getPredictionOfEventTime(1000)"
+
 @main
-def getPrediction(): Unit =
+def getPredictionOfEventTime(predTime: Int = 1000): Unit =
   val spark = SparkSession.builder
     .appName("getPrediction")
     .config("spark.master", "local")
@@ -10,6 +13,7 @@ def getPrediction(): Unit =
     .getOrCreate()
 
   // Load the DataFrame from the Parquet file
+  // TODO: Load Data from MongoDB instead of disk
   val loadedDistributionDF = spark.read.parquet("C:\\Users\\marco\\OneDrive\\Desktop\\MSI_ALL\\MSI\\RuettelReport\\backend\\Analysis\\distribution.parquet")
 
   // Extract mean and std values from the loaded DataFrame
@@ -17,18 +21,17 @@ def getPrediction(): Unit =
   val loadedStd = loadedDistributionDF.select("std").first().getDouble(0) / 1000
   println(s"Loaded mean: $loadedMean")
   println(s"Loaded std: $loadedStd")
-
-  val newTimePoint = 1000
+  
   val normalDistribution = new NormalDistribution(loadedMean, loadedStd)
 
   // Example: Calculate the probability density function (PDF) at a specific point
-  val pdfValue = normalDistribution.density(newTimePoint)
+  val pdfValue = normalDistribution.density(predTime)
 
-  println(s"Probability density at $newTimePoint: $pdfValue")
+  println(s"Probability density at $predTime: $pdfValue")
 
   // Example: Calculate the cumulative distribution function (CDF) at a specific point
-  val cdfValue = normalDistribution.cumulativeProbability(newTimePoint)
+  val cdfValue = normalDistribution.cumulativeProbability(predTime)
 
-  println(s"Cumulative probability up to $newTimePoint: $cdfValue")
+  println(s"Cumulative probability up to $predTime: $cdfValue")
 
   spark.stop()
