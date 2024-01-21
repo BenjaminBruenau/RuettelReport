@@ -33,7 +33,7 @@ class KafkaMessageService(private val producerSettings: ProducerSettings[String,
       .log("publishing message to kafka", m => {
         "topic" -> topic; "message" -> m.toString
       })
-      .withAttributes(Attributes.logLevels(onElement = Logging.InfoLevel, onFinish = Logging.DebugLevel, onFailure = Logging.WarningLevel))
+      .withAttributes(Attributes.logLevels(onElement = Logging.DebugLevel, onFinish = Logging.DebugLevel, onFailure = Logging.WarningLevel))
       .map(message => ProducerRecord[String, String](topic, message.toString))
       .toMat(Producer.plainSink(producerSettings.withProducer(kafkaProducer)))(Keep.right)
 
@@ -46,7 +46,7 @@ class KafkaMessageService(private val producerSettings: ProducerSettings[String,
       .log("received message from kafka", m => {
         "topic" -> topic; "message" -> m.toString
       })
-      .withAttributes(Attributes.logLevels(onElement = Logging.InfoLevel, onFinish = Logging.DebugLevel, onFailure = Logging.WarningLevel))
+      .withAttributes(Attributes.logLevels(onElement = Logging.DebugLevel, onFinish = Logging.DebugLevel, onFailure = Logging.WarningLevel))
 
 object KafkaMessageService:
 

@@ -25,7 +25,7 @@ import scala.util.{Failure, Success, Try}
 
 class QueryServiceHttpController(messageService: MessageService)(implicit val system: ActorSystem[Nothing], executionContext: ExecutionContextExecutor) extends QueryStructureJsonProtocol with SprayJsonSupport:
 
-  implicit val jsonStreamingSupport: JsonEntityStreamingSupport = EntityStreamingSupport.json(500 * 1024) // 500kb ToDo: Decide on a max size, what about logging such big messages?
+  implicit val jsonStreamingSupport: JsonEntityStreamingSupport = EntityStreamingSupport.json(50000 * 1024) // 50mb -> query needs to be adjusted if bigger than that
 
   val route: Route =
     concat(
@@ -51,8 +51,8 @@ class QueryServiceHttpController(messageService: MessageService)(implicit val sy
           val apiSource = Source.futureSource(responseFuture.map {
             case HttpResponse(StatusCodes.OK, _, entity, _) =>
               entity.dataBytes
-            case HttpResponse(status, _, _, _) =>
-              throw new RuntimeException(s"Request failed with status code $status")
+            case HttpResponse(status, _, entity, _) =>
+              throw new RuntimeException(s"Request failed with status code $status and entitiy: $entity")
           })
 
           val jsonKafkaFlow = Flow[ByteString].via(JsonReader.select("$.features[*]")).map(_.utf8String.parseJson)

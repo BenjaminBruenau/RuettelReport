@@ -27,7 +27,7 @@ class DataTransformerHttpController(messageService: MessageService)(implicit val
   val protocolGeneratorJs: DynamicProtocolGenerator[JsValue] = summon[DynamicProtocolGenerator[JsValue]]
   val protocolGeneratorXml: DynamicProtocolGenerator[Elem] = summon[DynamicProtocolGenerator[Elem]]
 
-  implicit val jsonStreamingSupport: JsonEntityStreamingSupport = EntityStreamingSupport.json(500 * 1024) // 500kb ToDo: Decide on a max size, what about logging such big messages?
+  implicit val jsonStreamingSupport: JsonEntityStreamingSupport = EntityStreamingSupport.json(50000 * 1024) // 50mb -> query needs to be adjusted if bigger than that
 
   val route: Route =
     concat(
