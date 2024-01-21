@@ -18,7 +18,6 @@ lazy val dependencies = Seq(
   "org.apache.spark" %% "spark-mllib" % sparkVersion % Provided cross CrossVersion.for3Use2_13,
   "org.apache.spark" % "spark-sql-kafka-0-10" % sparkVersion % Provided cross CrossVersion.for3Use2_13,
   "org.apache.spark" %% "spark-mllib" % sparkVersion % Provided cross CrossVersion.for3Use2_13, // ToDo: MLLIB using SPIRE?
-  "com.intel.analytics.bigdl" % "bigdl-dllib-spark_3.2.3" % "2.3.0-SNAPSHOT" from "https://oss.sonatype.org/content/repositories/snapshots/com/intel/analytics/bigdl/bigdl-dllib-spark_3.2.3/2.3.0-SNAPSHOT/bigdl-dllib-spark_3.2.3-2.3.0-20230207.092630-1.jar",
   //"org.mongodb.spark" %% "mongo-spark-connector" % "10.2.1" cross CrossVersion.for3Use2_13, - incompatible with Spark 3.5.0
   "com.github.kkurt" % "mongo-spark" % "main-SNAPSHOT" cross CrossVersion.for3Use2_13,
   "io.github.vincenzobaz" %% "spark-scala3-encoders" % "0.2.6",

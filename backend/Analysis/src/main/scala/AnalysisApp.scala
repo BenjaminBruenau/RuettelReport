@@ -1,7 +1,7 @@
 import org.apache.spark.sql.functions.*
 import org.apache.spark.sql.types.{StringType, StructType}
 import org.apache.spark.sql.{Encoder, Encoders, SparkSession}
-
+import scala3encoders.given
 /*
   On Windows:
     - download Spark https://spark.apache.org/downloads.html (3.5.0 + prebuilt for Apache Hadoop 3.3 and later)
@@ -24,7 +24,37 @@ import org.apache.spark.sql.{Encoder, Encoders, SparkSession}
     .getOrCreate()
   spark.sparkContext.setLogLevel("ERROR")
 
+  import spark.implicits._
   implicit val stringTupleEncoder: Encoder[(String, String)] = Encoders.tuple(Encoders.STRING, Encoders.STRING)
+
+
+  val propertiesSchema = new StructType()
+    .add("alert", StringType)
+    .add("cdi", StringType)
+    .add("code", StringType)
+    .add("detail", StringType)
+    .add("dmin", StringType)
+    .add("felt", StringType)
+    .add("gap", StringType)
+    .add("ids", StringType)
+    .add("mag", StringType)
+    .add("magType", StringType)
+    .add("mmi", StringType)
+    .add("net", StringType)
+    .add("nst", StringType)
+    .add("place", StringType)
+    .add("rms", StringType)
+    .add("sig", StringType)
+    .add("sources", StringType)
+    .add("status", StringType)
+    .add("time", StringType)
+    .add("title", StringType)
+    .add("tsunami", StringType)
+    .add("type", StringType)
+    .add("types", StringType)
+    .add("tz", StringType)
+    .add("updated", StringType)
+    .add("url", StringType)
 
 
   val df = spark
@@ -40,7 +70,7 @@ import org.apache.spark.sql.{Encoder, Encoders, SparkSession}
     .add("id", StringType)
     .add("geometry", StringType)
     .add("type", StringType)
-    .add("properties", StringType)
+    .add("properties", propertiesSchema)
 
 
   val kafkaTopicDS = df.selectExpr("CAST(key AS STRING)", "CAST(value AS STRING)").as[(String, String)]
@@ -48,33 +78,77 @@ import org.apache.spark.sql.{Encoder, Encoders, SparkSession}
   val jsonValueDF = kafkaTopicDS
     .select(from_json(col("value"), topLevelSchema).as("json"))
     .select("json.*") // after here its possible to directly operate on each of the topLevel fields and their values
-    .groupBy("type").agg(count("*").as("count"))
     //.withColumn("timestamp", current_timestamp())
-    //.withWatermark("timestamp", "10 minutes")
+    //.withWatermark("timestamp", "1 minute")
     //.groupBy(window($"timestamp", "10 minutes", "5 minutes"), $"type").agg(count("*").as("count"))
 
+  val windowDuration = "20 seconds"
+  val slideDuration = "20 seconds"
+
+
+
+  val aggregatedDF = jsonValueDF
+    .withColumn("timestamp", current_timestamp())
+    .withWatermark("timestamp", "1 minute")
+    .groupBy(window(col("timestamp"), windowDuration, slideDuration), col("type"))
+    .agg(
+      count("*").as("count"),
+      avg(when(col("properties.mag").isNotNull, col("properties.mag"))).as("avg_magnitude"),
+      count(when(col("properties.mag") > 6.0, 1)).as("high_magnitude_count"),
+    )
+    //.join(earthquakeFrequencyByLocation, Seq("properties.place"), "left_outer")
+
+  // OUTPUT IN TERMINAL OR MONGODB SINK
+
   /*
-  val query = jsonValueDF.writeStream
+  val query = aggregatedDF.writeStream
     .outputMode("complete")
     //.foreachBatch(dfOps _)
     .format("console")
     .start()
+
   query.awaitTermination()
 
    */
+  val magRanges = Seq("0-2", "2-4", "4-6", "6-8", "8-10")
+  val magDistribution = jsonValueDF
+    .filter(col("properties.mag").isNotNull)
+    .withColumn("mag_range",
+      when(col("properties.mag").between(0, 2), "0-2")
+        .when(col("properties.mag").between(2, 4), "2-4")
+        .when(col("properties.mag").between(4, 6), "4-6")
+        .when(col("properties.mag").between(6, 8), "6-8")
+        .when(col("properties.mag").between(8, 10), "8-10")
+        .otherwise("Unknown")
+    )
+    .groupBy("mag_range")
+    .agg(count("*").as("count"))
 
 
-  val mongoDBSink = jsonValueDF.writeStream
+  val stddevMagnitudeByType = jsonValueDF
+    .filter(col("properties.mag").isNotNull)
+    .groupBy(col("type"))
+    .agg(stddev("properties.mag").as("stddev_magnitude"))
+
+
+  val mongoDBSink = magDistribution.writeStream
     .format("mongodb")
-    .option("checkpointLocation", "/tmp/")
+    .option("checkpointLocation", "./tmp/")
     .option("forceDeleteTempCheckpointLocation", "true")
     .option("spark.mongodb.connection.uri", "mongodb://127.0.0.1:27017/ruettelreport")
     .option("spark.mongodb.database", "ruettelreport")
-    .option("spark.mongodb.collection","analytics") // tenant-name + realtime_analytics
-    .outputMode("complete") //ToDo: choose appropriate output mode for our use case, complete -> replace existing value in db
+    .option("spark.mongodb.collection","analyticsmagdistro") // tenant-name + realtime_analytics
+    .outputMode("complete") // complete -> replace existing value in db (takes all values that came in into account, updates it each batch), append -> only new rows that were added since the last batch are written to sink, update -> writes only changed rows (new/updated) to the sink
+    .start()
+
+  val query = magDistribution.writeStream
+    .outputMode("complete")
+    //.foreachBatch(dfOps _)
+    .format("console")
     .start()
 
   mongoDBSink.awaitTermination()
+  query.awaitTermination()
 
 
 
