@@ -55,7 +55,7 @@ import org.apache.spark.sql.{Encoder, Encoders, SparkSession}
 
   /*
   val query = jsonValueDF.writeStream
-    .outputMode("complete") //ToDo: choose appropriate output mode for our usecase
+    .outputMode("complete")
     //.foreachBatch(dfOps _)
     .format("console")
     .start()
@@ -71,7 +71,7 @@ import org.apache.spark.sql.{Encoder, Encoders, SparkSession}
     .option("spark.mongodb.connection.uri", "mongodb://127.0.0.1:27017/ruettelreport")
     .option("spark.mongodb.database", "ruettelreport")
     .option("spark.mongodb.collection","analytics") // tenant-name + realtime_analytics
-    .outputMode("complete") //ToDo: choose appropriate output mode for our usecase, complete -> replace existing value in db
+    .outputMode("complete") //ToDo: choose appropriate output mode for our use case, complete -> replace existing value in db
     .start()
 
   mongoDBSink.awaitTermination()

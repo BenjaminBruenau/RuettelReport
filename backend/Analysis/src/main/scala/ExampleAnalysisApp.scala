@@ -5,9 +5,9 @@ import org.apache.spark.sql.functions.{col, count, from_json, schema_of_json}
   On Windows:
     - download Spark https://spark.apache.org/downloads.html (3.5.0 + prebuilt for Apache Hadoop 3.3 and later)
     - extract somewhere
-    - add %HADOOP_HOME% to environment variables (e.g. C:\Program Files\Spark\spark-3.5.0-bin-hadoop3)
-    - add %SPARK_HOME% to environment variables (e.g. C:\Program Files\Spark\spark-3.5.0-bin-hadoop3)
-    - add %SPARK_HOME%\bin and %HADOOP_HOME%\bin to path
+    - add HADOOP_HOME to environment variables (e.g. C:\Program Files\Spark\spark-3.5.0-bin-hadoop3)
+    - add SPARK_HOME to environment variables (e.g. C:\Program Files\Spark\spark-3.5.0-bin-hadoop3)
+    - add %SPARK_HOME%\bin and %HADOOP_HOME%\bin to path (make sure HADOOP_HOME is below SPARK_HOME)
     - add winutils.exe and hadoop.dll to %HADOOP_HOME%\bin from https://github.com/cdarlint/winutils/tree/master/hadoop-3.3.5/bin
 
   For running this locally in IntelliJ:

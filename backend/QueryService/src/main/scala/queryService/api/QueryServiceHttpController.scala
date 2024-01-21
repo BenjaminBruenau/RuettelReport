@@ -39,7 +39,7 @@ class QueryServiceHttpController(messageService: MessageService)(implicit val sy
       }
     )
 
-  def handleQueryRequest(): Route = {
+  private def handleQueryRequest(): Route =
     entity(as[QueryRequestStructure]) { queryRequestStructure =>
       val queryBuilder = QueryBuilder(QueryBuilderBackend.HTTP)
       queryBuilder.buildQuery(queryRequestStructure.queryStructure, queryRequestStructure.endpoint) match {
@@ -68,7 +68,6 @@ class QueryServiceHttpController(messageService: MessageService)(implicit val sy
           }
       }
     }
-  }
 
 
 object QueryServiceHttpServer:
