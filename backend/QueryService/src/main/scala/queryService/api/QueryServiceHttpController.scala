@@ -25,7 +25,7 @@ import scala.util.{Failure, Success, Try}
 
 class QueryServiceHttpController(messageService: MessageService)(implicit val system: ActorSystem[Nothing], executionContext: ExecutionContextExecutor) extends QueryStructureJsonProtocol with SprayJsonSupport:
 
-  implicit val jsonStreamingSupport: JsonEntityStreamingSupport = EntityStreamingSupport.json(500 * 1024) // 500kb ToDo: Decide on a max size, what about logging such big messages?
+  implicit val jsonStreamingSupport: JsonEntityStreamingSupport = EntityStreamingSupport.json(5000 * 1024) // 500kb ToDo: Decide on a max size, what about logging such big messages?
 
   val route: Route =
     concat(

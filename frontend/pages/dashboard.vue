@@ -9,15 +9,10 @@ const props = defineProps({
   },
 });
 
-const project_settings_struct = ref({
-  'id': Number,
-  'project':{},
-  'api_endpoints':{},
-  'theme':{
-    'primary_color_light':'#fff',
-    'primary_color_dark':'#fff',
-    'default_theme': 'light',
-  },
+const currentData =ref({});
+
+watch(currentData,()=>{
+  console.log('CURRENT',currentData.value);
 });
 
 const project_settings = ref({
@@ -139,12 +134,33 @@ const updateProjectUsers = (payload) => {
 
 }
 
+const update_api_response = (payload) => {
+  const { index, data } = payload;
+  const actualNewValues = data._rawValue || data._value;
+
+  // Finden Sie das Element mit dem entsprechenden Index
+  const existingElementIndex = currentData.value.findIndex(el => el.index === index);
+
+  if (existingElementIndex !== -1) {
+    // Aktualisieren Sie nur die Daten, wenn das Element bereits existiert
+    currentData.value[existingElementIndex].data = actualNewValues;
+  } else {
+    // Fügen Sie ein neues Element hinzu, wenn es noch nicht existiert
+    currentData.value.push({ index, data: actualNewValues });
+  }
+
+  console.log('Aktualisierte Daten:', currentData.value);
+}
+
 </script>
 <template>
   <div class="dashboard">
     <div class="container">
       <div class="tile tile_left first-column">
-        <ApiFilterContainer :project_settings="project_settings"></ApiFilterContainer>
+        <ApiFilterContainer :project_settings="project_settings"
+                            :current-data="currentData"
+                            @update-api-response="update_api_response"
+        ></ApiFilterContainer>
       </div>
       <div class="second-column">
         <div class="second-column-content">
@@ -160,7 +176,7 @@ const updateProjectUsers = (payload) => {
             </PrimeToolbar>
           </div>
           <div class="tile tile_right_2 map-content" v-if="activeWindow===1">
-            <Map></Map>
+            <Map :currentData="currentData"></Map>
           </div>
           <div class="tile tile_right_2 map-content" v-if="activeWindow===2">
 

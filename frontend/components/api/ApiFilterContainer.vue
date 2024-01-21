@@ -7,6 +7,10 @@ const props = defineProps({
     type: Object,
     default: () => ({data: {}})
   },
+  currentData: {
+    type: Object,
+    default: () => ({data: {}})
+  },
 });
 
 const structure = ref({
@@ -150,38 +154,19 @@ function getApiFilterBlock(index) {
   const endpointName = apiEndpointKeys[index % apiEndpointKeys.length];
   const apiEndpoint = apiEndpoints[endpointName];
 
-  const mappingRules = apiEndpoint.mappingRules || {};
+  const mappingRules = apiEndpoint.mappingRules || '';
 
   return {
-    structure,
-    endpoint: endpointName,
-    api_endpoints: {
-      [endpointName]: apiEndpoint
+    queryStructure: {
+      requestOptions:structure.requestOptions,
+      api_endpoints: {
+        [endpointName]: apiEndpoint
+      },
     },
+    endpoint: endpointName,
     mappingRules: mappingRules
   };
 }
-
-async function fetchApiData(jsonBody) {
-  const url = `http://localhost:8080/api/query`;
-  const body = {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(jsonBody)
-  };
-
-  try {
-    const response = await fetch(url, body);
-    if (!response.ok) {
-      throw new Error(`Error: ${response.statusText}`);
-    }
-    return await response.json();
-  } catch (error) {
-    console.error('There was an error fetching the data:', error);
-    return null;
-  }
-}
-
 
 createApiFilterBlocks();
 
@@ -202,20 +187,144 @@ const handleUpdateRequestOptions = (payload) => {
   }
 };
 
-function runButton() {
-  let blockString = getApiFilterBlock(0);
-  if (blockString) {
-    //console.log(JSON.stringify(blockString,null,2));
-    fetchApiData(blockString)
-        .then(data => {
-          console.log('API response data:', data);
-        })
-        .catch(error => {
-          console.error('Error in fetchApiData:', error);
 
-        });
+const queryStructure = {
+  "queryStructure": {
+    "requestOptions":{
+      "format":{
+        "type": "string",
+        "include": true,
+        "value": "geojson"
+      },
+      "starttime":{
+        "type": "dateTime",
+        "include": true,
+        "value": "2023-09-10T00:00:00"
+      },
+      "endtime":{
+        "type": "dateTime",
+        "include": true,
+        "value": "2023-09-10T00:10:00"
+      },
+      "minmagnitude":{
+        "type": "float",
+        "include": true,
+        "value":0.0
+
+      },
+      "maxmagnitude":{
+        "type": "float",
+        "include": true,
+        "value":10.0
+      },
+      "minlongitude":{
+        "type": "float",
+        "include": true,
+        "value":-180.0
+
+      },
+      "maxlongitude":{
+        "type": "float",
+        "include": true,
+        "value":180.0
+
+      },
+      "minlatitude":{
+        "type": "float",
+        "include": true,
+        "value":-90.0
+
+      },
+      "maxlatitude":{
+        "type": "float",
+        "include": true,
+        "value":90.0
+      }
+
+    },
+    "api_endpoints":{
+      "earthquake.usgs.gov": {
+        "url": "https://earthquake.usgs.gov/fdsnws/event/1/query",
+        "method": "GET",
+        "params": {
+          "format": "format",
+          "starttime": "starttime",
+          "endtime": "endtime",
+          "minmagnitude": "minmagnitude",
+          "maxmagnitude": "maxmagnitude",
+          "minlongitude": "minlongitude",
+          "maxlongitude": "maxlongitude",
+          "minlatitude": "minlatitude",
+          "maxlatitude": "maxlatitude"
+        }
+      },
+      "earthquake.usgs.gov2":{
+        "url": "https://earthquake.usgs.gov/fdsnws/event/1/query",
+        "method": "GET",
+        "params": {
+          "format": "format",
+          "starttime": "starttime",
+          "endtime": "endtime"
+        }
+      }
+    }
+  },
+  "endpoint": "earthquake.usgs.gov2",
+  "mappingRules" : "\"type\" -> \"newType\""
+}
+
+const result = ref({})
+
+/*
+watch(() => result, () =>{
+  console.log(JSON.stringify(result,null,2));
+});
+*/
+
+const emit = defineEmits(['update-api-response']);
+
+const sendRequest = async (queryParams,index) => {
+  console.log("Trying to send!");
+  const {
+    data: features,
+    pending,
+    refresh,
+    error,
+    status,
+  } = await useFetch('/api/query', {
+    key: 'features',
+    method: 'POST',
+    body: queryParams, // Verwenden Sie den übergebenen queryParams-Parameter
+    onRequest({ request, options }) {
+      console.log('Send Request')
+    },
+    onResponseError({ request, response, options }) {
+      console.debug('ERROR while loading data: ',response);
+
+    },
+    onResponse({ request, response, options }) {
+      if (response._data) {
+        //console.debug('Result: ', response._data);
+        result.value = response._data;
+        emit('update-api-response', { index: index, data: result });
+      }
+    },
+  });
+}
+
+
+async function runButton() {
+  for (let index = 0; index < apiFilterBlocks.value.length; index++) {
+    const blockString = getApiFilterBlock(index);
+    if (blockString) {
+      await sendRequest(blockString,index);
+    }
   }
 }
+
+// ---------------
+
+
 
 </script>
 
