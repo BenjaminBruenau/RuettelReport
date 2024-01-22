@@ -76,16 +76,6 @@ def statistics(): Unit =
 
   // Save the DataFrame to a file (in Parquet format)
   distributionDF.write.mode("overwrite").parquet("C:\\Users\\marco\\OneDrive\\Desktop\\MSI_ALL\\MSI\\RuettelReport\\backend\\Analysis\\distribution.parquet")
-
-  // Load the DataFrame from the Parquet file
-  val loadedDistributionDF = spark.read.parquet("C:\\Users\\marco\\OneDrive\\Desktop\\MSI_ALL\\MSI\\RuettelReport\\backend\\Analysis\\distribution.parquet")
-
-  // Extract mean and std values from the loaded DataFrame
-  val loadedMean = loadedDistributionDF.select("mean").first().getDouble(0) / 1000
-  val loadedStd = loadedDistributionDF.select("std").first().getDouble(0) / 1000
-  println(s"Loaded mean: $loadedMean")
-  println(s"Loaded std: $loadedStd")
-
   // TODO: Get probabilities of different types and write them to a JSON file and write it to MongoDB
 
   var typeData = explodedData.select("type")
