@@ -163,7 +163,9 @@ const updateProjectUsers = (payload) => {
             <Map></Map>
           </div>
           <div class="tile tile_right_2 map-content" v-if="activeWindow===2">
-
+            <bar-chart></bar-chart>
+            <predict-prob-next></predict-prob-next>
+            <event-distribution></event-distribution>
           </div>
           <div class="tile tile_right_2 map-content" v-if="activeWindow===3">
             <Settings :project_settings="project_settings"
