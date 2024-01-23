@@ -3,6 +3,7 @@ package dataTransformer.parser
 import dataTransformer.model.{MappingRules, MappingType}
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
+
 class MappingRulesParserSpec extends AnyWordSpec with Matchers {
   val validInput = "{ \"name\" -> \"newName\", \"address.city\" -> \"address\" }"
   val validInputNoCurlyBraces =  "\"name\" -> \"newName\", \"address.city\" -> \"address\""

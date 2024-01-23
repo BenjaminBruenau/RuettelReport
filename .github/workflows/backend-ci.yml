@@ -12,10 +12,7 @@ permissions:
 jobs:
   build:
 
-    strategy:
-      matrix:
-        os: [ubuntu-latest, windows-latest]
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     env:
       working-directory: ./backend
 
@@ -32,7 +29,7 @@ jobs:
       run: sbt clean coverage test
       working-directory: ${{ env.working-directory }}
     - name: Coverage Report
-      run: sbt coverageReport
+      run: sbt coverageAggregate
       working-directory: ${{ env.working-directory }}
     - name: Upload coverage reports to Codecov
       uses: codecov/codecov-action@v3

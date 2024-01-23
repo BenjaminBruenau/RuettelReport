@@ -4,7 +4,7 @@ enablePlugins(DockerPlugin)
 dockerBaseImage := "pnavato/amazoncorretto-jre:17-alpine"
 dockerExposedPorts ++= Seq(8080)
 //dockerEntrypoint := Seq("/opt/docker/bin/ruettel-report-backend", "-main api.HttpMain")
-
+fork := true
 /*
 import com.typesafe.sbt.packager.docker._
 
@@ -29,6 +29,8 @@ lazy val root = (project in file("."))
     libraryDependencies ++= dependencies,
     excludeDependencies += "org.scala-lang.modules" % "scala-xml_3" // fixes conflicting cross-version suffixes for scala-xml _3 & _2.13
   )
+  .aggregate(queryService, dataTransformerService, commons)
+
 
 resolvers += "Akka library repository".at("https://repo.akka.io/maven")
 
