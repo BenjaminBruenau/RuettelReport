@@ -25,7 +25,7 @@ export default eventHandler(async (event) => {
             console.log("Registrierung Erfolg:", clientResponse.response);
         }
 
-        return { register: true, user: clientResponse.response.user };
+        return { register: true, token: clientResponse.response.token };
 
     } catch (error) {
         console.error("Registrierung Fehler:", error);

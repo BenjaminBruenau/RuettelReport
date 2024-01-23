@@ -51,4 +51,5 @@ export default defineNuxtConfig({
     classSuffix: '',
   },
   plugins: ['~/plugins/fusionauth.js'],
+
 })

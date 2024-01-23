@@ -1,6 +1,7 @@
 <script setup lang="ts">
 
 import {onMounted} from "vue";
+import {fusionAuthConfig} from "~/server/api/config";
 
 onMounted(() => {
 
@@ -9,15 +10,17 @@ onMounted(() => {
   //test_logout();
   //test_registrationTenant();
   //test_registrationNewTenant();
-  //test_validateToken();
+  //test_validateJwt();
 
 });
 
 function getTokenFromSessionStorage() {
   const token = sessionStorage.getItem('rrAuthToken');
   if (token) {
+    console.log('Token',token);
     return token;
   } else {
+    console.log('Kein Token gefunden!');
     return null;
   }
 }
@@ -33,15 +36,30 @@ async function test_retrieveUserByEmail() {
 }
 
 async function test_login() {
-  const response = await $fetch('/api/login', {
-    method: 'post',
-    body: {
-      username: 'andi@gmail.com',
-      password: 'testtest',
-      applicationId: '8c14990c-d1d6-4d1e-92e8-400b422c2149',
+  const router = useRouter();
+
+  try {
+    const response = await $fetch('/api/login', {
+      method: 'post',
+      body: {
+        username: 'andi@gmail.com',
+        password: 'testtest',
+        applicationId: '8c14990c-d1d6-4d1e-92e8-400b422c2149',
+      }
+    });
+
+    if (response && response.token) {
+
+      sessionStorage.setItem('rrAuthToken', response.token);
+
+      //await router.push(fusionAuthConfig.routes.authorizedRedirectUri[0]);
+    } else {
+      console.error('Login fehlgeschlagen');
     }
-  });
-  sessionStorage.setItem('rrAuthToken', response.token);
+  } catch (error) {
+    // Fehlerbehandlung
+    console.error('Fehler beim Login:', error);
+  }
 }
 
 async function test_logout() {
@@ -77,29 +95,33 @@ async function test_registrationTenant() {
       applicationId: '8c14990c-d1d6-4d1e-92e8-400b422c2149',
     }
   });
+  sessionStorage.setItem('rrAuthToken', response.token);
 }
 
 async function test_registrationNewTenant() {
   const response = await $fetch('/api/registerNewTenant', {
     method: 'post',
     body: {
-      username: 'Timmm2',
+      username: 'joelNew4',
       password: 'testtest',
-      email: 'timmm2@gmail.com',
-      tenantName: 'timmm2',
+      email: 'joelNew4@gmail.com',
+      tenantName: 'joelNew4',
       premium: true,
     }
   });
+  sessionStorage.setItem('rrAuthToken', response.token);
 }
 
-async function test_validateToken() {
-  const response = await $fetch('/api/validateToken', {
+async function test_validateJwt() {
+  const response = await $fetch('/api/validateJwt', {
     method: 'post',
     body: {
       token: getTokenFromSessionStorage(),
     }
   });
 }
+
+
 
 
 

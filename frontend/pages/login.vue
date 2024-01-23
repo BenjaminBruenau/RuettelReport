@@ -4,6 +4,13 @@ import { useToast } from 'primevue/usetoast';
 import { useField, useForm, defineRule } from 'vee-validate';
 import { required, email } from '@vee-validate/rules';
 import {onMounted, ref} from "vue";
+import { useRouter } from 'nuxt/app';
+
+
+definePageMeta({
+  middleware: ['auth'],
+});
+
 
 defineRule('required', required);
 defineRule('email', email);
@@ -178,13 +185,22 @@ function register(){
 }
 
 async function login() {
+  const router = useRouter();
+
   try {
-    const response = await axios.post('/api/login', {
-      username: emailLogin.value,
-      password: passwordLogin.value,
-      applicationId: applicationIdLogin.value
+    const response = await $fetch('/api/login', {
+      method: 'post',
+      body: {
+        username: emailLogin.value,
+        password: passwordLogin.value,
+        applicationId: applicationIdLogin.value
+      }
     });
-    sessionStorage.setItem('rrAuthToken', response.data.token);
+
+    sessionStorage.setItem('rrAuthToken', response.token);
+    window.location.reload();
+    //await router.push(fusionAuthConfig.routes.authorizedRedirectUri[0]);
+
     toast.add({severity: 'success', summary: 'Login erfolgreich', detail: 'Sie sind jetzt eingeloggt.'});
   } catch (error) {
     toast.add({severity: 'error', summary: 'Login fehlgeschlagen', detail: 'Überprüfen Sie Ihre Anmeldeinformationen.'});
@@ -194,11 +210,13 @@ async function login() {
 async function registrationTenant() {
   console.log("RegistrationTenant()");
   try {
-    const response = await axios.post('/api/registerTenant', {
-      email: emailSignup.value,
-      password: passwordSignup.value,
-      applicationId: config.value.applicationId
-    });
+    const response = await $fetch('/api/registerTenant', {
+      method: 'post',
+      body: {
+        email: emailSignup.value,
+        password: passwordSignup.value,
+        applicationId: config.value.applicationId
+    }});
     console.log('Registrierung erfolgreich:', response);
     toast.add({severity: 'success', summary: 'Registrierung erfolgreich', detail: 'Ihr Konto wurde erfolgreich erstellt.'});
     // Weiterer Code für erfolgreiche Registrierung
@@ -212,12 +230,14 @@ async function registrationTenant() {
 async function registrationNewTenant() {
   console.log("RegistrationNewTenant()");
   try {
-    const response = await axios.post('/api/registerNewTenant', {
+    const response = await $fetch('/api/registerNewTenant', {
+      method: 'post',
+      body: {
       email: emailSignup.value,
       password: passwordSignup.value,
       tenantName: config.value.tenantName,
       premium: checked.value
-    });
+    }});
     console.log('Neue Mieterregistrierung erfolgreich:', response);
     toast.add({severity: 'success', summary: 'Registrierung erfolgreich', detail: 'Ihr Mieterkonto wurde erfolgreich erstellt.'});
     // Weiterer Code für erfolgreiche Registrierung

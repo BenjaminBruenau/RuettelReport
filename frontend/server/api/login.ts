@@ -18,12 +18,15 @@ export default eventHandler(async (event) => {
             console.log("Login Erfolg:", clientResponse.response);
         }
 
+        if (clientResponse.response.token) {
+            setCookie(event,'rrAuthToken', clientResponse.response.token);
+        }
+
         return { login: true, user: clientResponse.response.user, token: clientResponse.response.token };
 
     } catch (error) {
         console.error("Login Fehler:", error);
         if (error.response) {
-            // Hier loggen wir das gesamte Fehlerobjekt
             console.error("Fehlerdetails:", JSON.stringify(error.response, null, 2));
         }
         return { login: false };

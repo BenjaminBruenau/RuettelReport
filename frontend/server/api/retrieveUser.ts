@@ -4,26 +4,18 @@ import { fusionAuthConfig } from './config';
 
 
 export default eventHandler(async (event) => {
-
     const body = await readBody(event);
-
     const client = new FusionAuthClient(fusionAuthConfig.apiKey, fusionAuthConfig.baseURL);
 
     try {
-        const clientResponse = await client.logout(true, body.token);
+        const clientResponse =
+            await client.retrieveUserUsingJWT(body.token);
 
-        if(fusionAuthConfig.log){
-            console.log("Logout Erfolg:", clientResponse.response);
-        }
-
-        deleteCookie(event,'rrAuthToken');
-
-
-        return { logout: true };
+        return { user: clientResponse.response.user};
 
     } catch (error) {
-        console.error("Login Fehler:", error);
-        return {  logout: false };
-    }
+        console.error("Couldnt acces user data", error);
 
+        return { user: null };
+    }
 });

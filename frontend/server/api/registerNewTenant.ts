@@ -15,6 +15,9 @@ export default eventHandler(async (event) => {
             tenant: {
                 name: (body.premium)?body.tenantName+'_premium':body.tenantName+'_free',
                 issuer: (body.premium)?fusionAuthConfig.issuer_premium:fusionAuthConfig.issuer_free,
+                jwtConfiguration: {
+                    timeToLiveInSeconds: fusionAuthConfig.tokenTimeToLiveInSeconds,
+                }
             }
         };
 
@@ -37,7 +40,14 @@ export default eventHandler(async (event) => {
                 jwtConfiguration: {
                     enabled: true,
                     accessTokenKeyId: (body.premium)?fusionAuthConfig.key_premium:fusionAuthConfig.key_free,
+                    timeToLiveInSeconds: fusionAuthConfig.tokenTimeToLiveInSeconds,
+                },
+                /*
+                oauthConfiguration:{
+                    //authorizedOriginURLs : fusionAuthConfig.routes.authorizedRedirectUri,
+                    logoutUrl: fusionAuthConfig.routes.logoutUri,
                 }
+                */
             }
         };
 
@@ -73,7 +83,11 @@ export default eventHandler(async (event) => {
             console.log("Registrierung Erfolg:", clientResponse.response);
         }
 
-        return { register: true, user: clientResponse.response.user };
+        if (clientResponse.response.token) {
+            setCookie(event,'rrAuthToken', clientResponse.response.token);
+        }
+
+        return { register: true, token: clientResponse.response.token };
 
     } catch (error) {
         console.error("Fehler bei der Verarbeitung:", error);

@@ -218,7 +218,7 @@ const handleApiSave = (event: MouseEvent) => {
           {{ apiEndpointName }}
         </div>
         <!--<PrimeButton icon="pi pi-replay" class="mr-2" @click="handleReplayClick"></PrimeButton>-->
-        <PrimeButton icon="pi pi-save" class="mr-2" @click="handleApiSave" :disabled="!filterModified"></PrimeButton>
+        <PrimeButton icon="pi pi-save" class="mr-2" @click="handleApiSave" ></PrimeButton>
 
       </template>
       <div class="grid-container">

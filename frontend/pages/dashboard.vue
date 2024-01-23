@@ -1,7 +1,11 @@
 <script setup lang="ts">
 import {onMounted, ref} from "vue";
 import EventDistribution from "~/components/statistics/EventDistribution.vue";
+import {useCookie} from "nuxt/app";
 
+definePageMeta({
+  middleware: ['auth'],
+});
 
 const props = defineProps({
   project_settings: {
@@ -13,6 +17,8 @@ const props = defineProps({
     default: true
   }
 });
+
+const userEmail = ref('<null>');
 
 const currentData = ref([]);
 
@@ -136,6 +142,7 @@ function adjustColorBrightness(hexColor: string, factor: number): string {
 
 onMounted(() => {
   setupTheme();
+  getUserEmail();
 });
 
 const updateProjectUsers = (payload) => {
@@ -163,6 +170,27 @@ const update_api_response = (payload) => {
 }
 
 
+async function logout(){
+  const response = await $fetch('/api/logout', {
+    method: 'post',
+    body: {
+      token: useCookie('rrAuthToken').value,
+    }
+  });
+  window.location.reload();
+}
+
+async function getUserEmail(){
+  const response = await $fetch('/api/retrieveUser', {
+    method: 'post',
+    body: {
+      token: useCookie('rrAuthToken').value,
+    }
+  });
+  userEmail.value = response.user.email;
+}
+
+
 </script>
 <template>
   <div class="dashboard">
@@ -182,6 +210,9 @@ const update_api_response = (payload) => {
                 <PrimeButton icon="pi pi-chart-bar" class="mr-2" label="★ Statistics" :disabled="!props.premium" @click="setActiveWindow(2)" ></PrimeButton>
               </template>
               <template #end>
+                <b>{{userEmail}}</b>
+                <div style="width: 20px"/>
+                <PrimeButton icon="pi pi-sign-out" class="mr-2" @click="logout"></PrimeButton>
                 <PrimeButton icon="pi pi-cog" class="mr-2" label="Settings" @click="setActiveWindow(3)"></PrimeButton>
               </template>
             </PrimeToolbar>
