@@ -7,6 +7,10 @@ const props = defineProps({
     type: Object,
     default: () => ({data: {}})
   },
+  premium: {
+    type: Boolean,
+    default: false
+  }
 });
 
 
@@ -186,7 +190,7 @@ function  btn_projectSettings_save(){
       <PrimeTabPanel header="Endpoint Manager" :pt="{headeraction: ({ props, parent }) => ({class: panelClass(props, parent, 0)})}">
         <ApiEndpointsManager :initialEndpoints="{ api_endpoints: props.project_settings['api_endpoints'] }" />
       </PrimeTabPanel>
-      <PrimeTabPanel header="★ Theming" :pt="{headeraction: ({ props, parent }) => ({class: panelClass(props, parent, 1)})}">
+      <PrimeTabPanel header="★ Theming" :disabled="!props.premium" :pt="{headeraction: ({ props, parent }) => ({class: panelClass(props, parent, 1)})}">
         <div style="margin:15px">
         <div class="grid-container">
 
@@ -212,7 +216,7 @@ function  btn_projectSettings_save(){
           </div>
         </div>
       </PrimeTabPanel>
-      <PrimeTabPanel header="★ Projects" :pt="{headeraction: ({ props, parent }) => ({class: panelClass(props, parent, 2)})}">
+      <PrimeTabPanel header="★ Projects" :disabled="!props.premium" :pt="{headeraction: ({ props, parent }) => ({class: panelClass(props, parent, 2)})}">
 
         <div>
           <div class="card">

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import {onMounted, ref} from "vue";
+import EventDistribution from "~/components/statistics/EventDistribution.vue";
 
 
 const props = defineProps({
@@ -7,6 +8,10 @@ const props = defineProps({
     type: Object,
     default: () => ({data: {}})
   },
+  premium: {
+    type: Boolean,
+    default: true
+  }
 });
 
 const currentData = ref([]);
@@ -174,7 +179,7 @@ const update_api_response = (payload) => {
             <PrimeToolbar>
               <template #start>
                 <PrimeButton icon="pi pi-map" class="mr-2" label="Map" @click="setActiveWindow(1)"></PrimeButton>
-                <PrimeButton icon="pi pi-chart-bar" class="mr-2" label="Statistics" @click="setActiveWindow(2)" ></PrimeButton>
+                <PrimeButton icon="pi pi-chart-bar" class="mr-2" label="★ Statistics" :disabled="!props.premium" @click="setActiveWindow(2)" ></PrimeButton>
               </template>
               <template #end>
                 <PrimeButton icon="pi pi-cog" class="mr-2" label="Settings" @click="setActiveWindow(3)"></PrimeButton>
@@ -185,10 +190,23 @@ const update_api_response = (payload) => {
             <Map :currentData="currentData"></Map>
           </div>
           <div class="tile tile_right_2 map-content" v-if="activeWindow===2">
-
+            <PrimeCard>
+              <template #title>Event Distribution</template>
+              <template #content>
+              <BarChart/>
+              </template>
+            </PrimeCard>
+            <div style="height:20px"></div>
+            <PrimeCard>
+              <template #title>Event Prediction</template>
+              <template #content>
+                <EventDistribution/>
+              </template>
+            </PrimeCard>
           </div>
           <div class="tile tile_right_2 map-content" v-if="activeWindow===3">
             <Settings :project_settings="project_settings"
+                      :premium="props.premium"
                       @update-project-users="updateProjectUsers"></Settings>
           </div>
         </div>
