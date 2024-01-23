@@ -17,7 +17,7 @@ jobs:
         os: [ubuntu-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     env:
-      working-directory: /backend/datatransformerservice
+      working-directory: backend/datatransformerservice
 
     steps:
     - uses: actions/checkout@v3
@@ -38,4 +38,4 @@ jobs:
       uses: codecov/codecov-action@v3
       env:
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-        root_dir: /backend/datatransformerservice
+        root_dir: backend/datatransformerservice
