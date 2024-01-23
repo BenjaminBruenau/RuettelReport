@@ -1,64 +1,3 @@
-/*
-import { FusionAuthClient, TenantRequest } from '@fusionauth/typescript-client';
-import { readBody } from 'h3';
-import { fusionAuthConfig } from './config';
-import { v4 as uuidv4 } from 'uuid';
-
-export default eventHandler(async (event) => {
-    const body = await readBody(event);
-
-    const client = new FusionAuthClient(fusionAuthConfig.apiKey, fusionAuthConfig.baseURL);
-
-    try {
-        // Schritt 1: Erstellen eines neuen Tenants
-        const newTenant: TenantRequest = {
-            tenant: {
-                name: body.tenantName,
-            }
-        };
-
-        const tenantResponse = await client.createTenant(uuidv4(), newTenant);
-        const tenantId = tenantResponse.response.tenant?.id;
-
-        // Loggen der Tenant-Erstellung
-        if (fusionAuthConfig.log) {
-            console.log("Tenant Erstellung Erfolg:", tenantResponse.response);
-            if (tenantId) {
-                console.log("Neue Tenant-ID:", tenantId);
-            }
-        }
-
-        console.log("YOOOOOO",tenantId);
-
-        // Schritt 2: Registrieren des Benutzers unter dem neuen Tenant
-        const user = {
-            tenantId: tenantId,
-            username: body.username,
-            password: body.password,
-            email: body.email,
-        };
-
-        const registration = {
-            applicationId: fusionAuthConfig.defaultApplicationId,
-        };
-
-        const clientResponse = await client.register(uuidv4(), { user, registration });
-
-        // Loggen der Benutzerregistrierung
-        if (fusionAuthConfig.log) {
-            console.log("Registrierung Erfolg:", clientResponse.response);
-        }
-
-        return { register: true, user: clientResponse.response.user };
-
-    } catch (error) {
-        console.error("Fehler bei der Verarbeitung:", error);
-        return { register: false };
-    }
-});
-
-*/
-
 
 import { FusionAuthClient, TenantRequest, ApplicationRequest } from '@fusionauth/typescript-client';
 import { readBody } from 'h3';
@@ -74,7 +13,8 @@ export default eventHandler(async (event) => {
         // Schritt 1: Erstellen eines neuen Tenants
         const newTenant: TenantRequest = {
             tenant: {
-                name: body.tenantName,
+                name: (body.premium)?body.tenantName+'_premium':body.tenantName+'_free',
+                issuer: (body.premium)?fusionAuthConfig.issuer_premium:fusionAuthConfig.issuer_free,
             }
         };
 
@@ -94,6 +34,10 @@ export default eventHandler(async (event) => {
         const newApplication: ApplicationRequest = {
             application: {
                 name: body.tenantName+'_Application',
+                jwtConfiguration: {
+                    enabled: true,
+                    accessTokenKeyId: (body.premium)?fusionAuthConfig.key_premium:fusionAuthConfig.key_free,
+                }
             }
         };
 

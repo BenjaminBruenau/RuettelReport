@@ -2,6 +2,7 @@ import { FusionAuthClient, UserRegistration } from '@fusionauth/typescript-clien
 import { readBody } from 'h3';
 import { fusionAuthConfig } from './config';
 import { v4 as uuidv4 } from 'uuid';
+
 export default eventHandler(async (event) => {
     const body = await readBody(event);
 
@@ -12,7 +13,6 @@ export default eventHandler(async (event) => {
             username: body.username,
             password: body.password,
             email: body.email,
-            //tenantId: body.tenantId,
         };
 
         const registration = {

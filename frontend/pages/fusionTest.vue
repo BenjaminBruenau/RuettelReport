@@ -7,9 +7,9 @@ onMounted(() => {
   //test_retrieveUserByEmail();
   //test_login();
   //test_logout();
-  //test_registration();
-  test_registrationApp();
-  //test_registrationNewApp();
+  //test_registrationTenant();
+  //test_registrationNewTenant();
+  //test_validateToken();
 
 });
 
@@ -27,7 +27,7 @@ async function test_retrieveUserByEmail() {
   const response = await $fetch('/api/retrieveUserByEmail', {
     method: 'post',
     body: {
-      userEmail: 'test@gmail.com',
+      userEmail: 'joelBenni@gmail.com',
     }
   });
 }
@@ -36,8 +36,9 @@ async function test_login() {
   const response = await $fetch('/api/login', {
     method: 'post',
     body: {
-      username: 'test@gmail.com',
-      password: 'testtest'
+      username: 'andi@gmail.com',
+      password: 'testtest',
+      applicationId: '8c14990c-d1d6-4d1e-92e8-400b422c2149',
     }
   });
   sessionStorage.setItem('rrAuthToken', response.token);
@@ -53,37 +54,49 @@ async function test_logout() {
   sessionStorage.setItem('rrAuthToken', response.token);
 }
 
+/*
 async function test_registration() {
   const response = await $fetch('/api/registerDefault', {
     method: 'post',
     body: {
-      username: 'newUser11',
-      password: 'newUser11',
-      email: 'newUser11@gmail.com',
+      username: 'joeljoel',
+      password: 'joeljoel',
+      email: 'joeljoel@gmail.com',
     }
   });
 }
+ */
 
-async function test_registrationApp() {
+async function test_registrationTenant() {
   const response = await $fetch('/api/registerTenant', {
     method: 'post',
     body: {
-      username: 'newUser3245678912',
-      password: 'newUser3425678912',
-      email: 'newUser3425678912@gmail.com',
-      applicationId: '974a0448-f5ca-4095-9b50-94c97b3109d4',
+      username: 'andi',
+      password: 'testtest',
+      email: 'andi@gmail.com',
+      applicationId: '8c14990c-d1d6-4d1e-92e8-400b422c2149',
     }
   });
 }
 
-async function test_registrationNewApp() {
+async function test_registrationNewTenant() {
   const response = await $fetch('/api/registerNewTenant', {
     method: 'post',
     body: {
-      username: 'test_registrationNewTenant_1',
+      username: 'Timmm2',
       password: 'testtest',
-      email: 'test_registrationNewTenant_1@gmail.com',
-      tenantName: 'test_registrationNewTenant_1',
+      email: 'timmm2@gmail.com',
+      tenantName: 'timmm2',
+      premium: true,
+    }
+  });
+}
+
+async function test_validateToken() {
+  const response = await $fetch('/api/validateToken', {
+    method: 'post',
+    body: {
+      token: getTokenFromSessionStorage(),
     }
   });
 }

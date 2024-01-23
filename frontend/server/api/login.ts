@@ -4,15 +4,14 @@ import { fusionAuthConfig } from './config';
 
 
 export default eventHandler(async (event) => {
-
     const body = await readBody(event);
-
     const client = new FusionAuthClient(fusionAuthConfig.apiKey, fusionAuthConfig.baseURL);
 
     try {
         const clientResponse = await client.login({
             loginId: body.username,
-            password: body.password
+            password: body.password,
+            applicationId: body.applicationId,
         });
 
         if(fusionAuthConfig.log){
@@ -23,6 +22,10 @@ export default eventHandler(async (event) => {
 
     } catch (error) {
         console.error("Login Fehler:", error);
-        return {  login: false };
+        if (error.response) {
+            // Hier loggen wir das gesamte Fehlerobjekt
+            console.error("Fehlerdetails:", JSON.stringify(error.response, null, 2));
+        }
+        return { login: false };
     }
 });
