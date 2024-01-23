@@ -4,6 +4,8 @@ import dataTransformer.model.MappingExpr.{->, ->/}
 import dataTransformer.model.MappingRules
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
+import spray.json.*
+
 class DynamicProtocolGeneratorSpec extends AnyWordSpec with Matchers {
   val inputJson = """{"def": "test", "foo": {"bar": "nested-test"}}"""
 
