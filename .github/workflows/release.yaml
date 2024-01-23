@@ -2,6 +2,9 @@ name: Release
 on:
   push:
 
+env:
+  GAR_LOCATION: ${{vars.GCLOUD_REGION}}
+  working-directory: ./backend
   
 jobs:
   docker-release:
@@ -16,8 +19,12 @@ jobs:
     steps:
       - id: checkout
         name: Checkout
-        uses: actions/checkout@v2
-
+        uses: actions/checkout@v3
+      - name: Setup Scala
+        uses: olafurpg/setup-scala@v10
+        with:
+          java-version: "openjdk@1.17.0"
+          
       - id: auth
         name: Authenticate with Google Cloud
         uses: google-github-actions/auth@v2
@@ -37,3 +44,22 @@ jobs:
       - name: Get tag
         id: get-tag
         run: echo ::set-output name=short_ref::${GITHUB_REF#refs/*/}
+
+      - name: Get commons lib
+        run: sbt publishLocal
+        working-directory: ./backend/commons
+
+      - name: Build Images
+        run: sbt docker:publishLocal
+        working-directory: ${{ env.working-directory }}
+      - id: docker-push-query-service-tagged
+        name: Tag QueryService Docker image and push to Google Artifact Registry
+        run:
+          docker tag queryservice:0.1.0 ${{ env.GAR_LOCATION }}-docker.pkg.dev/${{vars.PROJECT_ID}}/ruettel-report/queryservice:${{ steps.get-tag.outputs.short_ref }}
+          docker push ${{ env.GAR_LOCATION }}-docker.pkg.dev/${{vars.PROJECT_ID}}/ruettel-report/queryservice:${{ steps.get-tag.outputs.short_ref }}
+      - id: docker-push-datatransformer-service-tagged
+        name: Tag DataTransformerService Docker image and push to Google Artifact Registry
+        run:
+          docker tag datatransformerservice:0.1.0 ${{ env.GAR_LOCATION }}-docker.pkg.dev/${{vars.PROJECT_ID}}/ruettel-report/queryservice:${{ steps.get-tag.outputs.short_ref }}
+          docker push ${{ env.GAR_LOCATION }}-docker.pkg.dev/${{vars.PROJECT_ID}}/ruettel-report/queryservice:${{ steps.get-tag.outputs.short_ref }}
+             
