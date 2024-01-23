@@ -1,9 +1,10 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
+
   devtools: { enabled: true },
   css: [
     'primeicons/primeicons.css',
-    'primevue/resources/themes/soho-light/theme.css'
+    'primevue/resources/themes/soho-light/theme.css',
   ],
   pages: true,
   ssr: false,
@@ -14,9 +15,17 @@ export default defineNuxtConfig({
     },
   ],
   routeRules: {
+    /*
     '/api/**': {
       proxy: { to: `http://localhost:8080/api/**`, },
+    },
+    */
+
+    '/auth/**': {
+      proxy: { to: `http://34.65.19.16/**`, },
     }
+
+
   },
   modules: ['@nuxtjs/tailwindcss', 'nuxt-primevue', '@nuxtjs/color-mode'],
   primevue: {
@@ -41,4 +50,5 @@ export default defineNuxtConfig({
   colorMode: {
     classSuffix: '',
   },
+  plugins: ['~/plugins/fusionauth.js'],
 })

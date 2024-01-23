@@ -41,14 +41,21 @@ if (savedTheme) {
 
 const toast = useToast();
 
-const onSubmitLogin = handleSubmitLogin(async values => {
+/*
+const onSubmitLogin = handleSubmitLogin(async (values) => {
   try {
-    const response = await axios.post(`${FA_BASE_URL}/api/login`, {
-      loginId: values.email,
-      password: values.password,
+    console.log("HIER!");
+    const response = await axios.post('http://localhost:3000/login', {
+      client_id: '9643e3b2-9f1e-4f21-8457-7d631bfde25e',
+      redirect_uri: 'http://localhost:3000/dashboard',
+      user_email:'test@test.de',
+      user_password:'testtest'
     });
 
-    localStorage.setItem('userToken', response.data.token);
+    console.log('RESPONSE:',response);
+
+    // Hier sollten Sie die Antwort validieren und das Token sicher speichern
+    // Zum Beispiel in einem HttpOnly Cookie
 
     toast.add({ severity: 'success', summary: 'Login Successful', detail: 'You are now logged in.', life: 3000 });
     resetLoginForm();
@@ -59,7 +66,7 @@ const onSubmitLogin = handleSubmitLogin(async values => {
 
 const onSubmitSignup = handleSubmitSignup(async values => {
   try {
-    const response = await axios.post(`${FA_BASE_URL}/api/user/registration`, {
+    const response = await axios.post(`http://34.65.19.16/oauth2/authorize`, {
       user: {
         email: values.email,
         password: values.password,
@@ -71,6 +78,9 @@ const onSubmitSignup = handleSubmitSignup(async values => {
     toast.add({ severity: 'error', summary: 'Registration Failed', detail: 'Could not create account.', life: 3000 });
   }
 });
+*/
+
+
 
 const panelClass = (props, parent, index) => {
   return [
@@ -80,6 +90,12 @@ const panelClass = (props, parent, index) => {
     }
   ];
 };
+
+/*
+GET/oauth2/authorize?client_id={client_id}&redirect_uri={redirect_uri}&response_type=code&tenantId={tenantId}
+ */
+
+
 
 
 const project_settings = ref({
@@ -145,13 +161,94 @@ const toggleDarkMode = (newValue: boolean) => {
   useColorMode().preference = darkMode.value ? 'dark' : 'light'
 }
 
+
+
+// --login--
+
+const showResponseHTML = ref(false);
+const responseHTML = ref('');
+
+
+/*
+async function loginRequest() {
+  try {
+    const params = new URLSearchParams({
+      client_id: '9643e3b2-9f1e-4f21-8457-7d631bfde25e',
+      response_type: 'code',
+      redirect_uri: 'http://localhost:3000/dashboard',
+    });
+
+    const url = `http://localhost:3000/auth/oauth2/authorize?${params.toString()}`;
+
+    console.log(url);
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    });
+
+    console.log('HTTP-Statuscode:', response.status);
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+
+    const text = await response.text();
+
+    if (response.status === 200) {
+      showResponseHTML.value = true;
+      responseHTML.value = text;
+      console.log('TEXT:', text);
+
+    }
+
+  } catch (error) {
+    console.error('Fehler bei der Authentifizierung:', error);
+  }
+}
+
+loginRequest();
+*/
+
+
+import {FusionAuthClient} from '@fusionauth/typescript-client';
+
+const client = new FusionAuthClient('FbX31ng685J3e3Fcy4xWaDcDPUg-PMwgyin_RVHGPLnUKbXuG3ZxuUVT', '/auth');
+
+client.retrieveUserByEmail('test@test.com')
+    .then(clientResponse => {
+      console.log("User:", JSON.stringify(clientResponse.response.user, null, 2));
+    }).catch(console.error);
+
+
+import { LoginRequest } from '@fusionauth/typescript-client/build/src/FusionAuthClient';
+
+const loginRequest: LoginRequest = {
+  loginId: 'test@test.com',
+  password: 'test',
+};
+
+client.login(loginRequest)
+    .then(clientResponse => {
+      console.log("Erfolgreich angemeldet", clientResponse);
+    }).catch(error => {
+  console.error("Anmeldefehler", error);
+});
+
+
 </script>
 
 <template>
+  <div v-if="showResponseHTML" v-html="responseHTML"></div>
   <div>
     <Map style="position:absolute"></Map>
   </div>
-<!--
+
+
+
+  <!---
   <div style="margin:20px; position:absolute"  class="switch">
     <PrimeInputSwitch v-model="darkMode" @update:model-value="toggleDarkMode"></PrimeInputSwitch>
   </div>
@@ -176,7 +273,7 @@ const toggleDarkMode = (newValue: boolean) => {
                 <PrimePassword id="password" v-model="passwordLogin" class="full-width" required :feedback="false" />
                 <small class="p-error">{{ passwordLoginError || '&nbsp;' }}</small>
               </div>
-              <PrimeButton label="Login" class="full-width" />
+              <PrimeButton label="Login" class="full-width" @click="onSubmitLogin" />
             </form>
           </PrimeTabPanel>
           <PrimeTabPanel header="Sign Up" :pt="{headeraction: ({ props, parent }) => ({class: panelClass(props, parent, 1)})}">
@@ -205,6 +302,7 @@ const toggleDarkMode = (newValue: boolean) => {
     </PrimeCard>
   </div>
   -->
+
 </template>
 
 <style scoped>

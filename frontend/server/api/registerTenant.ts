@@ -12,6 +12,7 @@ export default eventHandler(async (event) => {
             username: body.username,
             password: body.password,
             email: body.email,
+            //tenantId: body.tenantId,
         };
 
         const registration = {

@@ -1,14 +1,28 @@
-import {FusionAuthClient} from '@fusionauth/typescript-client';
+import { FusionAuthClient } from '@fusionauth/typescript-client';
+import { readBody } from 'h3';
+import { fusionAuthConfig } from './config';
+
 
 export default eventHandler(async (event) => {
-    const client = new FusionAuthClient('FbX31ng685J3e3Fcy4xWaDcDPUg-PMwgyin_RVHGPLnUKbXuG3ZxuUVT', 'https://34.65.19.16')
 
-    client.retrieveUserByEmail('test@gmail.com')
-        .then(clientResponse => {
-            console.log("User:", JSON.stringify(clientResponse.response.user, null, 2));
-        }).catch(console.error);
+    const body = await readBody(event);
 
-    return client.retrieveUserByEmail('test@gmail.com')
+    const client = new FusionAuthClient(fusionAuthConfig.apiKey, fusionAuthConfig.baseURL);
+
+    try {
+        const clientResponse = await client.login({
+            loginId: body.username,
+            password: body.password
+        });
+
+        if(fusionAuthConfig.log){
+            console.log("Login Erfolg:", clientResponse.response);
+        }
+
+        return { login: true, user: clientResponse.response.user, token: clientResponse.response.token };
+
+    } catch (error) {
+        console.error("Login Fehler:", error);
+        return {  login: false };
+    }
 });
-
-
