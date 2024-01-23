@@ -31,7 +31,7 @@ class DataTransformerHttpController(messageService: MessageService)(implicit val
 
   val route: Route =
     concat(
-      path("api" / "data-transformer") {
+      path("data-transformer" / "api" / "query") {
         get {
           handleTransformQueryRequest()
         } ~

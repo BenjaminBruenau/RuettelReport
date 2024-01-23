@@ -7,7 +7,7 @@ import commons.message.MessageService
 import commons.message.kafka.KafkaMessageService
 
 @main
-def dataTransformerApp(): Unit =
+def queryServiceApp(): Unit =
   implicit val actorSystem: ActorSystem[Any] = ActorSystem(Behaviors.empty, "QueryServiceActorSystem")
 
 

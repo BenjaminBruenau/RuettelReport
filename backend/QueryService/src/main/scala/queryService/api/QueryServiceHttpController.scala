@@ -29,7 +29,7 @@ class QueryServiceHttpController(messageService: MessageService)(implicit val sy
 
   val route: Route =
     concat(
-      path("api" / "query") {
+      path("query-service" / "api" / "query") {
         get {
           handleQueryRequest()
         } ~
