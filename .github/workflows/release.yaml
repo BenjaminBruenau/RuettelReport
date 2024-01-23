@@ -62,4 +62,11 @@ jobs:
         run: |
           docker tag datatransformerservice:0.1.0 ${{ env.GAR_LOCATION }}-docker.pkg.dev/${{vars.PROJECT_ID}}/ruettel-report/queryservice:${{ steps.get-tag.outputs.short_ref }}
           docker push ${{ env.GAR_LOCATION }}-docker.pkg.dev/${{vars.PROJECT_ID}}/ruettel-report/queryservice:${{ steps.get-tag.outputs.short_ref }}
+      - id: docker-build-push-frontend-and-projectmanagement-service-tagged
+        name: Build,Tag Frontend and ProjectManagement Docker image and push to Google Artifact Registry
+        run: |
+          docker build . --tag ${{ env.GAR_LOCATION }}-docker.pkg.dev/${{vars.PROJECT_ID}}/ruettel-report/queryservice:${{ steps.get-tag.outputs.short_ref }}
+          docker tag datatransformerservice:0.1.0 ${{ env.GAR_LOCATION }}-docker.pkg.dev/${{vars.PROJECT_ID}}/ruettel-report/queryservice:${{ steps.get-tag.outputs.short_ref }}
+          docker push ${{ env.GAR_LOCATION }}-docker.pkg.dev/${{vars.PROJECT_ID}}/ruettel-report/queryservice:${{ steps.get-tag.outputs.short_ref }}
+        working-directory: ./frontend
              
