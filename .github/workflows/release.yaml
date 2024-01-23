@@ -1,14 +1,13 @@
 name: Release
 on:
-  #push:
+  push:
 
-  workflow_dispatch:
   
 jobs:
   docker-release:
     name: Release to Google Artifact Registry
     runs-on: ubuntu-latest
-    #if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')  # only run when tagged commit is pushed
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')  # only run when tagged commit is pushed
 
     permissions:
       contents: 'read'
