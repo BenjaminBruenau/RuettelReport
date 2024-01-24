@@ -293,7 +293,7 @@ const sendRequest = async (queryParams,index,color) => {
     refresh,
     error,
     status,
-  } = await useFetch('/api/query', {
+  } = await useFetch('/premium/query-service/api/query', {
     key: 'features',
     method: 'POST',
     body: queryParams, // Verwenden Sie den übergebenen queryParams-Parameter
