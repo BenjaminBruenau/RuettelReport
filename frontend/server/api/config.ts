@@ -1,7 +1,7 @@
 
 export const fusionAuthConfig = {
     apiKey: 'FbX31ng685J3e3Fcy4xWaDcDPUg-PMwgyin_RVHGPLnUKbXuG3ZxuUVT',
-    baseURL: 'http://my-fusion-fusionauth.default.svc.cluster.local:9111',
+    baseURL: 'http://34.65.133.68/auth/',
 
     defaultApplicationId: '9643e3b2-9f1e-4f21-8457-7d631bfde25e',
 
