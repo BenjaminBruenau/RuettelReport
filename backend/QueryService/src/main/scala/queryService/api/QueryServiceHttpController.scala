@@ -55,14 +55,11 @@ class QueryServiceHttpController(messageService: MessageService)(implicit val sy
               throw new RuntimeException(s"Request failed with status code $status and entitiy: $entity")
           })
 
-          val jsonKafkaFlow = Flow[ByteString].via(JsonReader.select("$.features[*]")).map(_.utf8String.parseJson)
           val jsonResponseFlow = Flow[ByteString].via(jsonStreamingSupport.framingDecoder).map(_.utf8String.parseJson)
-          val kafkaSink = messageService.produceMessagesSink("feature_test")
 
           Try(apiSource) match {
             case Success(source) =>
-              val connectedSource = source.alsoToMat(jsonKafkaFlow.toMat(kafkaSink)(Keep.right))(Keep.right)
-              complete(connectedSource.via(jsonResponseFlow))
+              complete(source.via(jsonResponseFlow))
             case Failure(exception) =>
               complete(StatusCodes.InternalServerError, exception.getMessage)
           }

@@ -1,0 +1,9 @@
+apiVersion: configuration.konghq.com/v1
+kind: KongConsumer
+metadata:
+  namespace: free
+  name: free
+  annotations:
+    kubernetes.io/ingress.class: kong
+username: free
+credentials: ["free-jwt"]

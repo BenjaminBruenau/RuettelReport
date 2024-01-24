@@ -7,6 +7,10 @@ const props = defineProps({
     type: Object,
     default: () => ({data: {}})
   },
+  currentData: {
+    type: Object,
+    default: () => ({data: {}})
+  },
 });
 
 const structure = ref({
@@ -133,10 +137,43 @@ watch(() => props.project_settings.api_endpoints, () => {
 }, { deep: true });
 
 
+function getApiFilterBlock(index) {
+  const block = apiFilterBlocks.value[index];
+  if (!block) {
+    return null;
+  }
+
+  const { structure, project_settings } = block;
+  const apiEndpoints = project_settings.api_endpoints;
+  const apiEndpointKeys = Object.keys(apiEndpoints);
+
+  if (apiEndpointKeys.length === 0) {
+    return null;
+  }
+
+  const endpointName = apiEndpointKeys[index % apiEndpointKeys.length];
+  const apiEndpoint = apiEndpoints[endpointName];
+
+  const mappingRules = apiEndpoint.mappingRules || '';
+
+  return {
+    queryStructure: {
+      requestOptions:structure.requestOptions,
+      api_endpoints: {
+        [endpointName]: apiEndpoint
+      },
+    },
+    endpoint: endpointName,
+    mappingRules: mappingRules
+  };
+}
+
 createApiFilterBlocks();
 
 const handleUpdateRequestOptions = (payload) => {
   const { index, newValues } = payload;
+
+  console.log(JSON.stringify(newValues,null,2));
 
   if (index >= 0 && index < apiFilterBlocks.value.length) {
 
@@ -152,10 +189,159 @@ const handleUpdateRequestOptions = (payload) => {
   }
 };
 
-function runButton(){
-  // HIER AN SERVER SCHICKEN UM REPORT ZU ERHALTEN!
-  console.log(JSON.stringify(apiFilterBlocks.value,null,2));
+
+const queryStructure = {
+  "queryStructure": {
+    "requestOptions":{
+      "format":{
+        "type": "string",
+        "include": true,
+        "value": "geojson"
+      },
+      "starttime":{
+        "type": "dateTime",
+        "include": true,
+        "value": "2023-09-10T00:00:00"
+      },
+      "endtime":{
+        "type": "dateTime",
+        "include": true,
+        "value": "2023-09-10T00:10:00"
+      },
+      "minmagnitude":{
+        "type": "float",
+        "include": true,
+        "value":0.0
+
+      },
+      "maxmagnitude":{
+        "type": "float",
+        "include": true,
+        "value":10.0
+      },
+      "minlongitude":{
+        "type": "float",
+        "include": true,
+        "value":-180.0
+
+      },
+      "maxlongitude":{
+        "type": "float",
+        "include": true,
+        "value":180.0
+
+      },
+      "minlatitude":{
+        "type": "float",
+        "include": true,
+        "value":-90.0
+
+      },
+      "maxlatitude":{
+        "type": "float",
+        "include": true,
+        "value":90.0
+      }
+
+    },
+    "api_endpoints":{
+      "earthquake.usgs.gov": {
+        "url": "https://earthquake.usgs.gov/fdsnws/event/1/query",
+        "method": "GET",
+        "params": {
+          "format": "format",
+          "starttime": "starttime",
+          "endtime": "endtime",
+          "minmagnitude": "minmagnitude",
+          "maxmagnitude": "maxmagnitude",
+          "minlongitude": "minlongitude",
+          "maxlongitude": "maxlongitude",
+          "minlatitude": "minlatitude",
+          "maxlatitude": "maxlatitude"
+        }
+      },
+      "earthquake.usgs.gov2":{
+        "url": "https://earthquake.usgs.gov/fdsnws/event/1/query",
+        "method": "GET",
+        "params": {
+          "format": "format",
+          "starttime": "starttime",
+          "endtime": "endtime"
+        }
+      }
+    }
+  },
+  "endpoint": "earthquake.usgs.gov2",
+  "mappingRules" : "\"type\" -> \"newType\""
 }
+
+const result = ref({})
+
+/*
+watch(() => result, () =>{
+  console.log(JSON.stringify(result,null,2));
+});
+*/
+
+const emit = defineEmits(['update-api-response']);
+
+const sendRequest = async (queryParams,index,color) => {
+  console.log("Trying to send!");
+  const {
+    data: features,
+    pending,
+    refresh,
+    error,
+    status,
+  } = await useFetch('/api/query', {
+    key: 'features',
+    method: 'POST',
+    body: queryParams, // Verwenden Sie den übergebenen queryParams-Parameter
+    onRequest({ request, options }) {
+      console.log('Send Request')
+    },
+    onResponseError({ request, response, options }) {
+      console.debug('ERROR while loading data: ',response);
+
+    },
+    onResponse({ request, response, options }) {
+      if (response._data) {
+        //console.debug('Result: ', response._data);
+        result.value = response._data;
+        emit('update-api-response', { index: index, data: result,color: color });
+      }
+    },
+  });
+}
+
+function getApiColors(projectSettings) {
+  const apiEndpoints = projectSettings.api_endpoints;
+  const colors = [];
+
+  for (const key in apiEndpoints) {
+    if (apiEndpoints[key].color) {
+      colors.push(apiEndpoints[key].color);
+    }
+  }
+  return colors;
+}
+
+
+async function runButton() {
+
+  console.log("RUN!");
+  for (let index = 0; index < apiFilterBlocks.value.length; index++) {
+    const blockString = getApiFilterBlock(index);
+    if (blockString) {
+      console.log(JSON.stringify(blockString,null,2));
+      await sendRequest(blockString,index,getApiColors(props.project_settings)[index]);
+    }
+  }
+}
+
+// ---------------
+
+
 
 </script>
 

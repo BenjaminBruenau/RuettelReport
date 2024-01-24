@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: datatransformer-configmap
+  namespace: free
+data:
+  kafka_bootstrap_servers: {{ .Values.datatransformerservice.kafkaBootstrapServers }}

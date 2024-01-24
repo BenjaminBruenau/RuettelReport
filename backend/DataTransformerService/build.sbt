@@ -31,8 +31,18 @@ lazy val dependencies = Seq(
   "default" %% "commons" % "0.1.0" excludeAll ExclusionRule("*") // We already have all of those dependencies here
 )
 
+// sbt native-packager Docker Settings
+import com.typesafe.sbt.packager.docker._
+
 enablePlugins(JavaAppPackaging)
 enablePlugins(DockerPlugin)
 
 dockerBaseImage := "pnavato/amazoncorretto-jre:17-alpine"
-dockerExposedPorts ++= Seq(8080)
+dockerExposedPorts ++= Seq(8081)
+dockerEntrypoint := Seq.empty
+
+dockerCommands ++= Seq(
+  Cmd("ENV", "KAFKA_BOOTSTRAP_SERVERS", "localhost:29092"), // This will be overridden when running!
+  // Override Entrypoint to pass Env Variables
+  ExecCmd("ENTRYPOINT", "sh", "-c", "bin/" + s"${executableScriptName.value}" + " -Dport=$KAFKA_BOOTSTRAP_SERVERS")
+)

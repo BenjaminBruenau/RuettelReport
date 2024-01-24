@@ -62,7 +62,7 @@ import scala3encoders.given
     .format("kafka")
     .option("kafka.bootstrap.servers", "localhost:29092")
     .option("subscribe", "feature_test")
-    .option("startingOffsets", "earliest") // Read all messages (including older ones, not only new ones coming in), otherwise spark will start reading from the latest offset and thus only process new messages written to Kafka
+    .option("startingOffsets", "earliest") // Read all messages (including older ones, not only new ones coming in), otherwise spark will start reading from the latest offset and thus only process new messages written to Kafka - or latest (only new ones)
     .load()
 
 
@@ -77,7 +77,7 @@ import scala3encoders.given
 
   val jsonValueDF = kafkaTopicDS
     .select(from_json(col("value"), topLevelSchema).as("json"))
-    .select("json.*") // after here its possible to directly operate on each of the topLevel fields and their values
+    .select("json.*") // after here its possible to directly operate on each of the topLevel json fields and their values
     //.withColumn("timestamp", current_timestamp())
     //.withWatermark("timestamp", "1 minute")
     //.groupBy(window($"timestamp", "10 minutes", "5 minutes"), $"type").agg(count("*").as("count"))
@@ -86,10 +86,9 @@ import scala3encoders.given
   val slideDuration = "20 seconds"
 
 
-
   val aggregatedDF = jsonValueDF
     .withColumn("timestamp", current_timestamp())
-    .withWatermark("timestamp", "1 minute")
+    .withWatermark("timestamp", "20 seconds")
     .groupBy(window(col("timestamp"), windowDuration, slideDuration), col("type"))
     .agg(
       count("*").as("count"),
@@ -98,18 +97,8 @@ import scala3encoders.given
     )
     //.join(earthquakeFrequencyByLocation, Seq("properties.place"), "left_outer")
 
-  // OUTPUT IN TERMINAL OR MONGODB SINK
 
-  /*
-  val query = aggregatedDF.writeStream
-    .outputMode("complete")
-    //.foreachBatch(dfOps _)
-    .format("console")
-    .start()
 
-  query.awaitTermination()
-
-   */
   val magRanges = Seq("0-2", "2-4", "4-6", "6-8", "8-10")
   val magDistribution = jsonValueDF
     .filter(col("properties.mag").isNotNull)
@@ -131,33 +120,43 @@ import scala3encoders.given
     .agg(stddev("properties.mag").as("stddev_magnitude"))
 
 
-  val mongoDBSink = magDistribution.writeStream
+  // OUTPUT IN TERMINAL AND/OR MONGODB SINK
+
+  val mongoDBMagSink = magDistribution.writeStream
     .format("mongodb")
     .option("checkpointLocation", "./tmp/")
     .option("forceDeleteTempCheckpointLocation", "true")
     .option("spark.mongodb.connection.uri", "mongodb://127.0.0.1:27017/ruettelreport")
     .option("spark.mongodb.database", "ruettelreport")
-    .option("spark.mongodb.collection","analyticsmagdistro") // tenant-name + realtime_analytics
+    .option("spark.mongodb.collection","analytics_magdistr")
+    .outputMode("complete")
+    .start()
+
+  val mongoDBSink = aggregatedDF.writeStream
+    .format("mongodb")
+    .option("checkpointLocation", "./tmp/")
+    .option("forceDeleteTempCheckpointLocation", "true")
+    .option("spark.mongodb.connection.uri", "mongodb://127.0.0.1:27017/ruettelreport")
+    .option("spark.mongodb.database", "ruettelreport")
+    .option("spark.mongodb.collection", "analytics")
     .outputMode("complete") // complete -> replace existing value in db (takes all values that came in into account, updates it each batch), append -> only new rows that were added since the last batch are written to sink, update -> writes only changed rows (new/updated) to the sink
     .start()
 
-  val query = magDistribution.writeStream
+  val consoleSink1 = magDistribution.writeStream
     .outputMode("complete")
     //.foreachBatch(dfOps _)
     .format("console")
     .start()
 
+  val consoleSink2 = aggregatedDF.writeStream
+    .outputMode("complete")
+    //.foreachBatch(dfOps _)
+    .format("console")
+    .start()
+
+  mongoDBMagSink.awaitTermination()
   mongoDBSink.awaitTermination()
-  query.awaitTermination()
+  consoleSink1.awaitTermination()
+  consoleSink2.awaitTermination()
 
 
-
-def testSpark(): Unit =
-
-  val logFile = "C:\\Program Files\\Spark\\spark-3.5.0-bin-hadoop3\\README.md" // Should be some file on your system
-  val spark = SparkSession.builder.appName("Simple Application").config("spark.master", "local").getOrCreate()
-  val logData = spark.read.textFile(logFile).cache()
-  val numAs = logData.filter(line => line.contains("a")).count()
-  val numBs = logData.filter(line => line.contains("b")).count()
-  println(s"Lines with a: $numAs, Lines with b: $numBs")
-  spark.stop()

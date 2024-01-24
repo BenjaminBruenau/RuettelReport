@@ -1,23 +1,29 @@
 <script setup lang="ts">
 import {onMounted, ref} from "vue";
+import EventDistribution from "~/components/statistics/EventDistribution.vue";
+import {useCookie} from "nuxt/app";
 
+definePageMeta({
+  middleware: ['auth'],
+});
 
 const props = defineProps({
   project_settings: {
     type: Object,
     default: () => ({data: {}})
   },
+  premium: {
+    type: Boolean,
+    default: true
+  }
 });
 
-const project_settings_struct = ref({
-  'id': Number,
-  'project':{},
-  'api_endpoints':{},
-  'theme':{
-    'primary_color_light':'#fff',
-    'primary_color_dark':'#fff',
-    'default_theme': 'light',
-  },
+const userEmail = ref('<null>');
+
+const currentData = ref([]);
+
+watch(currentData,()=>{
+  console.log('CURRENT',currentData.value);
 });
 
 const project_settings = ref({
@@ -43,11 +49,13 @@ const project_settings = ref({
         minlatitude: 'minlatitude',
         maxlatitude: 'maxlatitude',
       },
+      mappingRules: '',
     },
+
     'earthquake.usgs.gov2': {
       url: 'https://earthquake.usgs.gov/fdsnws/event/1/query',
       method: 'GET',
-      color: '#009b4e',
+      color: '#e1967a',
       params: {
         format: 'format',
         starttime: 'starttime',
@@ -59,9 +67,11 @@ const project_settings = ref({
         minlatitude: 'minlatitude',
         maxlatitude: 'maxlatitude',
       },
+      mappingRules: '',
     }
+
   },
-  /*
+
     'theme':{
       'primary_color_light':'#009b91',
       'primary_color_dark':'#009b91',
@@ -71,7 +81,7 @@ const project_settings = ref({
       'gradient_to_dark':"#334152",
       'default_theme': 'light',
     },
-    */
+    /*
     'theme':{
       'primary_color_light':'#ffffff',
       'primary_color_dark':'#9e9e9e',
@@ -81,6 +91,8 @@ const project_settings = ref({
       'gradient_to_dark':"#1f1f1f",
       'default_theme': 'light',
     },
+
+     */
 
 });
 
@@ -130,6 +142,7 @@ function adjustColorBrightness(hexColor: string, factor: number): string {
 
 onMounted(() => {
   setupTheme();
+  getUserEmail();
 });
 
 const updateProjectUsers = (payload) => {
@@ -137,12 +150,62 @@ const updateProjectUsers = (payload) => {
 
 }
 
+function to_color(text){
+  return '#'+text.replace("#", "")
+}
+
+const update_api_response = (payload) => {
+  const { index, data, color } = payload;
+  const actualNewValues = data._rawValue || data._value;
+
+  const existingElementIndex = currentData.value.findIndex(el => el.index === index);
+
+  if (existingElementIndex !== -1) {
+    currentData.value[existingElementIndex].color = to_color(color);
+    currentData.value[existingElementIndex].data = actualNewValues;
+
+  } else {
+    currentData.value.push({ index, color:to_color(color), data: actualNewValues });
+  }
+}
+
+
+async function logout(){
+  const response = await $fetch('/api/logout', {
+    method: 'post',
+    body: {
+      token: useCookie('rrAuthToken').value,
+    }
+  });
+  window.location.reload();
+}
+
+
+async function getUserEmail(){
+  const response = await $fetch('/api/retrieveUser', {
+    method: 'post',
+    body: {
+      token: useCookie('rrAuthToken').value,
+    }
+  });
+  try{
+    userEmail.value = response.user.email;
+  }catch (error){
+
+  }
+
+}
+
+
 </script>
 <template>
   <div class="dashboard">
     <div class="container">
       <div class="tile tile_left first-column">
-        <ApiFilterContainer :project_settings="project_settings"></ApiFilterContainer>
+        <ApiFilterContainer :project_settings="project_settings"
+                            :current-data="currentData"
+                            @update-api-response="update_api_response"
+        ></ApiFilterContainer>
       </div>
       <div class="second-column">
         <div class="second-column-content">
@@ -150,21 +213,37 @@ const updateProjectUsers = (payload) => {
             <PrimeToolbar>
               <template #start>
                 <PrimeButton icon="pi pi-map" class="mr-2" label="Map" @click="setActiveWindow(1)"></PrimeButton>
-                <PrimeButton icon="pi pi-chart-bar" class="mr-2" label="Statistics" @click="setActiveWindow(2)" ></PrimeButton>
+                <PrimeButton icon="pi pi-chart-bar" class="mr-2" label="★ Statistics" :disabled="!props.premium" @click="setActiveWindow(2)" ></PrimeButton>
               </template>
               <template #end>
+                <b>{{userEmail}}</b>
+                <div style="width: 20px"/>
+                <PrimeButton icon="pi pi-sign-out" class="mr-2" @click="logout"></PrimeButton>
                 <PrimeButton icon="pi pi-cog" class="mr-2" label="Settings" @click="setActiveWindow(3)"></PrimeButton>
               </template>
             </PrimeToolbar>
           </div>
           <div class="tile tile_right_2 map-content" v-if="activeWindow===1">
-            <Map></Map>
+            <Map :currentData="currentData"></Map>
           </div>
           <div class="tile tile_right_2 map-content" v-if="activeWindow===2">
-
+            <PrimeCard>
+              <template #title>Event Distribution</template>
+              <template #content>
+              <BarChart/>
+              </template>
+            </PrimeCard>
+            <div style="height:20px"></div>
+            <PrimeCard>
+              <template #title>Event Prediction</template>
+              <template #content>
+                <EventDistribution/>
+              </template>
+            </PrimeCard>
           </div>
           <div class="tile tile_right_2 map-content" v-if="activeWindow===3">
             <Settings :project_settings="project_settings"
+                      :premium="props.premium"
                       @update-project-users="updateProjectUsers"></Settings>
           </div>
         </div>

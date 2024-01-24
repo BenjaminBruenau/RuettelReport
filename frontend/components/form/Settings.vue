@@ -1,12 +1,17 @@
 <script setup lang="ts">
 
 import {onMounted, ref} from "vue";
+import {useCookie} from "nuxt/app";
 
 const props = defineProps({
   project_settings: {
     type: Object,
     default: () => ({data: {}})
   },
+  premium: {
+    type: Boolean,
+    default: false
+  }
 });
 
 
@@ -77,6 +82,9 @@ onMounted(() => {
   gradient_to_light.value = unifyHex(document.documentElement.style.getPropertyValue('--gradient_from_light'));
   gradient_from_dark.value = unifyHex(document.documentElement.style.getPropertyValue('--gradient_from_dark'));
   gradient_to_dark.value = unifyHex(document.documentElement.style.getPropertyValue('--gradient_to_dark'));
+
+  getShareUrl();
+
 });
 
 watch(color_primary_light, (newColor) => {
@@ -173,6 +181,21 @@ function  btn_projectSettings_save(){
   emit('update-project-users', { users: users });
 }
 
+const shareUrl = ref('');
+
+async function getShareUrl() {
+  const response = await $fetch('/api/validateJwt', {
+    method: 'post',
+    body: {
+      token: useCookie('rrAuthToken').value,
+    }
+  });
+  try{
+    shareUrl.value = '/login?applicationId='+response.jwt.applicationId;
+  }catch (error){
+    console.log("ABFUCK!")
+  }
+}
 
 
 
@@ -186,7 +209,7 @@ function  btn_projectSettings_save(){
       <PrimeTabPanel header="Endpoint Manager" :pt="{headeraction: ({ props, parent }) => ({class: panelClass(props, parent, 0)})}">
         <ApiEndpointsManager :initialEndpoints="{ api_endpoints: props.project_settings['api_endpoints'] }" />
       </PrimeTabPanel>
-      <PrimeTabPanel header="★ Theming" :pt="{headeraction: ({ props, parent }) => ({class: panelClass(props, parent, 1)})}">
+      <PrimeTabPanel header="★ Theming" :disabled="!props.premium" :pt="{headeraction: ({ props, parent }) => ({class: panelClass(props, parent, 1)})}">
         <div style="margin:15px">
         <div class="grid-container">
 
@@ -212,10 +235,28 @@ function  btn_projectSettings_save(){
           </div>
         </div>
       </PrimeTabPanel>
-      <PrimeTabPanel header="★ Projects" :pt="{headeraction: ({ props, parent }) => ({class: panelClass(props, parent, 2)})}">
+      <PrimeTabPanel header="★ Share" :disabled="!props.premium" :pt="{headeraction: ({ props, parent }) => ({class: panelClass(props, parent, 2)})}">
+
+        <PrimeCard>
+          <template #title>
+            <b>Invite others to join your tenant!</b>
+          </template>
+          <template #content>
+            Share the following link with those you would like to invite to your tenant!
+          </template>
+          <template #footer>
+            <div class="footer-container">
+              <b class="footer-text">Link to your tenant:</b>
+              <PrimeInputText v-model="shareUrl" class="flex-grow" placeholder="Vote" />
+              <PrimeButton icon="pi pi-copy" class="footer-button" />
+            </div>
+          </template>
+        </PrimeCard>
 
         <div>
+          <!--
           <div class="card">
+
             <PrimeToolbar>
               <template #start>
                 <PrimeButton label="New" icon="pi pi-plus" @click="openNew" />
@@ -257,9 +298,8 @@ function  btn_projectSettings_save(){
               <PrimeButton label="Save" icon="pi pi-check" @click="saveUser" />
             </template>
           </PrimeDialog>
-
+          -->
         </div>
-
 
 
       </PrimeTabPanel>
@@ -336,6 +376,23 @@ html {
   text-text-light dark:text-text-dark;
 }
 
+.footer-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.footer-text {
+  margin-right: 1em; /* Etwas Abstand zwischen Text und Eingabefeld */
+}
+
+.flex-grow {
+  flex-grow: 1; /* Ermöglicht der Textbox, den verbleibenden Raum auszufüllen */
+}
+
+.footer-button {
+  margin-left: 1em; /* Etwas Abstand zwischen Eingabefeld und Button */
+}
 
 
 </style>

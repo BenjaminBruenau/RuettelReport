@@ -1,0 +1,20 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: my-fusion-fusionauth
+  labels:
+    app.kubernetes.io/name: fusionauth
+    app.kubernetes.io/instance: my-fusion-fusionauth
+  annotations:
+    kubernetes.io/ingress.class: nginx
+spec:
+  rules:
+    - http:
+        paths:
+          - backend:
+              service:
+                name: my-fusion-fusionauth
+                port:
+                  number: 9011
+            path: /
+            pathType: Prefix
