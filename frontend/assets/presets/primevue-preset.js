@@ -329,7 +329,7 @@ const PrimevueDesignPreset = {
     accordiontab: {
         headerTitle: ({ }) => ({
             class: [
-                'text-white dark:text-black',
+                'text-textColor_light dark:text-textColor_dark',
             ]}),
     },
 
