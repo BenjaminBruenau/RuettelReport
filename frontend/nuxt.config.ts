@@ -22,7 +22,7 @@ export default defineNuxtConfig({
     */
 
     '/auth/**': {
-      proxy: { to: `http://34.65.19.16/**`, },
+      proxy: { to: `http://my-fusion-fusionauth.default.svc.cluster.local:9011/**`, },
     }
 
 
