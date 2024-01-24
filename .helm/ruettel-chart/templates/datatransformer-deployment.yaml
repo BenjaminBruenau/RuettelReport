@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: free
+  name: ruettel-report-datatransformer-deployment-free
+spec:
+  replicas: {{ .Values.replicas.free }}
+  selector:
+    matchLabels:
+      app: datatransformer-service
+  template:
+    metadata:
+      labels:
+        app: datatransformer-service
+    spec:
+      containers:
+        - name: datatransformer
+          image: "{{ .Values.image.repository }}datatransformerservice:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: 8081

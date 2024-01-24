@@ -1,8 +1,10 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
+
   devtools: { enabled: true },
   css: [
     'primeicons/primeicons.css',
+    'primevue/resources/themes/soho-light/theme.css',
   ],
   pages: true,
   ssr: false,
@@ -12,22 +14,42 @@ export default defineNuxtConfig({
       pathPrefix: false,
     },
   ],
+  routeRules: {
+    /*
+    '/api/**': {
+      proxy: { to: `http://localhost:8080/api/**`, },
+    },
+    */
+
+    '/auth/**': {
+      proxy: { to: `http://34.65.19.16/**`, },
+    }
+
+
+  },
   modules: ['@nuxtjs/tailwindcss', 'nuxt-primevue', '@nuxtjs/color-mode'],
   primevue: {
     usePrimeVue: true,
     options: {
-      unstyled: true,
+      unstyled: false,
       ripple: true,
       inputStyle: 'filled',
     },
-    importPT: { as: 'Tailwind', from: 'primevue/passthrough/tailwind' },
-    //cssLayerOrder: 'tailwind-base, primevue, tailwind-utilities', // this breaks dark/light mode switch
+    //importPT: { as: 'Tailwind', from: 'primevue/passthrough/tailwind' },
+    importPT: { as: 'PrimevueDesignPreset', from: './assets/presets/primevue-preset.js' },
+    cssLayerOrder: 'tailwind-base, primevue, tailwind-utilities', // this breaks dark/light mode switch
     components: {
       prefix: 'Prime',
-      include: [ 'Button', 'Panel', 'Sidebar', 'InputSwitch' ]    /* Used as <PrimeButton /> and <PrimeDataTable /> */
-    }
+      include: '*'   /* Used as <PrimeButton /> and <PrimeDataTable /> */
+    },
+    directives: {
+      prefix: '',
+      include: [ 'Tooltip' ],
+    },
   },
   colorMode: {
     classSuffix: '',
   },
+  plugins: ['~/plugins/fusionauth.js'],
+
 })

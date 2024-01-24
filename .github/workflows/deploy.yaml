@@ -1,0 +1,26 @@
+on:
+  workflow_dispatch:
+
+
+jobs:
+  deploy:
+    name: Release to Google Artifact Registry
+    runs-on: ubuntu-latest
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+
+    steps:
+    - id: 'auth'
+      uses: 'google-github-actions/auth@v2'
+      with:
+        workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
+        service_account: ${{ secrets.SERVICE_ACCOUNT }}
+  
+    - name: 'Set up Cloud SDK'
+      uses: 'google-github-actions/setup-gcloud@v2'
+      with:
+        version: '>= 363.0.0'
+  
+    - name: 'Use gcloud CLI'
+      run: 'gcloud info'

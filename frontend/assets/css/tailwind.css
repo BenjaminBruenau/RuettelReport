@@ -3,7 +3,22 @@
     @tailwind base;
 }
 
+@layer base {
+    :root {
+        --color-background-1: rgb(0, 138, 255);
+        --color-primary: rgb(0, 255, 181);
+        --color-secondary: rgb(255, 218, 0);
+        --color-primary-1: rgb(132, 255, 0);
+        --color-primary-2: rgb(66, 255, 176);
+        --color-secondary-1: rgb(166, 142, 92);
+        --color-secondary-2: rgb(103, 13, 73);
+        --color-text-dark: rgb(255, 0, 255);
+        --color-text-light: rgb(48, 82, 31);
+    }
+}
+
 @layer tailwind-utilities {
     @tailwind utilities;
     @tailwind variants;
+
 }
