@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: premium
+  name: query-service-premium
+  labels:
+    app: query-service-premium
+spec:
+  ports:
+    - port: {{ .Values.queryservice.port }}
+      targetPort: 8080
+      protocol: TCP
+      name: http
+  selector:
+    app: query-service-premium
+

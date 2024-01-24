@@ -74,12 +74,12 @@ class DataTransformerHttpController(messageService: MessageService)(implicit val
                     })
 
                     // Branch the flow to send to Kafka and complete the request
-                    val kafkaSink = messageService.produceMessagesSink("your_kafka_topic") //ToDo: tenant
+                    val kafkaSink = messageService.produceMessagesSink("your_kafka_topic")
                     val responseFlow = Flow[JsValue].alsoToMat(kafkaSink)(Keep.left)
 
                     Try(apiSource) match
                       case Success(source: Source[JsValue, Future[Any]]) =>
-                        complete(source.via(dataTransformFlow).via(responseFlow))
+                        complete(source.via(dataTransformFlow))
                       case Failure(exception) =>
                         complete(StatusCodes.InternalServerError, exception.getMessage)
     }

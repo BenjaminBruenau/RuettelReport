@@ -1,0 +1,9 @@
+apiVersion: configuration.konghq.com/v1
+kind: KongConsumer
+metadata:
+  namespace: premium
+  name: premium
+  annotations:
+    kubernetes.io/ingress.class: kong
+username: premium
+credentials: ["premium-jwt"]
