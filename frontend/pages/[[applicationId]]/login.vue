@@ -11,6 +11,19 @@ definePageMeta({
   middleware: ['auth'],
 });
 
+const route = useRoute();
+
+const routeApplicationId_def = computed(() => {
+  return route.params.applicationId === 'def' ? 'def' : route.params.applicationId;
+});
+
+const routeApplicationId_login = computed(() => {
+  return route.params.applicationId || '';
+});
+
+const routeApplicationId_empty = computed(() => {
+  return route.query.applicationId || '';
+});
 
 defineRule('required', required);
 defineRule('email', email);
@@ -112,14 +125,12 @@ const showResponseHTML = ref(false);
 const responseHTML = ref('');
 
 
-const activeTab = ref('login'); // Annahme, dass der Login-Tab standardmäßig aktiv ist
+const activeTab = ref((routeApplicationId_def.value === 'def')?'login':'signup'); // Annahme, dass der Login-Tab standardmäßig aktiv ist
 
-// Funktion zum Aktualisieren des aktiven Tabs
 const setActiveTab = (tab) => {
   activeTab.value = tab;
 }
 
-// Aktiver Tab-Index (0 für Login, 1 für Sign Up)
 const activeTabIndex = computed(() => {
   return activeTab.value === 'signup' ? 1 : 0;
 });
@@ -156,9 +167,10 @@ const handleExtraCardTabClick = (index) => {
 const checked = ref(false);
 
 const isLoginButtonEnabled = computed(() => {
+  console.log(emailLogin.value,passwordLogin.value,routeApplicationId_login.value);
   return emailLogin.value.trim() !== '' &&
       passwordLogin.value.trim() !== '' &&
-      applicationIdLogin.value.trim() !== '';
+      routeApplicationId_login.value !== '';
 });
 
 const isSignupButtonEnabled = computed(() => {
@@ -168,7 +180,7 @@ const isSignupButtonEnabled = computed(() => {
   const confirmPasswordValid = confirmPassword.value === passwordSignup.value;
 
   if (config.value.option === 0) {
-    return emailValid && passwordValid && confirmPasswordValid && config.value.applicationId.trim() !== '';
+    return emailValid && passwordValid && confirmPasswordValid && routeApplicationId_empty.value !== '';
   } else {
     return emailValid && passwordValid && confirmPasswordValid && config.value.tenantName.trim() !== '';
   }
@@ -193,11 +205,10 @@ async function login() {
       body: {
         username: emailLogin.value,
         password: passwordLogin.value,
-        applicationId: applicationIdLogin.value
+        applicationId: routeApplicationId_login.value
       }
     });
 
-    sessionStorage.setItem('rrAuthToken', response.token);
     window.location.reload();
     //await router.push(fusionAuthConfig.routes.authorizedRedirectUri[0]);
 
@@ -215,8 +226,10 @@ async function registrationTenant() {
       body: {
         email: emailSignup.value,
         password: passwordSignup.value,
-        applicationId: config.value.applicationId
+        applicationId: routeApplicationId_empty.value
     }});
+
+    window.location.reload();
     console.log('Registrierung erfolgreich:', response);
     toast.add({severity: 'success', summary: 'Registrierung erfolgreich', detail: 'Ihr Konto wurde erfolgreich erstellt.'});
     // Weiterer Code für erfolgreiche Registrierung
@@ -238,6 +251,8 @@ async function registrationNewTenant() {
       tenantName: config.value.tenantName,
       premium: checked.value
     }});
+
+    window.location.reload();
     console.log('Neue Mieterregistrierung erfolgreich:', response);
     toast.add({severity: 'success', summary: 'Registrierung erfolgreich', detail: 'Ihr Mieterkonto wurde erfolgreich erstellt.'});
     // Weiterer Code für erfolgreiche Registrierung
@@ -277,7 +292,7 @@ async function registrationNewTenant() {
       <template #subtitle>Please enter your credentials</template>
       <template #content>
         <PrimeTabView :activeIndex="activeTabIndex" @update:activeIndex="handleTabClick">
-          <PrimeTabPanel header="Login" :pt="{headeraction: ({ props, parent }) => ({class: panelClass(props, parent, 0)})}">
+          <PrimeTabPanel  header="Login" :pt="{headeraction: ({ props, parent }) => ({class: panelClass(props, parent, 0)})}">
             <form class="form">
               <div class="form-row">
                 <label for="email">Email</label>
@@ -289,7 +304,7 @@ async function registrationNewTenant() {
               </div>
               <div class="form-row">
                 <label for="applicationId">Application ID</label>
-                <PrimeInputText id="applicationId" v-model="applicationIdLogin" class="full-width" />
+                <PrimeInputText id="applicationId" v-model="routeApplicationId_login" class="full-width" />
               </div>
               <PrimeButton label="Login" class="full-width" :disabled="!isLoginButtonEnabled" @click="login"/>
             </form>
@@ -321,7 +336,7 @@ async function registrationNewTenant() {
           <PrimeTabPanel header="Join existing Tenant" :pt="{headeraction: ({ props, parent }) => ({class: panelClass(props, parent, 0)})}">
             <PrimeInputGroup>
               <PrimeInputGroupAddon><b>Application ID</b></PrimeInputGroupAddon>
-              <PrimeInputText v-model="config.applicationId" />
+              <PrimeInputText v-model="routeApplicationId_empty" />
             </PrimeInputGroup>
           </PrimeTabPanel>
           <PrimeTabPanel header="New Tenant" :pt="{headeraction: ({ props, parent }) => ({class: panelClass(props, parent, 1)})}">

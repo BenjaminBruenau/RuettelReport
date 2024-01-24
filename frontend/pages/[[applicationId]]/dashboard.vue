@@ -180,6 +180,7 @@ async function logout(){
   window.location.reload();
 }
 
+
 async function getUserEmail(){
   const response = await $fetch('/api/retrieveUser', {
     method: 'post',
@@ -187,7 +188,12 @@ async function getUserEmail(){
       token: useCookie('rrAuthToken').value,
     }
   });
-  userEmail.value = response.user.email;
+  try{
+    userEmail.value = response.user.email;
+  }catch (error){
+
+  }
+
 }
 
 

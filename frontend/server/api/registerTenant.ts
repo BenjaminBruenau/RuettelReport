@@ -25,6 +25,10 @@ export default eventHandler(async (event) => {
             console.log("Registrierung Erfolg:", clientResponse.response);
         }
 
+        if (clientResponse.response.token) {
+            setCookie(event,'rrAuthToken', clientResponse.response.token);
+        }
+
         return { register: true, token: clientResponse.response.token };
 
     } catch (error) {
