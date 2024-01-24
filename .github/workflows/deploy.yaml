@@ -1,3 +1,4 @@
+name: Deploy
 on:
   workflow_dispatch:
 
@@ -11,6 +12,14 @@ jobs:
       id-token: 'write'
 
     steps:
+
+    - name: Checkout
+      uses: actions/checkout@v3
+    - name: 'Get Previous tag'
+      id: previoustag
+      uses: "WyriHaximus/github-action-get-previous-tag@v1"
+      with:
+        fallback: 1.0.0
     - id: 'auth'
       uses: 'google-github-actions/auth@v2'
       with:
@@ -24,3 +33,47 @@ jobs:
   
     - name: 'Use gcloud CLI'
       run: 'gcloud info'
+      
+    - name: Setup Terraform CLI
+      uses: hashicorp/setup-terraform@v2.0.2
+
+    - name: Terraform init validate and plan
+      run: |
+        terraform init
+        
+        terraform validate
+        
+        terraform plan
+      working-directory: ./.terraform
+    - name: Terraform Apply
+      run: |
+        terraform apply -auto-approve -var "project=${{vars.PROJECT_ID}}"
+      working-directory: ./.terraform
+
+    - name: Install kubectl
+      run: sudo snap install kubectl --classic
+    - name: Install helm
+      run: sudo snap install helm --classic
+    - name: Configure kubectl
+      run: |
+        gcloud components install gke-gcloud-auth-plugin --quiet
+        gcloud container clusters get-credentials ruettel-report --region europe-west6
+    - name: Deploy App
+      run: |
+        kubectl create namespace free
+        kubectl create namespace premium
+        kubectl create namespace monitoring
+
+        helm install kong kong/ingress -n kong --create-namespace
+
+        helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+        helm install promstack prometheus-community/kube-prometheus-stack --namespace monitoring --version 52.1.0 -f values-monitoring.yaml
+
+        helm upgrade kong kong/ingress -n kong --set gateway.serviceMonitor.enabled=true --set gateway.serviceMonitor.labels.release=promstack
+
+        kubectl apply -f kong-prometheus-plugin.yaml
+        
+        helm upgrade ruettel-chart ./ruettel-chart --set image.tag=${{ steps.previoustag.outputs.tag }}
+
+        helm install my-fusion fusionauth/fusionauth -f fa-values.yaml
+      working-directory: ./.helm
