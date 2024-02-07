@@ -31,7 +31,6 @@ import org.apache.spark.sql.{DataFrame, SparkSession}
     .select(Symbol("timestamp").cast("string"), Symbol("key").cast("string"), Symbol("value").cast("string"))
 
   val jsonSchema = schema_of_json(kafkaDF.select("value").first().getString(0))
-  println(jsonSchema)
   val jsonDF = kafkaDF
     .select(col("timestamp"),col("key"),from_json(col("value"), jsonSchema).as("json"))
     .select("timestamp", "key", "json.*")
@@ -70,63 +69,38 @@ import org.apache.spark.sql.{DataFrame, SparkSession}
 
   distributionDF.show()
 
-
   val eventTypeProbabilities = analyseEventTypeProbabilities(explodedData)
   eventTypeProbabilities.show()
 
-  val pivoted = eventTypeProbabilities.groupBy()
-    .pivot("type")
-    .agg(first("count") as "count", first("probability") as "probability")
-  pivoted.show()
-
-  val pivotedDF = eventTypeProbabilities
-    .groupBy()
-    .pivot("type")
-    .agg(to_json(struct(first($"count").alias("count"), first($"probability").alias("probability"))))
-
-  pivotedDF.show()
 
 
-  val newDF = pivotedDF.withColumn("eventTypeData", to_json(struct(pivotedDF.columns.map(columnName => col(columnName)):_*)))
-  newDF.show()
-  println(newDF.select("eventTypeData").first().getString(0))
+  /// Convert Computed Aggregations to JSON so they can be written to MongoDB easily
 
-  println("UHOHHH")
-  //distributionDF.withColumn("eventTypeData", array(pivotedDF.co))
-  val oneColumn = pivotedDF.select(concat(array(pivotedDF.columns.map(columnName => col(columnName)):_*)).as("eventTypeData"))
-  oneColumn.show()
-  //println(oneColumn.select("eventTypeData").first().getList(0))
+  val distributionJSONDF = pivotAndAggregateToJSON(distributionDF.withColumn("key", lit("distribution")), "key")
+  distributionJSONDF.show(false)
 
-  val updatedDf = pivotedDF
-    .withColumn("earthquake", concat(lit("{\"type\": \"earthquake\", "), col("earthquake"), lit("}")))
-    .withColumn("explosion", concat(lit("{\"type\": \"explosion\", "), col("explosion"), lit("}")))
-    .withColumn("ice quake", concat(lit("{\"type\": \"ice quake\", "), col("ice quake"), lit("}")))
-    .withColumn("mining explosion", concat(lit("{\"type\": \"mining explosion\", "), col("mining explosion"), lit("}")))
-    .withColumn("quarry blast", concat(lit("{\"type\": \"quarry blast\", "), col("quarry blast"), lit("}")))
-    .withColumn("json values", concat_ws(",", col("earthquake"), col("explosion"), col("ice quake"), col("mining explosion"), col("quarry blast")))
-    .drop("earthquake", "explosion", "ice quake", "mining explosion", "quarry blast")
+  val timeRangeJSONDF = pivotAndAggregateToJSON(minMaxTimestamps.withColumn("key", lit("time_range")), "key")
+  timeRangeJSONDF.show(false)
 
-  updatedDf.show()
-
-  println(updatedDf.select("json values").first().getString(0))
-
-  pivotedDF.toJSON.show()
-  println(pivotedDF.toJSON.select("value").first().getString(0))
-
-  val eventTypeValueSchema = schema_of_json(pivotedDF.toJSON.select("value").first().getString(0).replace("\\", ""))
-  val schema2 = schema_of_json(pivotedDF.toJSON.select("value").first().getString(0).replace("\"{", "{").replace("}\"", "}").replace("\\\"", "\""))
-  println(schema_of_json(pivotedDF.toJSON.select("value").first().getString(0)))
-  println(eventTypeValueSchema)
-  println(schema2)
-  val jsonPivot = pivotedDF.toJSON.select(from_json(col("value"), schema2).as("eventTypeData"))
-  jsonPivot.show()
+  val pivotedDF = pivotAndAggregateToJSON(eventTypeProbabilities, "type")
+  pivotedDF.show(false)
 
 
-  val json = pivotedDF.toJSON.select(to_json(struct($"*")).as("eventTypeData"))
-  json.show()
-  println(json.toJSON.select("value").first().getString(0))
+  val eventTypeDataJSONDF = convertColumnsToSingleJSONColumn(pivotedDF, "eventTypeData")
+  eventTypeDataJSONDF.show(false)
 
-  newDF.write
+  /// Merge into one Dataframe
+
+  // Add a unique index column to each DataFrame (to join on it later)
+  val df1WithIndex = distributionJSONDF.withColumn("index", monotonically_increasing_id())
+  val df2WithIndex = eventTypeDataJSONDF.withColumn("index", monotonically_increasing_id())
+  val df3WithIndex = timeRangeJSONDF.withColumn("index", monotonically_increasing_id())
+
+  val mergedDF = df1WithIndex.join(df2WithIndex, Seq("index"), "inner").join(df3WithIndex, Seq("index"), "inner").drop("index")
+
+  mergedDF.show(false)
+
+  mergedDF.write
     .format("mongodb")
     .mode("append")
     .option("spark.mongodb.connection.uri", mongoDBConnectionUri)
@@ -238,3 +212,62 @@ def analyseEventTypeProbabilities(explodedData: DataFrame): DataFrame =
   val total = typeCounts.select("count").agg(sum("count")).first().getLong(0)
   val probabilities = typeCounts.withColumn("probability", col("count") / total)
   probabilities
+
+
+
+/// SPARK JSON HELPER
+
+/**
+ * This method will pivot a dataframe by a pivotKey and convert all columns (except the pivot key) to json fields where their
+ * values are the previous column values.
+ * e.g.
+ * +-----------------+------------------+------------------+
+ * |              key|              mean|               std|
+ * +-----------------+------------------+------------------+
+ * |     distribution| 227860.9973753281|260151.34621610164|
+ * +-----------------+------------------+------------------+
+ *
+ * will become
+ *
+ * +------------------------------------------------------+
+ * |distribution                                          |
+ * +------------------------------------------------------+
+ * |{"mean": 227860.9973753281, "std": 260151.34621610164}|
+ * +------------------------------------------------------+
+ *
+ * @param df Dataframe to pivot
+ * @param pivotKey column key to pivot by
+ */
+def pivotAndAggregateToJSON(df: DataFrame, pivotKey: String): DataFrame =
+  df
+    .groupBy()
+    .pivot(pivotKey) //first($"mean").alias("mean"), first($"std").alias("std")
+    .agg(to_json(struct(df.drop(pivotKey).columns.map(columnName => first(columnName).alias(columnName)): _*)))
+
+/**
+ * Converts Columns of a DataFrame into a single json value into a new column
+ * e.g.
+ *
+ * +--------------------+--------------------+--------------------+--------------------+--------------------+
+ * |          earthquake|           explosion|           ice quake|    mining explosion|        quarry blast|
+ * +--------------------+--------------------+--------------------+--------------------+--------------------+
+ * |{"count":377,"pro...|{"count":2,"proba...|{"count":1,"proba...|{"count":1,"proba...|{"count":1,"proba...|
+ * +--------------------+--------------------+--------------------+--------------------+--------------------+
+ *
+ * is converted to
+ *
+ * +-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+ * |eventTypeData                                                                                                                                                                                                                                                                                                      |
+ * +-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+ * |{"earthquake":{"count":377,"probability":0.9869109947643979},"explosion":{"count":2,"probability":0.005235602094240838},"ice quake":{"count":1,"probability":0.002617801047120419},"mining explosion":{"count":1,"probability":0.002617801047120419},"quarry blast":{"count":1,"probability":0.002617801047120419}}|
+ * +-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+ * @param df
+ * @param singleColumnName
+ * @return
+ */
+def convertColumnsToSingleJSONColumn(df: DataFrame, singleColumnName: String): DataFrame =
+  // Take first column value of first row to infer json schema
+  val schema = schema_of_json(df.first().getString(0))
+  df
+    .withColumn(singleColumnName, to_json(struct(df.columns.map(columnName => from_json(col(columnName), schema).as(columnName)): _*)))
+    .select(singleColumnName)
