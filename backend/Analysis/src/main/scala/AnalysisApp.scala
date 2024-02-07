@@ -16,7 +16,7 @@ import commons.environment.EnvConfig.env
     - check "Add dependencies with provided scope to classpath"
     - Add VM Option: "--add-exports java.base/sun.nio.ch=ALL-UNNAMED" (Fixes: class org.apache.spark.storage.StorageUtils$ (in unnamed module @0x4c163e3) cannot access class sun.nio.ch.DirectBuffer (in module java.base) because module java.base does not export sun.nio.ch to unnamed module @0x4c163e3)
  */
-@main def runAnalysisStream() =
+@main def runAnalysisStream(): Unit =
 
   lazy val kafkaBootstrapServers: String = env("KAFKA_BOOTSTRAP_SERVERS", ???)
   lazy val tenantId: String = env("TENANT_ID", ???)
