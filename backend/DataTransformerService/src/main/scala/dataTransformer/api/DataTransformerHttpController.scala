@@ -75,7 +75,7 @@ class DataTransformerHttpController(messageService: MessageService)(implicit val
                     })
 
                     // Branch the flow to send to Kafka and complete the request
-                    val kafkaSink = messageService.produceMessagesSink(tenantId, userId)
+                    val kafkaSink = messageService.produceMessagesSink(s"features_$tenantId", s"$tenantId:$userId")
                     val responseFlow = Flow[JsValue].alsoToMat(kafkaSink)(Keep.left)
 
                     Try(apiSource) match

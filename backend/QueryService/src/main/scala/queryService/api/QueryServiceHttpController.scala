@@ -58,7 +58,7 @@ class QueryServiceHttpController(messageService: MessageService)(implicit val sy
 
               val jsonKafkaFlow = Flow[ByteString].via(JsonReader.select("$.features[*]")).map(_.utf8String.parseJson)
               val jsonResponseFlow = Flow[ByteString].via(jsonStreamingSupport.framingDecoder).map(_.utf8String.parseJson)
-              val kafkaSink = messageService.produceMessagesSink(tenantId, userId)
+              val kafkaSink = messageService.produceMessagesSink(s"features_$tenantId", s"$tenantId:$userId")
 
               Try(apiSource) match
                 case Success(source) =>

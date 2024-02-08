@@ -19,7 +19,6 @@ import commons.environment.EnvConfig.env
 @main def runAnalysisStream(): Unit =
 
   lazy val kafkaBootstrapServers: String = env("KAFKA_BOOTSTRAP_SERVERS", ???)
-  lazy val tenantId: String = env("TENANT_ID", ???)
   lazy val mongoDBConnectionUri: String = env("MONGO_CONNECTION_URI", ???)
 
   val spark = SparkSession
@@ -37,16 +36,25 @@ import commons.environment.EnvConfig.env
     .readStream
     .format("kafka")
     .option("kafka.bootstrap.servers", kafkaBootstrapServers)
-    .option("subscribe", tenantId)
-    .option("startingOffsets", "latest") // Read all messages (including older ones, not only new ones coming in), otherwise spark will start reading from the latest offset and thus only process new messages written to Kafka - or latest (only new ones)
+    .option("failOnDataLoss", "false")
+    .option("subscribePattern", "features_.*") // Stream from several topics
+    .option("startingOffsets", "latest") //  latest (only new messages) or earliest - Read all messages (including older ones, not only new ones coming in), otherwise spark will start reading from the latest offset and thus only process new messages written to Kafka
     .load()
 
 
   val kafkaTopicDS = df.selectExpr("CAST(key AS STRING)", "CAST(value AS STRING)").as[(String, String)]
 
-  val jsonValueDF = kafkaTopicDS
-    .select(col("key"),from_json(col("value"), GeoJsonHelper.topLevelSchema).as("json"))
-    .select("key","json.*") // after here its possible to directly operate on each of the topLevel json fields and their values
+  // As we are streaming from several topics we need to aggregate per tenant and per its users
+  val enrichedDF = kafkaTopicDS
+    .withColumn("tenantId", split(col("key"), ":").getItem(0))
+    .withColumn("userId", split(col("key"), ":").getItem(1))
+    .select("tenantId", "userId", "value")
+
+
+
+  val jsonValueDF = enrichedDF
+    .select(col("tenantId"), col("userId"),from_json(col("value"), GeoJsonHelper.topLevelSchema).as("json"))
+    .select("tenantId", "userId","json.*") // after here its possible to directly operate on each of the topLevel json fields and their values
     //.withColumn("timestamp", current_timestamp())
     //.withWatermark("timestamp", "1 minute")
     //.groupBy(window($"timestamp", "10 minutes", "5 minutes"), $"type").agg(count("*").as("count"))
@@ -58,7 +66,7 @@ import commons.environment.EnvConfig.env
   val aggregatedDF = jsonValueDF
     //.withColumn("timestamp", current_timestamp())
     //.withWatermark("timestamp", watermark)
-    .groupBy(col("key")) //window(col("timestamp"), windowDuration, slideDuration),
+    .groupBy(col("tenantId"), col("userId")) //window(col("timestamp"), windowDuration, slideDuration),
     .agg(
       count("*").as("count"),
       avg(when(col("properties.mag").isNotNull, col("properties.mag"))).as("avg_magnitude"),
@@ -78,7 +86,7 @@ import commons.environment.EnvConfig.env
     )
     //.withColumn("timestamp", current_timestamp())
     //.withWatermark("timestamp", watermark)
-    .groupBy(col("key")) //window(col("timestamp"), windowDuration, slideDuration),
+    .groupBy(col("tenantId"), col("userId")) //window(col("timestamp"), windowDuration, slideDuration),
     // This is done to simulate pivot as it is not possible to use that in the context of streaming
     .agg(sum(when(col("mag_range") === "0-2", 1).otherwise(0)).alias("0-2"),
       sum(when(col("mag_range") === "2-4", 1).otherwise(0)).alias("2-4"),
@@ -91,7 +99,7 @@ import commons.environment.EnvConfig.env
   val batchAggregations = jsonValueDF
     .writeStream
     .foreachBatch { (batchDF: DataFrame, batchId: Long) =>
-      batchOperations(batchDF, batchId, mongoDBConnectionUri, tenantId)
+      batchOperations(batchDF, batchId, mongoDBConnectionUri)
     }
     .start()
 
@@ -106,7 +114,7 @@ import commons.environment.EnvConfig.env
     .option("forceDeleteTempCheckpointLocation", "true")
     .option("spark.mongodb.connection.uri", mongoDBConnectionUri)
     .option("spark.mongodb.database", "ruettelreport")
-    .option("spark.mongodb.collection", "analytics_complete_" + tenantId)
+    .option("spark.mongodb.collection", "analytics_complete")
     .outputMode("complete") // complete -> replace existing value in db (takes all values that came in into account, updates it each batch), append -> only new rows that were added since the last batch are written to sink, update -> writes only changed rows (new/updated) to the sink
     .start()
 
@@ -116,9 +124,17 @@ import commons.environment.EnvConfig.env
     .option("forceDeleteTempCheckpointLocation", "true")
     .option("spark.mongodb.connection.uri", mongoDBConnectionUri)
     .option("spark.mongodb.database", "ruettelreport")
-    .option("spark.mongodb.collection", "analytics_complete_magdistr_" + tenantId)
+    .option("spark.mongodb.collection", "analytics_complete_magdistr")
     .outputMode("complete")
     .start()
+
+
+  val consoleSink = jsonValueDF.writeStream
+    .outputMode("append")
+    //.foreachBatch(dfOps _)
+    .format("console")
+    .start()
+
 
   val consoleSink1 = magDistribution.writeStream
     .outputMode("complete")
@@ -136,6 +152,7 @@ import commons.environment.EnvConfig.env
   mongoDBMagSink.awaitTermination()
   consoleSink1.awaitTermination()
   consoleSink2.awaitTermination()
+  consoleSink.awaitTermination()
 
 
   batchAggregations.awaitTermination()
@@ -156,10 +173,10 @@ import commons.environment.EnvConfig.env
 
   aggregationResult.show()
  */
-def batchOperations(jsonValueDF: DataFrame, n: Long, mongoDBConnectionUri: String, tenantId: String): Unit =
+def batchOperations(jsonValueDF: DataFrame, n: Long, mongoDBConnectionUri: String): Unit =
 
   val aggregatedDF = jsonValueDF
-    .groupBy(col("key"))
+    .groupBy(col("tenantId"), col("userId"))
     .agg(
       count("*").as("count"),
       avg(when(col("properties.mag").isNotNull, col("properties.mag"))).as("avg_magnitude"),
@@ -177,7 +194,7 @@ def batchOperations(jsonValueDF: DataFrame, n: Long, mongoDBConnectionUri: Strin
         .when(col("properties.mag").between(8, 10), "8-10")
         .otherwise("Unknown")
     )
-    .groupBy(col("key"))
+    .groupBy(col("tenantId"), col("userId"))
     // This is done to simulate pivot as it is not possible to use that in the context of streaming
     .agg(sum(when(col("mag_range") === "0-2", 1).otherwise(0)).alias("0-2"),
       sum(when(col("mag_range") === "2-4", 1).otherwise(0)).alias("2-4"),
@@ -190,7 +207,7 @@ def batchOperations(jsonValueDF: DataFrame, n: Long, mongoDBConnectionUri: Strin
     .mode("append")
     .option("spark.mongodb.connection.uri", mongoDBConnectionUri)
     .option("spark.mongodb.database", "ruettelreport")
-    .option("spark.mongodb.collection", "analytics_" + tenantId)
+    .option("spark.mongodb.collection", "analytics")
     .save()
 
   magDistribution.write
@@ -198,5 +215,5 @@ def batchOperations(jsonValueDF: DataFrame, n: Long, mongoDBConnectionUri: Strin
     .mode("append")
     .option("spark.mongodb.connection.uri", mongoDBConnectionUri)
     .option("spark.mongodb.database", "ruettelreport")
-    .option("spark.mongodb.collection", "analytics_magdistr_" + tenantId)
+    .option("spark.mongodb.collection", "analytics_magdistr")
     .save()

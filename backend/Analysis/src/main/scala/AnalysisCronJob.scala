@@ -8,7 +8,6 @@ import org.apache.spark.sql.{DataFrame, SparkSession}
 
 @main def runAnalysisCronJob(): Unit =
   lazy val kafkaBootstrapServers: String = env("KAFKA_BOOTSTRAP_SERVERS", ???)
-  lazy val tenantId: String = env("TENANT_ID", ???)
   lazy val mongoDBConnectionUri: String = env("MONGO_CONNECTION_URI", ???)
 
   val spark = SparkSession
@@ -17,25 +16,66 @@ import org.apache.spark.sql.{DataFrame, SparkSession}
     .master(sys.env.getOrElse("SPARK_MASTER_URL", "local[*]"))
     .getOrCreate()
   spark.sparkContext.setLogLevel("ERROR")
-  import scala3encoders.given
   import spark.implicits.*
-
+  import scala3encoders.given
 
 
   val kafkaDF = spark.read
     .format("kafka")
     .option("kafka.bootstrap.servers", kafkaBootstrapServers)
-    .option("subscribe", tenantId)
+    .option("subscribePattern", "features_.*")
     .option("startingOffsets", "earliest") // We want to aggregate all data of a tenant
     .load()
     .select(Symbol("timestamp").cast("string"), Symbol("key").cast("string"), Symbol("value").cast("string"))
 
+  // As we are streaming from several topics we need to aggregate per tenant and per its users
+  val enrichedDF = kafkaDF
+    .withColumn("tenantId", split(col("key"), ":").getItem(0))
+    .withColumn("userId", split(col("key"), ":").getItem(1))
+    .select("tenantId", "userId", "timestamp", "value")
+
   val jsonSchema = schema_of_json(kafkaDF.select("value").first().getString(0))
-  val jsonDF = kafkaDF
-    .select(col("timestamp"),col("key"),from_json(col("value"), jsonSchema).as("json"))
-    .select("timestamp", "key", "json.*")
+  val jsonDF = enrichedDF
+    .select(col("timestamp"),col("tenantId"), col("userId"),from_json(col("value"), jsonSchema).as("json"))
+    .select("tenantId", "userId", "timestamp", "json.*")
 
   jsonDF.show()
+
+
+  val tenantIds = jsonDF.select("tenantId").distinct().collect().map(_.getString(0))
+
+  // Perform Analysis for each tenant
+  tenantIds.foreach { tenantId =>
+
+    val filteredDF = jsonDF.filter(jsonDF("tenantId") === tenantId)
+
+    val collectionName = s"ruettel_report_$tenantId"
+
+    val resultDF = performAnalysis(filteredDF, spark)
+
+    resultDF.write
+      .format("mongodb")
+      .mode("append")
+      .option("spark.mongodb.connection.uri", mongoDBConnectionUri)
+      .option("spark.mongodb.database", "ruettelreport")
+      .option("spark.mongodb.collection", collectionName)
+      .option("spark.mongodb.convertJson", "any")
+      .save()
+  }
+
+
+/**
+ * This method will calculate three things for a given Dataframe:
+ * 1. the time-range of the aggregated data (not of the features themselves but of the kafka messages -> aggregations for all of the queried data by the tenants)
+ * 2. count and probability aggregation of each unique earthquake type (for each unique feature)
+ * 3. time difference between all Events -> Mean and standard Deviation can be used for further analysis and predictions
+ * @param jsonDF DataFrame to perform aggregations on
+ * @param spark existing spark session for implicits
+ * @return
+ */
+def performAnalysis(jsonDF: DataFrame, spark: SparkSession): DataFrame =
+  import spark.implicits.*
+  import scala3encoders.given
 
   val minMaxTimestamps = jsonDF
     .select(to_timestamp(col("timestamp")).as("timestamp"))
@@ -73,7 +113,6 @@ import org.apache.spark.sql.{DataFrame, SparkSession}
   eventTypeProbabilities.show()
 
 
-
   /// Convert Computed Aggregations to JSON so they can be written to MongoDB easily
 
   val distributionJSONDF = pivotAndAggregateToJSON(distributionDF.withColumn("key", lit("distribution")), "key")
@@ -100,18 +139,9 @@ import org.apache.spark.sql.{DataFrame, SparkSession}
 
   mergedDF.show(false)
 
-  mergedDF.write
-    .format("mongodb")
-    .mode("append")
-    .option("spark.mongodb.connection.uri", mongoDBConnectionUri)
-    .option("spark.mongodb.database", "ruettelreport")
-    .option("spark.mongodb.collection", "test" + tenantId)
-    .option("spark.mongodb.convertJson", "any")
-    .save()
 
 
-
-  // Example on how to use the calculated Aggregations
+  // Examples on how to use the calculated Aggregations
 
 
   /// Predict probability of event happening in the next x seconds
@@ -139,7 +169,6 @@ import org.apache.spark.sql.{DataFrame, SparkSession}
   }
 
 
-
   // Predict probability of next x events being of type eventType
   val eventType = "earthquake"
   val totalEvents = 100
@@ -165,6 +194,7 @@ import org.apache.spark.sql.{DataFrame, SparkSession}
   } else {
     println("The percentage is too low. Try a lower number of events.")
   }
+  mergedDF
 
 
 /**
