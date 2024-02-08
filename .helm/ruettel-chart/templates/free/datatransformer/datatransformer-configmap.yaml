@@ -4,4 +4,4 @@ metadata:
   name: datatransformer-configmap
   namespace: free
 data:
-  kafka_bootstrap_servers: {{ .Values.datatransformerservice.kafkaBootstrapServers }}
+  KAFKA_BOOTSTRAP_SERVERS: ""

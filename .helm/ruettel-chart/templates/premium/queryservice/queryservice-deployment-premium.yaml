@@ -19,3 +19,9 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - containerPort: 8080
+          env:
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              valueFrom:
+                configMapKeyRef:
+                  name: queryservice-configmap-premium
+                  key: KAFKA_BOOTSTRAP_SERVERS

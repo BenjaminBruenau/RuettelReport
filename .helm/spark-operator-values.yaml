@@ -1,0 +1,5 @@
+webhook:
+  cleanupAnnotations:
+    helm.sh/hook: pre-delete, pre-upgrade
+    helm.sh/hook-delete-policy: hook-succeeded
+  enable: true

@@ -96,7 +96,7 @@
 
 image:
   repository: europe-west6-docker.pkg.dev/instant-heading-405914/ruettel-report/
-  pullPolicy: Always
+  pullPolicy: IfNotPresent
   #Overrides the image tag whose default is the chart appVersion.
   tag: "0.1.0"
 
@@ -116,21 +116,22 @@ imagePullPolicy: Always
 nuxt:
   port: 80
   fusionAuthApiKey: ""
-  mongoUrl: ""
-  fusionAuthUrl: ""
-  access_token_singning_key_id_free: ""
-  access_token_singning_key_id_premium: ""
+  mongoConnectionUri: ""
+  fusionAuthUrl: "my-fusion-fusionauth.default.svc.cluster.local:9011"
+  access_token_signing_key_id_free: ""
+  access_token_signing_key_id_premium: ""
 
 queryservice:
   port: 8080
-  kafkaBootstrapServers: ""
+  kafkaBootstrapServers: "kafka-headless.premium.svc.cluster.local:9092"
 
 datatransformerservice:
   port: 8081
-  kafkaBootstrapServers: ""
+  kafkaBootstrapServers: "kafka-headless.premium.svc.cluster.local:9092"
 
 analysis:
-  schedule: ""
-  image:
+  schedule: "0 8 * * *" #"* * * * 1" # run every monday
+  kafkaBootstrapServers: "kafka-headless.premium.svc.cluster.local:9092"
+  mongoConnectionUri: "mongodb://user:password@mongodb-0.mongodb-headless.default.svc.cluster.local,mongodb-1.mongodb-headless.default.svc.cluster.local,mongodb-2.mongodb-headless.default.svc.cluster.local:27017/ruettelreport"
 
 kong:

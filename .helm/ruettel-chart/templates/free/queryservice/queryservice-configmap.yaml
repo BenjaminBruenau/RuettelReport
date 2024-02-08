@@ -4,4 +4,4 @@ metadata:
   name: queryservice-configmap
   namespace: free
 data:
-  kafka_bootstrap_servers: {{ .Values.queryservice.kafkaBootstrapServers }}
+  KAFKA_BOOTSTRAP_SERVERS: ""

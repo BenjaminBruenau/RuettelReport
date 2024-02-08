@@ -2,6 +2,7 @@
 apiVersion: autoscaling/v1
 kind: HorizontalPodAutoscaler
 metadata:
+  namespace: shared
   name: nuxt-hpa
 spec:
   scaleTargetRef:
