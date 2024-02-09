@@ -60,7 +60,6 @@ jobs:
         gcloud container clusters get-credentials ruettel-report --region europe-west6
     - name: Deploy App
       run: |
-
         helm repo add spark-operator https://googlecloudplatform.github.io/spark-on-k8s-operator
         helm repo add kong https://charts.konghq.com
         helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
