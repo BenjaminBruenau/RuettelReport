@@ -42,7 +42,8 @@ class DataTransformerHttpController(messageService: MessageService)(implicit val
     )
 
   private def handleTransformQueryRequest(): Route =
-    entity(as[QueryRequestStructure]) { queryRequestStructure =>
+    (headerValueByName("X-TenantId") & headerValueByName("X-UserId")) { (tenantId, userId) =>
+      entity(as[QueryRequestStructure]) { queryRequestStructure =>
         val queryBuilder = QueryBuilder(QueryBuilderBackend.HTTP)
 
         queryRequestStructure.mappingRules match
@@ -74,7 +75,7 @@ class DataTransformerHttpController(messageService: MessageService)(implicit val
                     })
 
                     // Branch the flow to send to Kafka and complete the request
-                    val kafkaSink = messageService.produceMessagesSink("your_kafka_topic")
+                    val kafkaSink = messageService.produceMessagesSink(s"features_$tenantId", s"$tenantId:$userId")
                     val responseFlow = Flow[JsValue].alsoToMat(kafkaSink)(Keep.left)
 
                     Try(apiSource) match
@@ -82,6 +83,7 @@ class DataTransformerHttpController(messageService: MessageService)(implicit val
                         complete(source.via(dataTransformFlow))
                       case Failure(exception) =>
                         complete(StatusCodes.InternalServerError, exception.getMessage)
+      }
     }
 
 

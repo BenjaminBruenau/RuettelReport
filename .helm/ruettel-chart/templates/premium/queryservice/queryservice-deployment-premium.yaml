@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: premium
+  name: ruettel-report-queryservice-deployment-premium
+spec:
+  replicas: {{ .Values.replicas.premium }}
+  selector:
+    matchLabels:
+      app: query-service-premium
+  template:
+    metadata:
+      labels:
+        app: query-service-premium
+    spec:
+      containers:
+        - name: ruettel-report-query-service
+          image: "{{ .Values.image.repository }}queryservice:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: 8080
+          env:
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              valueFrom:
+                configMapKeyRef:
+                  name: queryservice-configmap-premium
+                  key: KAFKA_BOOTSTRAP_SERVERS

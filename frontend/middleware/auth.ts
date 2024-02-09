@@ -1,5 +1,6 @@
 
 import { defineNuxtRouteMiddleware, useCookie } from 'nuxt/app';
+import { useUserStore } from "~/stores/user";
 
 export default defineNuxtRouteMiddleware((to, from) => {
     const token = useCookie('rrAuthToken');
@@ -23,7 +24,20 @@ export default defineNuxtRouteMiddleware((to, from) => {
             }
         });
 
+        const userStore = useUserStore()
+
         if (response.valid) {
+            if (response.jwt.tid && response.jwt.sub && response.jwt.iss) {
+                userStore.tenantId = response.jwt.tid
+                userStore.userId = response.jwt.sub
+                userStore.type = response.jwt.iss.startsWith('premium') ? 'premium' : 'free'
+                userStore.isPremium= response.jwt.iss.startsWith('premium')
+                userStore.roles = response.jwt.roles
+                console.log("STORE USER: ", userStore)
+            } else {
+                console.log("JWT MISSING CLAIMS: ", response.jwt)
+            }
+
             navigateTo(`/${response.jwt.applicationId}/dashboard`);
         } else {
             if(from.path.includes('/dashboard')) {

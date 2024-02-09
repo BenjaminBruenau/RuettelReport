@@ -1,0 +1,11 @@
+architecture: replicaset
+replicaCount: 3
+auth:
+  enabled: true
+  rootPassword: "password"
+  usernames:
+    - "user"
+  databases:
+    - "ruettelreport"
+  passwords:
+    - "password"

@@ -40,32 +40,34 @@ class QueryServiceHttpController(messageService: MessageService)(implicit val sy
     )
 
   private def handleQueryRequest(): Route =
-    entity(as[QueryRequestStructure]) { queryRequestStructure =>
-      val queryBuilder = QueryBuilder(QueryBuilderBackend.HTTP)
-      queryBuilder.buildQuery(queryRequestStructure.queryStructure, queryRequestStructure.endpoint) match {
-        case None =>
-          complete(StatusCodes.BadRequest, "Cannot generate Query from provided Structure")
-        case Some(externalApiQueryUrl) =>
-          val responseFuture: Future[HttpResponse] = Http().singleRequest(HttpRequest(uri = externalApiQueryUrl))
+    (headerValueByName("X-TenantId") & headerValueByName("X-UserId")) { (tenantId, userId) =>
+        entity(as[QueryRequestStructure]) { queryRequestStructure =>
+          val queryBuilder = QueryBuilder(QueryBuilderBackend.HTTP)
+          queryBuilder.buildQuery(queryRequestStructure.queryStructure, queryRequestStructure.endpoint) match
+            case None =>
+              complete(StatusCodes.BadRequest, "Cannot generate Query from provided Structure")
+            case Some(externalApiQueryUrl) =>
+              val responseFuture: Future[HttpResponse] = Http().singleRequest(HttpRequest(uri = externalApiQueryUrl))
 
-          val apiSource = Source.futureSource(responseFuture.map {
-            case HttpResponse(StatusCodes.OK, _, entity, _) =>
-              entity.dataBytes
-            case HttpResponse(status, _, entity, _) =>
-              throw new RuntimeException(s"Request failed with status code $status and entitiy: $entity")
-          })
+              val apiSource = Source.futureSource(responseFuture.map {
+                case HttpResponse(StatusCodes.OK, _, entity, _) =>
+                  entity.dataBytes
+                case HttpResponse(status, _, entity, _) =>
+                  throw new RuntimeException(s"Request failed with status code $status and entity: $entity")
+              })
 
-          val jsonResponseFlow = Flow[ByteString].via(jsonStreamingSupport.framingDecoder).map(_.utf8String.parseJson)
+              val jsonKafkaFlow = Flow[ByteString].via(JsonReader.select("$.features[*]")).map(_.utf8String.parseJson)
+              val jsonResponseFlow = Flow[ByteString].via(jsonStreamingSupport.framingDecoder).map(_.utf8String.parseJson)
+              val kafkaSink = messageService.produceMessagesSink(s"features_$tenantId", s"$tenantId:$userId")
 
-          Try(apiSource) match {
-            case Success(source) =>
-              complete(source.via(jsonResponseFlow))
-            case Failure(exception) =>
-              complete(StatusCodes.InternalServerError, exception.getMessage)
-          }
-      }
+              Try(apiSource) match
+                case Success(source) =>
+                  val connectedSource = source.alsoToMat(jsonKafkaFlow.toMat(kafkaSink)(Keep.right))(Keep.right)
+                  complete(connectedSource.via(jsonResponseFlow))
+                case Failure(exception) =>
+                  complete(StatusCodes.InternalServerError, exception.getMessage)
+        }
     }
-
 
 object QueryServiceHttpServer:
   implicit val system: ActorSystem[Nothing] = ActorSystem(Behaviors.empty, "query-service-http-server")

@@ -42,6 +42,22 @@ export default eventHandler(async (event) => {
                     accessTokenKeyId: (body.premium)?fusionAuthConfig.key_premium:fusionAuthConfig.key_free,
                     timeToLiveInSeconds: fusionAuthConfig.tokenTimeToLiveInSeconds,
                 },
+                roles: [
+                    {
+                        "description": "Tenant Administrator",
+                        //"id": "ce485a91-906f-4615-af75-81d37dc71e90",
+                        "name": "tenant-admin",
+                        "isDefault": false,
+                        "isSuperRole": false // Only tenant specific rights, no fusionauth rights
+                    },
+                    {
+                        "description": "Tenant User",
+                        //"id": "ce485a91-906f-4615-af75-81d37dc71e91",
+                        "name": "tenant-user",
+                        "isDefault": true,
+                        "isSuperRole": false
+                    }
+                ],
                 /*
                 oauthConfiguration:{
                     //authorizedOriginURLs : fusionAuthConfig.routes.authorizedRedirectUri,
@@ -75,6 +91,9 @@ export default eventHandler(async (event) => {
 
         const registration = {
             applicationId: applicationId,
+            roles: [
+                "tenant-admin",
+            ],
         };
 
         const clientResponse = await client.register(uuidv4(), { user, registration });

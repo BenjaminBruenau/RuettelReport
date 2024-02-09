@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: shared
+  name: ruettel-report-nuxt-deployment
+spec:
+  selector:
+    matchLabels:
+      app: nuxt
+  replicas: {{ .Values.replicas.premium }}
+  template:
+    metadata:
+      labels:
+        app: nuxt
+    spec:
+      containers:
+        - name: nuxt
+          image: "{{ .Values.image.repository }}frontend:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: 3000
+          env:
+            - name: NUXT_FUSION_AUTH_API_KEY
+              valueFrom:
+                configMapKeyRef:
+                  name: nuxt-configmap
+                  key: FUSIONAUTH_API_KEY
+            - name: NUXT_MONGODB_CONNECTION_URI
+              valueFrom:
+                configMapKeyRef:
+                  name: nuxt-configmap
+                  key: MONGODB_CONNECTION_URI
+            - name: NUXT_FUSION_AUTH_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: nuxt-configmap
+                  key: FUSIONAUTH_URL
+            - name: NUXT_ACCESS_TOKEN_SIGNING_KEY_ID_FREE
+              valueFrom:
+                configMapKeyRef:
+                  name: nuxt-configmap
+                  key: ACCESS_TOKEN_SIGNING_KEY_ID_FREE
+            - name: NUXT_ACCESS_TOKEN_SIGNING_KEY_ID_PREMIUM
+              valueFrom:
+                configMapKeyRef:
+                  name: nuxt-configmap
+                  key: ACCESS_TOKEN_SIGNING_KEY_ID_PREMIUM
