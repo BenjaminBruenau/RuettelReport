@@ -28,7 +28,7 @@ import org.apache.spark.sql.{DataFrame, SparkSession}
     .load()
     .select(Symbol("timestamp").cast("string"), Symbol("key").cast("string"), Symbol("value").cast("string"))
 
-  // As we are streaming from several topics we need to aggregate per tenant and per its users
+  // As we are streaming from several topics we need to aggregate it per tenant later
   val enrichedDF = kafkaDF
     .withColumn("tenantId", split(col("key"), ":").getItem(0))
     .withColumn("userId", split(col("key"), ":").getItem(1))
@@ -66,7 +66,7 @@ import org.apache.spark.sql.{DataFrame, SparkSession}
 
 /**
  * This method will calculate three things for a given Dataframe:
- * 1. the time-range of the aggregated data (not of the features themselves but of the kafka messages -> aggregations for all of the queried data by the tenants)
+ * 1. the time-range of the aggregated data (not of the features themselves but of the kafka messages via their timestamps -> aggregation range for all of the queried data by a tenant)
  * 2. count and probability aggregation of each unique earthquake type (for each unique feature)
  * 3. time difference between all Events -> Mean and standard Deviation can be used for further analysis and predictions
  * @param jsonDF DataFrame to perform aggregations on

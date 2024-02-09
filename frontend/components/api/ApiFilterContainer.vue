@@ -1,6 +1,8 @@
 <script setup lang="ts">
 
 import {ref} from "vue";
+import { useUserStore } from "~/stores/user";
+import { useCookie } from "#app";
 
 const props = defineProps({
   project_settings: {
@@ -284,7 +286,7 @@ watch(() => result, () =>{
 */
 
 const emit = defineEmits(['update-api-response']);
-
+const userStore = useUserStore()
 const sendRequest = async (queryParams,index,color) => {
   console.log("Trying to send!");
   const {
@@ -293,9 +295,14 @@ const sendRequest = async (queryParams,index,color) => {
     refresh,
     error,
     status,
-  } = await useFetch('/premium/query-service/api/query', {
+  } = await useFetch(userStore.isPremium ? '/premium/query-service/api/query' : '/query-service/api/query', {
     key: 'features',
     method: 'POST',
+    headers: {
+      "Authorization": `Bearer ${useCookie('rrAuthToken').value}`,
+      "X-TenantId": userStore.tenantId,
+      "X-UserId": userStore.userId
+    },
     body: queryParams, // Verwenden Sie den übergebenen queryParams-Parameter
     onRequest({ request, options }) {
       console.log('Send Request')

@@ -1,8 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: spark-analysis-configmap
-  namespace: premium
-data:
-  KAFKA_BOOTSTRAP_SERVERS: {{ .Values.analysis.kafkaBootstrapServers }}
-  MONGODB_CONNECTION_URI: {{ .Values.analysis.mongoConnectionUri }}

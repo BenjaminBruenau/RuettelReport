@@ -1,7 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: datatransformer-configmap-premium
-  namespace: premium
-data:
-  KAFKA_BOOTSTRAP_SERVERS: {{ .Values.datatransformerservice.kafkaBootstrapServers }}
