@@ -32,11 +32,7 @@ resource "google_container_node_pool" "primary_nodes" {
   name       = "${google_container_cluster.primary.name}-node-pool"
   location   = var.region
   cluster    = google_container_cluster.primary.name
-  initial_node_count = 3
-  autoscaling {
-    max_node_count = 3
-    min_node_count = 1
-  }
+  node_count = 1
 
 
   node_config {
@@ -50,8 +46,12 @@ resource "google_container_node_pool" "primary_nodes" {
       env = var.project
     }
 
-    preemptible  = true
-    disk_size_gb = 20
+    #preemptible  = true
+    #machine_type = "e2-small"
+    #tags         = ["gke-node"]
+    #metadata = {
+    #  disable-legacy-endpoints = "true"
+    #}
   }
 }
 

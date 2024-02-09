@@ -9,6 +9,9 @@
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare"
   },
+  "resolutions": {
+    "jackspeak": "2.1.1"
+  },
   "devDependencies": {
     "@nuxt/devtools": "latest",
     "@nuxtjs/color-mode": "^3.3.0",
@@ -23,9 +26,10 @@
   },
   "dependencies": {
     "@fusionauth/typescript-client": "^1.48.0",
-    "@fusionauth/vue-sdk": "^0.1.0",
+    "@pinia/nuxt": "^0.5.1",
     "@vee-validate/rules": "^4.12.4",
     "axios": "^1.6.5",
+    "chart.js": "^4.4.1",
     "cors": "^2.8.5",
     "d3": "^7.8.5",
     "html2canvas": "^1.4.1",
@@ -33,6 +37,8 @@
     "jspdf": "^2.5.1",
     "mathjs": "^12.3.0",
     "mitt": "^3.0.1",
+    "mongodb": "^6.3.0",
+    "pinia": "^2.1.7",
     "primeicons": "^6.0.1",
     "primevue": "^3.45.0",
     "topojson-client": "^3.1.0",

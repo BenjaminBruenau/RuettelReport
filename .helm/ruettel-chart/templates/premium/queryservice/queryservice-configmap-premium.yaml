@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: queryservice-configmap-premium
+  namespace: premium
+data:
+  KAFKA_BOOTSTRAP_SERVERS: {{ .Values.queryservice.kafkaBootstrapServers }}

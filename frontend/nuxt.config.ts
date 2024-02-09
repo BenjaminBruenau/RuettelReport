@@ -2,6 +2,13 @@
 export default defineNuxtConfig({
 
   devtools: { enabled: true },
+  runtimeConfig: {
+    mongoConnectionUri: '', // can be overridden by NUXT_MONGO_CONNECTION_URI environment variable
+    fusionAuthApiKey: '',
+    fusionAuthUrl: '',
+    accessTokenSigningKeyFree: '',
+    accessTokenSigningKeyPremium: '',
+  },
   css: [
     'primeicons/primeicons.css',
     'primevue/resources/themes/soho-light/theme.css',
@@ -22,12 +29,12 @@ export default defineNuxtConfig({
     */
 
     '/auth/**': {
-      proxy: { to: `http://34.65.19.16/**`, },
+      proxy: { to: `http://${process.env.NUXT_FUSION_AUTH_URL}/**`, },
     }
 
 
   },
-  modules: ['@nuxtjs/tailwindcss', 'nuxt-primevue', '@nuxtjs/color-mode'],
+  modules: ['@nuxtjs/tailwindcss', 'nuxt-primevue', '@nuxtjs/color-mode','@pinia/nuxt'],
   primevue: {
     usePrimeVue: true,
     options: {
@@ -50,6 +57,5 @@ export default defineNuxtConfig({
   colorMode: {
     classSuffix: '',
   },
-  plugins: ['~/plugins/fusionauth.js'],
 
 })

@@ -28,13 +28,13 @@ class KafkaMessageService(private val producerSettings: ProducerSettings[String,
     case _ => Supervision.stop
   }
 
-  def produceMessagesSink(topic: String): Sink[JsValue, Future[Done]] =
+  def produceMessagesSink(topic: String, messageId: String): Sink[JsValue, Future[Done]] =
     Flow[JsValue]
       .log("publishing message to kafka", m => {
         "topic" -> topic; "message" -> m.toString
       })
       .withAttributes(Attributes.logLevels(onElement = Logging.DebugLevel, onFinish = Logging.DebugLevel, onFailure = Logging.WarningLevel))
-      .map(message => ProducerRecord[String, String](topic, message.toString))
+      .map(message => ProducerRecord[String, String](topic, messageId, message.toString))
       .toMat(Producer.plainSink(producerSettings.withProducer(kafkaProducer)))(Keep.right)
 
 

@@ -126,7 +126,7 @@ environment: []
   #   value: /kickstart/kickstart.json
 
 kickstart:
-  enabled: false
+  enabled: true
   data:
     {}
     # kickstart.json: |
