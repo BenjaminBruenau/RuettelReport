@@ -66,15 +66,15 @@ database:
   # database.protocol -- Should either be postgresql or mysql. Protocol for jdbc connection to database
   protocol: postgresql
   # database.host -- Hostname or ip of the database instance
-  host: "192.168.0.3"
+  host: "pg-minikube-postgresql.default.svc.cluster.local"
   # database.host -- Port of the database instance
-  #port: 5432
+  port: 5432
   # database.tls -- Configures whether or not to use tls when connecting to the database
   tls: false
   # database.tlsMode -- If tls is enabled, this configures the mode
   tlsMode: require
   # database.name -- Name of the fusionauth database
-  name: postgres
+  name: fusionauth
 
   # To use an existing secret, set `existingSecret` to the name of the secret. We expect at most two keys: `password` is required. `rootpassword` is only required if `database.root.user` is set.
   # database.existingSecret -- The name of an existing secret that contains the database passwords
@@ -88,7 +88,7 @@ database:
     # database.root.user -- Database username for fusionauth to use during initial bootstrap - not required if you have manually bootstrapped your database
     user: "postgres"
     # database.root.password -- Database password for fusionauth to use during initial bootstrap - not required if database.existingSecret is configured
-    password: "fusionauthdbk8s99"
+    password: "admin"
 
 search:
   # search.engine -- Defines backend for fusionauth search capabilities. Valid values for engine are 'elasticsearch' or 'database'.
@@ -103,7 +103,7 @@ search:
   user: "elastic"
   # search.password -- Password to use with basic auth when connecting to elasticsearch. Ignored when search.engine is NOT elasticsearch
   #password: "RjTyJSeQVjm8DR1v"
-  password: ""
+  password: "75Ff38GyWvnufqSLC1KtQ93s"
 
 app:
   # app.memory -- Configures the amount of memory Java can use
@@ -128,7 +128,64 @@ environment: []
 kickstart:
   enabled: true
   data:
-    {}
+    kickstart.json: |
+      {
+        "variables": {
+          "defaultTenantId": "d7d09513-a3f5-401c-9685-34ab6c552453",
+          "adminEmail": "admin@ruettelreport.de",
+          "adminPassword": "password"
+        },
+        "apiKeys": [
+          {
+            "key": "FbX31ng685J3e3Fcy4xWaDcDPUg-PMwgyin_RVHGPLnUKbXuG3ZxuUVT",
+            "description": "Core API Key"
+          }
+        ],
+        "requests": [
+          {
+            "method": "POST",
+            "url": "/api/user/registration",
+            "tenantId": "#{defaultTenantId}",
+            "body": {
+              "user": {
+                "email": "#{adminEmail}",
+                "password": "#{adminPassword}"
+              },
+              "registration": {
+                "applicationId": "#{FUSIONAUTH_APPLICATION_ID}",
+                "roles": [
+                  "admin"
+                ]
+              }
+            }
+          },
+          {
+            "method": "POST",
+            "url": "/api/key/generate/ee459c36-fec3-4c58-9ec0-9de12c33731c",
+            "body": {
+              "key": {
+                  "algorithm": "RS256",
+                  "issuer": "free.ruettelreport.tech",
+                  "name": "free",
+                  "length": 2048
+              }
+            }
+          },
+          {
+            "method": "POST",
+            "url": "/api/key/generate/8cba34fd-a522-4301-a469-8b9a1a8e6249",
+            "body": {
+              "key": {
+                  "algorithm": "RS256",
+                  "issuer": "premium.ruettelreport.tech",
+                  "name": "premium",
+                  "length": 2048
+              }
+            }
+          }
+        ]
+      }
+    #{}
     # kickstart.json: |
     #    {
     #      "variables": {

@@ -32,6 +32,7 @@ export default defineNuxtRouteMiddleware((to, from) => {
                 userStore.userId = response.jwt.sub
                 userStore.type = response.jwt.iss.startsWith('premium') ? 'premium' : 'free'
                 userStore.isPremium= response.jwt.iss.startsWith('premium')
+                userStore.roles = response.jwt.roles
                 console.log("STORE USER: ", userStore)
             } else {
                 console.log("JWT MISSING CLAIMS: ", response.jwt)

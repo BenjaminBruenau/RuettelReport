@@ -26,7 +26,6 @@
   },
   "dependencies": {
     "@fusionauth/typescript-client": "^1.48.0",
-    "@fusionauth/vue-sdk": "^0.1.0",
     "@pinia/nuxt": "^0.5.1",
     "@vee-validate/rules": "^4.12.4",
     "axios": "^1.6.5",

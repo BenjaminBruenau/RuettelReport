@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nuxt-configmap
+  namespace: shared
+data:
+  FUSIONAUTH_API_KEY: {{ .Values.nuxt.fusionAuthApiKey }}
+  MONGODB_CONNECTION_URI: {{ .Values.nuxt.mongoConnectionUri }}
+  FUSIONAUTH_URL: {{ .Values.nuxt.fusionAuthUrl }}
+  ACCESS_TOKEN_SIGNING_KEY_ID_FREE: {{ .Values.nuxt.access_token_signing_key_id_free }}
+  ACCESS_TOKEN_SIGNING_KEY_ID_PREMIUM: {{ .Values.nuxt.access_token_signing_key_id_premium }}

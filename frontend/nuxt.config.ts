@@ -57,6 +57,5 @@ export default defineNuxtConfig({
   colorMode: {
     classSuffix: '',
   },
-  plugins: ['~/plugins/fusionauth.js'],
 
 })

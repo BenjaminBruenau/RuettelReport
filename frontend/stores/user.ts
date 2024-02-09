@@ -5,6 +5,7 @@ export const useUserStore = defineStore('userStore', {
         userId: '',
         tenantId: '',
         type: '',
-        isPremium: false
+        isPremium: false,
+        roles: []
     }),
 })
