@@ -6,7 +6,7 @@ metadata:
 spec:
   type: Scala
   mode: cluster
-  image: "europe-west6-docker.pkg.dev/instant-heading-405914/ruettel-report/analysis:0.1.0"
+  image: "{{ .Values.image.repository }}analysis:0.1.0"
   imagePullPolicy: IfNotPresent #Always
   mainClass: runAnalysisStream
   #mainApplicationFile: "local:///app/analysis.jar"
@@ -58,7 +58,7 @@ spec:
 
   executor:
     cores: 1
-    instances: 2
+    instances: {{ .Values.analysis.analysisstreaming.executor.instances }}
     memory: "1G"
     memoryOverhead: 2g
     labels:

@@ -7,3 +7,7 @@
 [![codecov](https://codecov.io/gh/BenjaminBruenau/RuettelReport/graph/badge.svg?token=7OKGD5WV2H)](https://codecov.io/gh/BenjaminBruenau/RuettelReport)
 
 
+## Architecture
+
+
+![Ruettel-Report Banner](./.github/assets/architecture-transparent.png)

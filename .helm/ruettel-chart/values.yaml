@@ -135,14 +135,12 @@ analysis:
   mongoConnectionUri: "" # e.g. mongodb://user:password@mongodb-0.mongodb-headless.default.svc.cluster.local,mongodb-1.mongodb-headless.default.svc.cluster.local,mongodb-2.mongodb-headless.default.svc.cluster.local:27017/ruettelreport
   analysisstreaming:
     executor:
-      replicas: 2
+      instances: 2
     driver:
-      replicas: 1
   analysiscron:
     executor:
-      replicas: 2
+      instances: 2
     driver:
-      replicas: 1
 
 kong:
   premiumConsumerSecret: ""
