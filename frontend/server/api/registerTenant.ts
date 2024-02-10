@@ -5,7 +5,6 @@ import { v4 as uuidv4 } from 'uuid';
 
 export default eventHandler(async (event) => {
     const body = await readBody(event);
-    console.log(body)
     const client = new FusionAuthClient(fusionAuthConfig.apiKey, fusionAuthConfig.baseURL);
 
     try {

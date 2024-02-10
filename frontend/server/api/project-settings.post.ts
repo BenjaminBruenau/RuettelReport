@@ -6,6 +6,14 @@ export default defineEventHandler(async (event) => {
 
     const userInformation = await FusionAuthService.validateTokenAndReturnUserInformation(token)
 
+    if (!userInformation.roles.includes('tenant-admin')) {
+        throw createError({
+            statusCode: 401,
+            statusMessage: 'Unauthorized',
+            message: 'Insufficient Permissions - Only admins can change the project settings'
+        });
+    }
+
     const projectSettingsDocument = await readBody(event)
 
     if (!projectSettingsDocument) {

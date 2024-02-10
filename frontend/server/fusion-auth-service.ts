@@ -58,7 +58,8 @@ class FusionAuthService {
 
         const userInformation = {
             tenantId: validateReponse.jwt.tid,
-            userId: validateReponse.jwt.sub
+            userId: validateReponse.jwt.sub,
+            roles: validateReponse.jwt.roles
         }
         return userInformation
     }
