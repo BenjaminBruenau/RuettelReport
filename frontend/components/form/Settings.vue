@@ -15,7 +15,7 @@ const props = defineProps({
 });
 
 
-
+const userStore = useUserStore()
 
 
 const myColor = ref('black');
@@ -171,14 +171,36 @@ const confirmDeleteSelected = () => {
   selectedUsers.value = [];
 };
 
-function  btn_projectSettings_reload(){
-  console.log("TODO: RELOAD")
+
+
+const emit = defineEmits(['reset-project-settings', "update-project-settings"])
+
+function btn_projectSettings_save(){
+  const theme = {
+    theme: {
+      "primary_color_light": color_primary_light.value,
+      "primary_color_dark": color_primary_dark.value,
+      "gradient_from_light": gradient_from_light.value,
+      "gradient_to_light": gradient_to_light.value,
+      "gradient_from_dark": gradient_from_dark.value,
+      "gradient_to_dark": gradient_to_dark.value,
+      "default_theme": darkMode.value ? 'dark' : 'light'
+    }
+  }
+
+  const settings = {
+    ...props.project_settings,
+    ...theme
+  }
+  delete (settings as any)['_id']
+  delete (settings as any)['id']
+
+
+  emit('update-project-settings', settings);
 }
 
-const emit = defineEmits(['update-project-users'])
-
-function  btn_projectSettings_save(){
-  emit('update-project-users', { users: users });
+function  btn_projectSettings_reset(){
+  emit('reset-project-settings', { users: users });
 }
 
 const shareUrl = ref('');
@@ -203,6 +225,11 @@ async function getShareUrl() {
 
 <template>
   <div class="parent-container">
+    <div class="p-2 mb-2 flex justify-end">
+      <PrimeButton  class="mr-2" label="Reset" icon="pi pi-replay" @click="btn_projectSettings_reset"/>
+      <PrimeButton :disabled="!userStore.roles.includes('tenant-admin')" label="Save" icon="pi pi-save" @click="btn_projectSettings_save"/>
+    </div>
+
     <PrimeTabView class="container">
       <!--<PrimeTabPanel header="Account" :pt="{headeraction: ({ props, parent }) => ({class: panelClass(props, parent, 0)})}">
       </PrimeTabPanel>-->
@@ -239,14 +266,14 @@ async function getShareUrl() {
 
         <PrimeCard>
           <template #title>
-            <b>Invite others to join your tenant!</b>
+            <b>Invite others to join your tenancy!</b>
           </template>
           <template #content>
-            Share the following link with those you would like to invite to your tenant!
+            Share the following link with those you would like to invite to your tenancy!
           </template>
           <template #footer>
             <div class="footer-container">
-              <b class="footer-text">Link to your tenant:</b>
+              <b class="footer-text">Link to your tenancy:</b>
               <PrimeInputText v-model="shareUrl" class="flex-grow" placeholder="Vote" />
               <PrimeButton icon="pi pi-copy" class="footer-button" />
             </div>
