@@ -1,9 +1,13 @@
 import { FusionAuthClient } from '@fusionauth/typescript-client';
 import { readBody } from 'h3';
 import { fusionAuthConfig } from './config';
+import FusionAuthService from "~/server/fusion-auth-service";
 
 export default eventHandler(async (event) => {
     const body = await readBody(event);
+
+    return FusionAuthService.validateToken(body.token)
+    /*
     const client = new FusionAuthClient(fusionAuthConfig.apiKey, fusionAuthConfig.baseURL);
 
     try {
@@ -26,4 +30,6 @@ export default eventHandler(async (event) => {
         }
         return { valid: false };
     }
+
+     */
 });
