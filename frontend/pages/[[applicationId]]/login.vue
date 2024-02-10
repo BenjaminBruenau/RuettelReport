@@ -17,12 +17,24 @@ const routeApplicationId_def = computed(() => {
   return route.params.applicationId === 'def' ? 'def' : route.params.applicationId;
 });
 
-const routeApplicationId_login = computed(() => {
-  return route.params.applicationId || '';
+// login either via /95370548-49aa-4f5f-aad9-ba6b6cfea3a0/login or /login
+const applicationIdLogin = ref('');
+const routeApplicationId_login = computed({
+  get: () => {
+    return route.params.applicationId || applicationIdLogin.value || '';
+  },
+  set: (newValue: any) => {
+    applicationIdLogin.value = newValue;
+  }
 });
 
-const routeApplicationId_empty = computed(() => {
-  return route.query.applicationId || '';
+const routeApplicationId_empty = computed({
+  get: () => {
+    return route.params.applicationId || applicationIdLogin.value || '';
+  },
+  set: (newValue: any) => {
+    applicationIdLogin.value = newValue;
+  }
 });
 
 defineRule('required', required);
@@ -33,7 +45,6 @@ defineRule('email', email);
 
 const emailLogin = ref('');
 const passwordLogin = ref('');
-const applicationIdLogin = ref('');
 
 const emailSignup = ref('');
 const passwordSignup = ref('');

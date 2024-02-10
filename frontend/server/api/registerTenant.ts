@@ -5,7 +5,6 @@ import { v4 as uuidv4 } from 'uuid';
 
 export default eventHandler(async (event) => {
     const body = await readBody(event);
-
     const client = new FusionAuthClient(fusionAuthConfig.apiKey, fusionAuthConfig.baseURL);
 
     try {
@@ -33,6 +32,8 @@ export default eventHandler(async (event) => {
 
     } catch (error) {
         console.error("Registrierung Fehler:", error);
+        console.error(error.exception)
+        console.error(error.exception.fieldErrors['registration.applicationId'])
         return { register: false };
     }
 });

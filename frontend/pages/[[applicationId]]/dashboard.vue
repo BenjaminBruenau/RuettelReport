@@ -7,26 +7,7 @@ definePageMeta({
   middleware: ['auth'],
 });
 
-const props = defineProps({
-  project_settings: {
-    type: Object,
-    default: () => ({data: {}})
-  },
-  premium: {
-    type: Boolean,
-    default: true
-  }
-});
-
-const userEmail = ref('<null>');
-
-const currentData = ref([]);
-
-watch(currentData,()=>{
-  console.log('CURRENT',currentData.value);
-});
-
-const project_settings = ref({
+const project_settings = {
   'id': Number,
   'project':{
     'users':{
@@ -72,29 +53,61 @@ const project_settings = ref({
 
   },
 
-    'theme':{
-      'primary_color_light':'#009b91',
-      'primary_color_dark':'#009b91',
-      'gradient_from_light':"#dde6eb",
-      'gradient_to_light':"#dde6eb",
-      'gradient_from_dark':"#334152",
-      'gradient_to_dark':"#334152",
-      'default_theme': 'light',
-    },
-    /*
-    'theme':{
-      'primary_color_light':'#ffffff',
-      'primary_color_dark':'#9e9e9e',
-      'gradient_from_light':"#d8d8d8",
-      'gradient_to_light':"#d8d8d8",
-      'gradient_from_dark':"#1f1f1f",
-      'gradient_to_dark':"#1f1f1f",
-      'default_theme': 'light',
-    },
+  'theme':{
+    'primary_color_light':'#009b91',
+    'primary_color_dark':'#009b91',
+    'gradient_from_light':"#dde6eb",
+    'gradient_to_light':"#dde6eb",
+    'gradient_from_dark':"#334152",
+    'gradient_to_dark':"#334152",
+    'default_theme': 'light',
+  },
+  /*
+  'theme':{
+    'primary_color_light':'#ffffff',
+    'primary_color_dark':'#9e9e9e',
+    'gradient_from_light':"#d8d8d8",
+    'gradient_to_light':"#d8d8d8",
+    'gradient_from_dark':"#1f1f1f",
+    'gradient_to_dark':"#1f1f1f",
+    'default_theme': 'light',
+  },
 
-     */
+   */
 
+};
+
+const {
+  pending,
+  data: projectSettings,
+  error,
+  refresh
+} = useFetch('/api/project-settings', {
+  key: 'projectSettings',
+  lazy: false,
+  // default settings (e.g. new tenant)
+  default: () => project_settings,
+  onResponseError({ request, response, options }) {
+    console.debug('ERROR while loading project settings: ', response);
+    //ToDo: Proper Error Handling, maybe display toast
+  },
+  onResponse({ request, response, options }) {
+    if (response._data && response._data) {
+      console.debug('Loaded ProjectSettings: ', response._data);
+      setupTheme(response._data.theme)
+    }
+  },
 });
+
+const userEmail = ref('<null>');
+
+const currentData = ref([]);
+
+watch(currentData,()=>{
+  console.log('CURRENT',currentData.value);
+});
+
+const userStore = useUserStore()
 
 const savedTheme = localStorage.getItem('theme')
 
@@ -110,18 +123,23 @@ const setActiveWindow = (windowNumber) => {
   console.log(activeWindow.value);
 }
 
-function setupTheme() {
-  const themeSettings = project_settings.value.theme;
-  document.documentElement.style.setProperty('--color-primary', themeSettings.primary_color_light);
-  document.documentElement.style.setProperty('--color-primary_light', themeSettings.primary_color_light);
-  document.documentElement.style.setProperty('--color-primary_dark', themeSettings.primary_color_dark);
-  document.documentElement.style.setProperty('--gradient_to_light', themeSettings.primary_color_dark);
-  document.documentElement.style.setProperty('--gradient_from_light', themeSettings.gradient_from_light);
-  document.documentElement.style.setProperty('--gradient_to_light', themeSettings.gradient_to_light);
-  document.documentElement.style.setProperty('--gradient_from_dark', themeSettings.gradient_from_dark);
-  document.documentElement.style.setProperty('--gradient_to_dark', themeSettings.gradient_to_dark);
+function setupTheme(themeSettings: any) {
+  console.log('SEETING UP THEME: ', themeSettings)
+  //const themeSettings = projectSettings.value.theme;
+  document.documentElement.style.setProperty('--color-primary', unifyHex(themeSettings.primary_color_light));
+  document.documentElement.style.setProperty('--color-primary_light', unifyHex(themeSettings.primary_color_light));
+  document.documentElement.style.setProperty('--color-primary_dark', unifyHex(themeSettings.primary_color_dark));
+  document.documentElement.style.setProperty('--gradient_to_light', unifyHex(themeSettings.primary_color_dark));
+  document.documentElement.style.setProperty('--gradient_from_light', unifyHex(themeSettings.gradient_from_light));
+  document.documentElement.style.setProperty('--gradient_to_light', unifyHex(themeSettings.gradient_to_light));
+  document.documentElement.style.setProperty('--gradient_from_dark', unifyHex(themeSettings.gradient_from_dark));
+  document.documentElement.style.setProperty('--gradient_to_dark', unifyHex(themeSettings.gradient_to_dark));
   document.documentElement.style.setProperty('--b_color_light', adjustColorBrightness(themeSettings.gradient_from_light,1.1));
   document.documentElement.style.setProperty('--b_color_dark', adjustColorBrightness(themeSettings.gradient_from_dark, 0.9));
+}
+
+function unifyHex(text: string){
+  return '#'+text.replace("#", "")
 }
 
 function adjustColorBrightness(hexColor: string, factor: number): string {
@@ -141,13 +159,27 @@ function adjustColorBrightness(hexColor: string, factor: number): string {
 }
 
 onMounted(() => {
-  setupTheme();
+  setupTheme(projectSettings.value.theme);
   getUserEmail();
 });
 
-const updateProjectUsers = (payload) => {
-  const { users } = payload;
+const resetProjectSettings = () => {
+  refresh()
+}
 
+
+const updateProjectSettings = async (updatedSettings: any) => {
+  console.log("SETTINGS:", updatedSettings)
+
+
+  const response = await $fetch('/api/project-settings', {
+    method: 'post',
+    body: updatedSettings
+  });
+
+  if (!response.acknowledged) {
+    console.error('Error while updating project settings')
+  }
 }
 
 function to_color(text){
@@ -202,7 +234,7 @@ async function getUserEmail(){
   <div class="dashboard">
     <div class="container">
       <div class="tile tile_left first-column">
-        <ApiFilterContainer :project_settings="project_settings"
+        <ApiFilterContainer :project_settings="projectSettings"
                             :current-data="currentData"
                             @update-api-response="update_api_response"
         ></ApiFilterContainer>
@@ -213,7 +245,7 @@ async function getUserEmail(){
             <PrimeToolbar>
               <template #start>
                 <PrimeButton icon="pi pi-map" class="mr-2" label="Map" @click="setActiveWindow(1)"></PrimeButton>
-                <PrimeButton icon="pi pi-chart-bar" class="mr-2" label="★ Statistics" :disabled="!props.premium" @click="setActiveWindow(2)" ></PrimeButton>
+                <PrimeButton icon="pi pi-chart-bar" class="mr-2" label="★ Statistics" :disabled="!userStore.isPremium" @click="setActiveWindow(2)" ></PrimeButton>
               </template>
               <template #end>
                 <b>{{userEmail}}</b>
@@ -225,6 +257,7 @@ async function getUserEmail(){
           </div>
           <div class="tile tile_right_2 map-content" v-if="activeWindow===1">
             <Map :currentData="currentData"></Map>
+
           </div>
           <div class="tile tile_right_2 map-content" v-if="activeWindow===2">
             <PrimeCard>
@@ -242,9 +275,10 @@ async function getUserEmail(){
             </PrimeCard>
           </div>
           <div class="tile tile_right_2 map-content" v-if="activeWindow===3">
-            <Settings :project_settings="project_settings"
-                      :premium="props.premium"
-                      @update-project-users="updateProjectUsers"></Settings>
+            <Settings :project_settings="projectSettings"
+                      :premium="userStore.isPremium"
+                      @update-project-settings="updateProjectSettings"
+                      @reset-project-settings="resetProjectSettings"></Settings>
           </div>
         </div>
       </div>

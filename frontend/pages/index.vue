@@ -1,8 +1,8 @@
 <template>
-
-    <theme-customizer></theme-customizer>
-    <div>{{ result}}</div>
-   <!--<button @click="sendRequest">Send</button>-->
+  <!--
+      <theme-customizer></theme-customizer>
+      <div>{{ result}}</div>
+     <button @click="sendRequest">Send</button>-->
 </template>
 
 <script setup lang="ts">
@@ -94,7 +94,7 @@ const queryStructure = {
 
 const result = ref({})
 
-onMounted(async () => await navigateTo('/dashboard'))
+onBeforeMount(async () => await navigateTo('/dashboard'))
 
 /*
 // Needs to be post request, body will be omitted otherwise by nuxt internally
