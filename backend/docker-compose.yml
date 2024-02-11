@@ -36,6 +36,7 @@ services:
     ports:
       - "27017:27017"
     healthcheck:
+      #needs to be a replicaset as we utilize the change stream for realtime data updates in the Frontend
       test: echo "try { rs.status() } catch (err) { rs.initiate({_id:'rs0',members:[{_id:0,host:'host.docker.internal:27017'}]}) }" | mongosh --port 27017 --quiet
       interval: 5s
       timeout: 30s

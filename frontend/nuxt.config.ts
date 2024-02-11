@@ -38,12 +38,9 @@ export default defineNuxtConfig({
       proxy: { to: `http://localhost:8080/api/**`, },
     },
     */
-
     '/auth/**': {
       proxy: { to: `http://${process.env.NUXT_FUSION_AUTH_URL}/**`, },
-    }
-
-
+    },
   },
   modules: ['@nuxtjs/tailwindcss', 'nuxt-primevue', '@nuxtjs/color-mode','@pinia/nuxt'],
   primevue: {
@@ -68,5 +65,12 @@ export default defineNuxtConfig({
   colorMode: {
     classSuffix: '',
   },
+  app: {
+    head: {
+      link: [
+        { hid: 'icon', rel: "icon", type: "image/svg+xml", href: "/favicon.svg" }
+      ]
+    }
+  }
 
 })
