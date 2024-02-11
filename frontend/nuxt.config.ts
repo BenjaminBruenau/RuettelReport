@@ -1,6 +1,13 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-
+  nitro: {
+    plugins: [
+      './plugins/socket.io.server'
+    ]
+  },
+  plugins: [
+    './plugins/socket.io'
+  ],
   devtools: { enabled: true },
   runtimeConfig: {
     mongoConnectionUri: '', // can be overridden by NUXT_MONGO_CONNECTION_URI environment variable
@@ -8,6 +15,10 @@ export default defineNuxtConfig({
     fusionAuthUrl: '',
     accessTokenSigningKeyFree: '',
     accessTokenSigningKeyPremium: '',
+    public: {
+      socketPort: 3001,
+      url: 'http://localhost'
+    }
   },
   css: [
     'primeicons/primeicons.css',

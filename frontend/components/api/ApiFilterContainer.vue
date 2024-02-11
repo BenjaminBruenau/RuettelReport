@@ -368,7 +368,7 @@ async function runButton() {
  </PrimeToolbar>
  <div style="height: 5px"/>
  <div class="virtual-scroller-container">
-   <PrimeVirtualScroller :items="apiFilterBlocks" itemSize="50">
+   <PrimeVirtualScroller :items="apiFilterBlocks" :itemSize="50">
      <template v-slot:item="{ item }">
        <ApiFilterBlock :structure="item.structure"
                        :project_settings="item.project_settings"

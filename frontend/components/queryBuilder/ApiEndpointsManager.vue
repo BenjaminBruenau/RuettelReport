@@ -213,7 +213,7 @@ const updateColor = (endpointName, color) => {
     <PrimeScrollPanel class="flex-item">
       <PrimeSplitter   layout="vertical">
         <h3>API - Endpoints</h3>
-        <PrimeSplitterPanel size="50">
+        <PrimeSplitterPanel :size="50">
           <div class="splitter-container">
             <div class="left-panel">
               <PrimeDataTable v-model:selection="selectedEndpoints" :value="endpoints" dataKey="name" selectionMode="checkbox">
@@ -255,7 +255,7 @@ const updateColor = (endpointName, color) => {
             </div>
           </div>
         </PrimeSplitterPanel>
-        <PrimeSplitterPanel size="50">
+        <PrimeSplitterPanel :size="50">
           <div v-if="apiSelected">
             <PrimeDataTable :value="temporaryEditedParams" dataKey="key"  tableStyle="min-width: 50rem" v-model:filters="filters"> <!--paginator :rows="5" :rowsPerPageOptions="[5, 10, 20, 50]"-->
               <template #header>

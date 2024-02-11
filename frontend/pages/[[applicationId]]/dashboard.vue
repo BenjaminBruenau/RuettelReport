@@ -6,6 +6,7 @@ import {useCookie} from "nuxt/app";
 definePageMeta({
   middleware: ['auth'],
 });
+const userStore = useUserStore()
 
 const project_settings = {
   'id': Number,
@@ -99,6 +100,43 @@ const {
   },
 });
 
+
+// Fetch Analytics Data
+
+
+const {
+  pending: realtimePending,
+  data: realtimeData,
+  error: realtimeError,
+  refresh: realtimeRefresh
+} = useFetch('/api/analysis/realtime', {
+  key: 'realtimeData',
+  lazy: false,
+  // default settings (e.g. new tenant)
+  default: () => {},
+  onResponseError({ request, response, options }) {
+    console.debug('ERROR while loading realtime data: ', response);
+  },
+  onResponse({ request, response, options }) {
+    if (response._data && response._data) {
+      console.debug('Loaded Real Time Data: ', response._data);
+    }
+  },
+});
+
+const realtimeAnalyticsData = ref()
+const token = useCookie('rrAuthToken').value
+const { $io } = useNuxtApp()
+
+const socket = $io({token: token})
+
+socket.connect()
+
+socket.on(SocketEvent.new_analysis_data, (data: any) => {
+  console.log('Received Message: ', data)
+  realtimeAnalyticsData.value = data
+})
+
 const userEmail = ref('<null>');
 
 const currentData = ref([]);
@@ -107,7 +145,6 @@ watch(currentData,()=>{
   console.log('CURRENT',currentData.value);
 });
 
-const userStore = useUserStore()
 
 const savedTheme = localStorage.getItem('theme')
 
@@ -162,6 +199,7 @@ onMounted(() => {
   setupTheme(projectSettings.value.theme);
   getUserEmail();
 });
+
 
 const resetProjectSettings = () => {
   refresh()
@@ -257,13 +295,28 @@ async function getUserEmail(){
           </div>
           <div class="tile tile_right_2 map-content" v-if="activeWindow===1">
             <Map :currentData="currentData"></Map>
+            <div class="tile flex flex-row mt-6" v-if="activeWindow===1">
 
+              <BarChart :data="realtimeAnalyticsData ? realtimeAnalyticsData : realtimeData ? realtimeData.magDistribution : undefined" class="w-1/2"></BarChart>
+              <BarChart class="w-1/2"></BarChart>
+
+            </div>
+            <div class="tile mt-6" v-if="activeWindow===1">
+              <div><b >Total Aggregations (over all queried data)</b></div> <!-- v-tooltip.top="'test'"-->
+              <div class="flex flex-row">
+                <BarChart class="w-1/2"></BarChart>
+                <BarChart class="w-1/2"></BarChart>
+              </div>
+
+
+            </div>
           </div>
+
           <div class="tile tile_right_2 map-content" v-if="activeWindow===2">
             <PrimeCard>
               <template #title>Event Distribution</template>
               <template #content>
-              <BarChart/>
+              <!--<BarChart/>-->
               </template>
             </PrimeCard>
             <div style="height:20px"></div>
