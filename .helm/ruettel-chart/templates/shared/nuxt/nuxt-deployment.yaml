@@ -25,7 +25,7 @@ spec:
                 configMapKeyRef:
                   name: nuxt-configmap
                   key: FUSIONAUTH_API_KEY
-            - name: NUXT_MONGODB_CONNECTION_URI
+            - name: NUXT_MONGO_CONNECTION_URI
               valueFrom:
                 configMapKeyRef:
                   name: nuxt-configmap
