@@ -3,12 +3,10 @@ import { computed, ref } from 'vue';
 import {set} from "vue-demi";
 import {FilterMatchMode} from "primevue/api";
 
-const props = defineProps({
-  initialEndpoints: {
-    type: Object,
-    default: () => ({ api_endpoints: {} })
-  }
-});
+
+
+const projectSettingsStore = useProjectSettingsStore()
+const projectSettings = storeToRefs(projectSettingsStore)
 
 const toast = useToast();
 
@@ -39,10 +37,10 @@ const default_api_endpointStructure =ref({
 });
 
 const endpoints = computed(() => {
-  if (!props.initialEndpoints || !props.initialEndpoints.api_endpoints) {
+  if (!projectSettings.api_endpoints || !projectSettings.api_endpoints.value) {
     return [];
   }
-  return Object.entries(props.initialEndpoints.api_endpoints).map(([name, value]) => ({
+  return Object.entries(projectSettings.api_endpoints.value).map(([name, value]) => ({
     name,
     ...value,
     checked: false,
@@ -60,12 +58,12 @@ const openEditDialog = (endpoint) => {
   originalEndpointName.value = endpoint.name;
   editDialogHeader.value = `Edit ${endpoint.name}`;
   editDialogVisible.value = true;
-  temporaryEditedParams.value = Object.entries(props.initialEndpoints.api_endpoints[endpoint.name].params).map(([key, value]) => ({ key, value }));
+  temporaryEditedParams.value = Object.entries(projectSettings.api_endpoints.value[endpoint.name].params).map(([key, value]) => ({ key, value }));
 };
 
 const deleteSelectedEndpoints = () => {
   selectedEndpoints.value.forEach((endpoint) => {
-    delete props.initialEndpoints.api_endpoints[endpoint.name];
+    delete projectSettings.api_endpoints.value[endpoint.name];
   });
   selectedEndpoints.value = [];
   toast.add({ severity: 'warn', summary: 'Gelöscht', detail: 'Ausgewählte Endpoints gelöscht', life: 3000 });
@@ -84,23 +82,23 @@ const saveChanges = () => {
 
     if (originalEndpointName.value !== newEndpointName) {
       const updatedEndpoint = {
-        ...props.initialEndpoints.api_endpoints[originalEndpointName.value],
+        ...projectSettings.api_endpoints.value[originalEndpointName.value],
         url: editedEndpoint.value.url,
         color: editedEndpoint.value.color,
         params: Object.fromEntries(endpointParamsPairs),
         mappingRules: editedEndpoint.value.mappingRules
       };
 
-      set(props.initialEndpoints.api_endpoints, newEndpointName, updatedEndpoint);
+      set(projectSettings.api_endpoints.value, newEndpointName, updatedEndpoint);
 
-      delete props.initialEndpoints.api_endpoints[originalEndpointName.value];
+      delete projectSettings.api_endpoints.value[originalEndpointName.value];
 
       const endpointIndex = endpoints.value.findIndex(e => e.name === originalEndpointName.value);
       if (endpointIndex !== -1) {
         endpoints.value.splice(endpointIndex, 1, { ...updatedEndpoint, name: newEndpointName });
       }
     } else {
-      const endpoint = props.initialEndpoints.api_endpoints[newEndpointName];
+      const endpoint = projectSettings.api_endpoints.value[newEndpointName];
       endpoint.url = editedEndpoint.value.url;
       endpoint.color = editedEndpoint.value.color;
       endpoint.params = Object.fromEntries(endpointParamsPairs);
@@ -110,7 +108,7 @@ const saveChanges = () => {
     temporaryEditedParams.value = [];
 
     if (newEndpointName) {
-      editedEndpoint.value = {...props.initialEndpoints.api_endpoints[newEndpointName]};
+      editedEndpoint.value = {...projectSettings.api_endpoints.value[newEndpointName]};
       temporaryEditedParams.value = Object.entries(editedEndpoint.value.params).map(([key, value]) => ({ key, value }));
     }
     toast.add({ severity: 'success', summary: 'Gespeichert', detail: 'Änderungen gespeichert', life: 3000 });
@@ -121,7 +119,7 @@ const saveChanges = () => {
   originalEndpointName.value = '';
   temporaryEditedParams.value = [];
 
-  console.log(JSON.stringify(props.initialEndpoints,null,2));
+  console.log(JSON.stringify(projectSettings.api_endpoints.value,null,2));
 
 };
 
@@ -133,7 +131,7 @@ const filters = ref({
 const addNewEndpoint = () => {
   const newEndpoint = JSON.parse(JSON.stringify(default_api_endpointStructure.value));
   newEndpoint.name = `New Endpoint ${formatDate(Date.now())}`;
-  set(props.initialEndpoints.api_endpoints, newEndpoint.name, newEndpoint);
+  set(projectSettings.api_endpoints.value, newEndpoint.name, newEndpoint);
   openEditDialog(newEndpoint);
   toast.add({ severity: 'success', summary: 'Erfolg', detail: 'Neuer Endpoint hinzugefügt', life: 3000 });
 };
@@ -156,7 +154,7 @@ const formatDate = (date) => {
 const downloadSelectedEndpoints = () => {
   const dataToDownload = selectedEndpoints.value.reduce((acc, endpoint) => {
     const endpointName = endpoint.name; // API-Name
-    acc[endpointName] = props.initialEndpoints.api_endpoints[endpointName];
+    acc[endpointName] = projectSettings.api_endpoints.value[endpointName];
     return acc;
   }, {});
 
@@ -185,7 +183,7 @@ const onAdvancedUpload = async (event) => {
           const fileContent = JSON.parse(result);
 
           for (const [key, value] of Object.entries(fileContent)) {
-            set(props.initialEndpoints.api_endpoints, key, value);
+            set(projectSettings.api_endpoints.value, key, value);
           }
 
           toast.add({ severity: 'info', summary: 'Success', detail: 'Endpoints Updated', life: 3000 });
@@ -200,9 +198,9 @@ const onAdvancedUpload = async (event) => {
 
 
 const updateColor = (endpointName, color) => {
-  console.log(JSON.stringify(props.initialEndpoints.api_endpoints,null,2));
-  if (props.initialEndpoints.api_endpoints[endpointName]) {
-    props.initialEndpoints.api_endpoints[endpointName].color = color;
+  console.log(JSON.stringify(projectSettings.api_endpoints.value,null,2));
+  if (projectSettings.api_endpoints.value[endpointName]) {
+    projectSettings.api_endpoints.value[endpointName].color = color;
   }
 };
 

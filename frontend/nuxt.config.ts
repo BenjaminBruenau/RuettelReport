@@ -13,8 +13,8 @@ export default defineNuxtConfig({
     mongoConnectionUri: '', // can be overridden by NUXT_MONGO_CONNECTION_URI environment variable
     fusionAuthApiKey: '',
     fusionAuthUrl: '',
-    accessTokenSigningKeyFree: '',
-    accessTokenSigningKeyPremium: '',
+    accessTokenSigningKeyIdFree: '',
+    accessTokenSigningKeyIdPremium: '',
     public: {
       socketPort: 3001,
       url: 'http://localhost'

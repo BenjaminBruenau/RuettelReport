@@ -9,6 +9,14 @@ export default eventHandler(async (event) => {
 
     const client = new FusionAuthClient(fusionAuthConfig.apiKey, fusionAuthConfig.baseURL);
 
+    if (!body || !body.tenantName || !body.email || !body.password || (body.premium === undefined || body.premium === null)) {
+        throw createError({
+            statusCode: 400,
+            statusMessage: 'Bad Request',
+            message: 'Invalid Tenant Parameters'
+        });
+    }
+
     try {
         // Schritt 1: Erstellen eines neuen Tenants
         const newTenant: TenantRequest = {
@@ -39,33 +47,25 @@ export default eventHandler(async (event) => {
                 name: body.tenantName+'_Application',
                 jwtConfiguration: {
                     enabled: true,
-                    accessTokenKeyId: (body.premium)?fusionAuthConfig.key_premium:fusionAuthConfig.key_free,
-                    timeToLiveInSeconds: fusionAuthConfig.tokenTimeToLiveInSeconds,
+                    accessTokenKeyId: body.premium ? fusionAuthConfig.key_premium : fusionAuthConfig.key_free,
+                    timeToLiveInSeconds: fusionAuthConfig.tokenTimeToLiveInSeconds
                 },
                 roles: [
                     {
-                        "description": "Tenant Administrator",
-                        //"id": "ce485a91-906f-4615-af75-81d37dc71e90",
-                        "name": "tenant-admin",
-                        "isDefault": false,
-                        "isSuperRole": false // Only tenant specific rights, no fusionauth rights
+                        description: "Tenant Administrator",
+                        name: "tenant-admin",
+                        isDefault: false,
+                        isSuperRole: false // Only tenant specific rights, no fusionauth rights
                     },
                     {
-                        "description": "Tenant User",
-                        //"id": "ce485a91-906f-4615-af75-81d37dc71e91",
-                        "name": "tenant-user",
-                        "isDefault": true,
-                        "isSuperRole": false
+                        description: "Tenant User",
+                        name: "tenant-user",
+                        isDefault: true,
+                        isSuperRole: false
                     }
-                ],
-                /*
-                oauthConfiguration:{
-                    //authorizedOriginURLs : fusionAuthConfig.routes.authorizedRedirectUri,
-                    logoutUrl: fusionAuthConfig.routes.logoutUri,
-                }
-                */
+                ]
             }
-        };
+        }
 
         // Setzen des Tenant-Id im Client für die Erstellung der Application
         client.setTenantId(tenantId);
