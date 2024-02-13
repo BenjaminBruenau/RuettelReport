@@ -8,8 +8,8 @@ export const fusionAuthConfig = {
     issuer_free: 'free.ruettelreport.tech',
     issuer_premium: 'premium.ruettelreport.tech',
 
-    key_free: useRuntimeConfig().accessTokenSigningKeyFree,
-    key_premium: useRuntimeConfig().accessTokenSigningKeyPremium,
+    key_free: useRuntimeConfig().accessTokenSigningKeyIdFree,
+    key_premium: useRuntimeConfig().accessTokenSigningKeyIdPremium,
     log: true,
 
     routes: {

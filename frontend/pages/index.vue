@@ -7,6 +7,10 @@
 
 <script setup lang="ts">
 
+definePageMeta({
+  middleware: ['auth'],
+});
+
 const queryStructure = {
   "queryStructure": {
     "requestOptions":{

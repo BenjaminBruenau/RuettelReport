@@ -5,15 +5,14 @@ import { useUserStore } from "~/stores/user";
 import { useCookie } from "#app";
 
 const props = defineProps({
-  project_settings: {
-    type: Object,
-    default: () => ({data: {}})
-  },
   currentData: {
     type: Object,
     default: () => ({data: {}})
   },
 });
+
+const projectSettingsStore = useProjectSettingsStore()
+const projectSettings = storeToRefs(projectSettingsStore)
 
 const structure = ref({
   requestOptions: {
@@ -117,15 +116,15 @@ const apiFilterBlocks = ref([]);
 
 const createApiFilterBlocks = () => {
 
-  const newApiFilterBlocks = Object.keys(props.project_settings.api_endpoints).map((apiKey, index) => {
+  const newApiFilterBlocks = Object.keys(projectSettings.api_endpoints.value).map((apiKey, index) => {
     const existingBlock = apiFilterBlocks.value.find(block => block.index === index);
 
     const blockStructure = existingBlock ? existingBlock.structure : ref(JSON.parse(JSON.stringify(structure.value)));
-
+    console.log("SETTINGS BLOCK: ", projectSettings)
     return {
       index,
       structure: blockStructure,
-      project_settings: ref(JSON.parse(JSON.stringify(props.project_settings)))
+      project_settings: ref(projectSettings)
     };
   });
 
@@ -134,7 +133,7 @@ const createApiFilterBlocks = () => {
   }
 };
 
-watch(() => props.project_settings.api_endpoints, () => {
+watch(() => projectSettings.api_endpoints, () => {
   createApiFilterBlocks();
 }, { deep: true });
 
@@ -146,7 +145,7 @@ function getApiFilterBlock(index) {
   }
 
   const { structure, project_settings } = block;
-  const apiEndpoints = project_settings.api_endpoints;
+  const apiEndpoints = projectSettings.api_endpoints.value;
   const apiEndpointKeys = Object.keys(apiEndpoints);
 
   if (apiEndpointKeys.length === 0) {
@@ -321,8 +320,8 @@ const sendRequest = async (queryParams,index,color) => {
   });
 }
 
-function getApiColors(projectSettings) {
-  const apiEndpoints = projectSettings.api_endpoints;
+function getApiColors() {
+  const apiEndpoints = projectSettings.api_endpoints.value;
   const colors = [];
 
   for (const key in apiEndpoints) {
@@ -341,7 +340,7 @@ async function runButton() {
     const blockString = getApiFilterBlock(index);
     if (blockString) {
       console.log(JSON.stringify(blockString,null,2));
-      await sendRequest(blockString,index,getApiColors(props.project_settings)[index]);
+      await sendRequest(blockString,index,getApiColors()[index]);
     }
   }
 }
@@ -368,7 +367,7 @@ async function runButton() {
  </PrimeToolbar>
  <div style="height: 5px"/>
  <div class="virtual-scroller-container">
-   <PrimeVirtualScroller :items="apiFilterBlocks" itemSize="50">
+   <PrimeVirtualScroller :items="apiFilterBlocks" :itemSize="50">
      <template v-slot:item="{ item }">
        <ApiFilterBlock :structure="item.structure"
                        :project_settings="item.project_settings"

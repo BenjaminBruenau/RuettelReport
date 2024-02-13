@@ -1,13 +1,25 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-
+  nitro: {
+    plugins: [
+      './plugins/socket.io.server'
+    ]
+  },
+  plugins: [
+    './plugins/socket.io'
+  ],
   devtools: { enabled: true },
   runtimeConfig: {
     mongoConnectionUri: '', // can be overridden by NUXT_MONGO_CONNECTION_URI environment variable
     fusionAuthApiKey: '',
     fusionAuthUrl: '',
-    accessTokenSigningKeyFree: '',
-    accessTokenSigningKeyPremium: '',
+    accessTokenSigningKeyIdFree: '',
+    accessTokenSigningKeyIdPremium: '',
+    public: {
+      socketPort: 3001,
+      url: 'http://localhost',
+      wssDevelop: false // The Websocket Server can be accessed directly in a development environment, in production (e.g. k8s) it needs to be put behind a proxy e.g. kong ingress rule
+    }
   },
   css: [
     'primeicons/primeicons.css',
@@ -27,12 +39,9 @@ export default defineNuxtConfig({
       proxy: { to: `http://localhost:8080/api/**`, },
     },
     */
-
     '/auth/**': {
       proxy: { to: `http://${process.env.NUXT_FUSION_AUTH_URL}/**`, },
-    }
-
-
+    },
   },
   modules: ['@nuxtjs/tailwindcss', 'nuxt-primevue', '@nuxtjs/color-mode','@pinia/nuxt'],
   primevue: {
@@ -57,5 +66,12 @@ export default defineNuxtConfig({
   colorMode: {
     classSuffix: '',
   },
+  app: {
+    head: {
+      link: [
+        { hid: 'icon', rel: "icon", type: "image/svg+xml", href: "/favicon.svg" }
+      ]
+    }
+  }
 
 })

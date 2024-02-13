@@ -45,7 +45,7 @@ spec:
       - name: "test-volume"
         mountPath: "/tmp"
     env:
-      - name: MONGODB_CONNECTION_URI
+      - name: MONGO_CONNECTION_URI
         valueFrom:
           configMapKeyRef:
             name: spark-analysis-configmap
@@ -67,7 +67,7 @@ spec:
       - name: "test-volume"
         mountPath: "/tmp"
     env:
-      - name: MONGODB_CONNECTION_URI
+      - name: MONGO_CONNECTION_URI
         valueFrom:
           configMapKeyRef:
             name: spark-analysis-configmap
