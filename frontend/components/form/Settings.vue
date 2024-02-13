@@ -46,10 +46,15 @@ function getContrastYIQ(hexcolor){
 }
 
 
-const darkMode = ref(false)
 
+
+const darkMode = computed({
+  get() { return projectSettings.theme.value.default_theme === 'dark' },
+  set(isDarkMode) {
+    projectSettingsStore.theme.default_theme = isDarkMode ? 'dark' : 'light'
+  }
+})
 const toggleDarkMode = (newValue: boolean) => {
-  projectSettings.theme.value.default_theme = darkMode.value ? 'dark' : 'light'
   useColorMode().preference = darkMode.value ? 'dark' : 'light'
 }
 
@@ -67,28 +72,20 @@ onMounted(() => {
 
 
 watch(darkMode,(b)=>{
-  if(b){
-    document.documentElement.style.setProperty('--color-primary', unifyHex(projectSettings.theme.value.primary_color_dark));
-  } else{
+  console.log('Changing Theme Mode - Dark Mode: ', b)
+  if(!b){
     document.documentElement.style.setProperty('--color-primary', unifyHex(projectSettings.theme.value.primary_color_light));
+  } else{
+    document.documentElement.style.setProperty('--color-primary', unifyHex(projectSettings.theme.value.primary_color_dark));
   }
 });
 
-watch(projectSettings.theme.value, () => {
-  console.log('Change')
-  document.documentElement.style.setProperty('--color-primary_light', unifyHex(projectSettings.theme.value.primary_color_light));
-  const contrastColorLight = getContrastYIQ(unifyHex(projectSettings.theme.value.primary_color_light)) === 'black' ? '#FFFFFF' : '#000000';
-  document.documentElement.style.setProperty('--contrast-text_light', contrastColorLight);
 
-  document.documentElement.style.setProperty('--color-primary_dark', unifyHex(projectSettings.theme.value.primary_color_dark));
-  const contrastColorDark = getContrastYIQ(unifyHex(projectSettings.theme.value.primary_color_dark)) === 'black' ? '#FFFFFF' : '#000000';
-  document.documentElement.style.setProperty('var(--contrast-text_dark)', contrastColorDark);
-  document.documentElement.style.setProperty('--color-primary', unifyHex(projectSettings.theme.value.primary_color_dark));
-
-  document.documentElement.style.setProperty('--gradient_from_light', unifyHex(projectSettings.theme.value.gradient_from_light));
-  document.documentElement.style.setProperty('--gradient_to_light', unifyHex(projectSettings.theme.value.gradient_to_light));
-  document.documentElement.style.setProperty('--gradient_from_dark', unifyHex(projectSettings.theme.value.gradient_from_dark));
-  document.documentElement.style.setProperty('--gradient_to_dark', unifyHex(projectSettings.theme.value.gradient_to_dark));
+projectSettingsStore.$subscribe((mutation, state) => {
+  if (mutation.events.key && Object.keys(projectSettingsStore.theme).includes(mutation.events.key)) {
+    console.log('Theme Change')
+    projectSettingsStore.setupTheme()
+  }
 })
 
 
@@ -144,7 +141,7 @@ const updateProjectSettings = async () => {
 }
 
 const resetProjectSettings = async () => {
-  await projectSettingsStore.fetch()
+  await useAsyncData('project', () => projectSettingsStore.fetch().then(() => true))
 }
 
 const shareUrl = ref('');
@@ -185,7 +182,7 @@ async function getShareUrl() {
         <div class="grid-container">
 
             <div><b>Primary Color</b></div><div></div>
-            <div>Dark/Light Mode</div>
+            <div>Light/Dark Mode</div>
             <PrimeInputSwitch v-model="darkMode" @update:model-value="toggleDarkMode"></PrimeInputSwitch>
 
             <div><b>Primary Color</b></div><div></div>

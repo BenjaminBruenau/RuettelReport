@@ -119,7 +119,6 @@ export const useProjectSettingsStore = defineStore('projectSettingsStore', {
             const response = await $fetch('/api/project-settings', {
                 method: 'post',
                 body: {
-                    _id: this._id,
                     project: this.project,
                     api_endpoints: this.api_endpoints,
                     theme: this.theme
@@ -154,8 +153,10 @@ export const useProjectSettingsStore = defineStore('projectSettingsStore', {
                 document.documentElement.style.setProperty('--b_color_dark', this.adjustColorBrightness(themeSettings.gradient_from_dark, 0.9));
             } else {
                 console.log('SETTING UP THEME: ', this.theme)
+                useColorMode().preference = this.theme.default_theme === 'dark' ? 'dark' : 'light'
+
                 //const themeSettings = projectSettings.value.theme;
-                document.documentElement.style.setProperty('--color-primary', this.unifyHex(this.theme.primary_color_light));
+                document.documentElement.style.setProperty('--color-primary', this.theme.default_theme === 'light' ? this.unifyHex(this.theme.primary_color_light) : this.unifyHex(this.theme.primary_color_dark));
                 document.documentElement.style.setProperty('--color-primary_light', this.unifyHex(this.theme.primary_color_light));
                 document.documentElement.style.setProperty('--color-primary_dark', this.unifyHex(this.theme.primary_color_dark));
                 document.documentElement.style.setProperty('--gradient_to_light', this.unifyHex(this.theme.primary_color_dark));
