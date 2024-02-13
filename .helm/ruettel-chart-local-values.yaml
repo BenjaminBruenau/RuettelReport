@@ -1,0 +1,71 @@
+
+
+image:
+  repository: europe-west6-docker.pkg.dev/instant-heading-405914/ruettel-report/
+  pullPolicy: IfNotPresent  #Always
+  #Overrides the image tag whose default is the chart appVersion.
+  tag: "1.0.6"
+
+replicas:
+  free: 1
+  premium: 2
+
+autoscaling:
+  enabled: false
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+
+nuxt:
+  port: 3000
+  socketPort: 3001
+  fusionAuthApiKey: "FbX31ng685J3e3Fcy4xWaDcDPUg-PMwgyin_RVHGPLnUKbXuG3ZxuUVT"
+  mongoConnectionUri: "mongodb://user:password@mongodb-0.mongodb-headless.shared.svc.cluster.local,mongodb-1.mongodb-headless.shared.svc.cluster.local,mongodb-2.mongodb-headless.shared.svc.cluster.local:27017/ruettelreport"
+  fusionAuthUrl: "my-fusion-fusionauth.default.svc.cluster.local:9011"
+  access_token_signing_key_id_free: "ee459c36-fec3-4c58-9ec0-9de12c33731c"
+  access_token_signing_key_id_premium: "8cba34fd-a522-4301-a469-8b9a1a8e6249"
+
+queryservice:
+  port: 8080
+  kafkaBootstrapServers: "kafka-headless.premium.svc.cluster.local:9092"
+
+datatransformerservice:
+  port: 8081
+  kafkaBootstrapServers: "kafka-headless.premium.svc.cluster.local:9092"
+
+analysis:
+  schedule: "0 8 * * *" #every day at 8 a.m.( #"* * * * 1" # run every monday
+  kafkaBootstrapServers: "kafka-headless.premium.svc.cluster.local:9092"
+  mongoConnectionUri: "mongodb://user:password@mongodb-0.mongodb-headless.shared.svc.cluster.local,mongodb-1.mongodb-headless.shared.svc.cluster.local,mongodb-2.mongodb-headless.shared.svc.cluster.local:27017/ruettelreport" # e.g. mongodb://user:password@mongodb-0.mongodb-headless.default.svc.cluster.local,mongodb-1.mongodb-headless.default.svc.cluster.local,mongodb-2.mongodb-headless.default.svc.cluster.local:27017/ruettelreport
+  analysisstreaming:
+    executor:
+      instances: 2
+    driver:
+  analysiscron:
+    executor:
+      instances: 2
+    driver:
+
+kong:
+  premiumConsumerSecret: |
+    -----BEGIN PUBLIC KEY-----
+    MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAkcgXq5zxtsEOsila9V3V
+    OBKvpgd3udWjowvZoxv1vVPr369exdOmnKQtBTy5GmlmUfYSiS+j/YwclI55H1dd
+    9PMyMmTGpigQuknsjslncw1hKrJR8HoW8IQxQiP50lR1q3tOgqTKOMPHJZ+zD6tX
+    TeW/GsMwU63bB4e6kCUePUhsZCZ+m0cgbtMCBdxOsB9Ai+xd/TOUqyD8FpbjqNaF
+    2ZOx8EwNiN7lzIz09uBv3uDLERd0XHW4FnOWUklYE+ZGIhfgo9lxT8QBENXvUAEF
+    qfE8W7otNHjwZkmsl5wLanY02QYD7YFcAJ8j2ucnkN2HAr0ObZg/HFnG1rPZ/jnJ
+    eQIDAQAB
+    -----END PUBLIC KEY-----
+  freeConsumerSecret: |
+    -----BEGIN PUBLIC KEY-----
+    MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA2pOHzquTuoVcnJcFRkSn
+    bAHAUqqg12XSAk8zLEVULzvOGWs7UxvxsafFPjB1xT2Jjw/O9eEJS7C1x0QydvK1
+    CAdeR8ZALZesITf1AimTEVACX7D0jFM+rE2DuD21sZIaHEPAgIBbamjaGdsLyXi2
+    BZbH0zN78ZEmvI805eudegN8TvTYrZMNsXo+AbPbDHDHrHjzatp5ptlB2fhfvuy2
+    mWO4sRISU/FimsvlCJ0Wl8+/rgLGMK7+KcezXgQD2fjfkZFuQk8KFVjKWqDb+tm3
+    ZdfPktauQZnwvfAb8bXeomliY1l9mtTqpm5e1BvNF0xr/uAaDrKImtTkKrPei+5v
+    sQIDAQAB
+    -----END PUBLIC KEY-----

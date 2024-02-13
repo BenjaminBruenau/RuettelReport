@@ -6,98 +6,70 @@ import {useCookie} from "nuxt/app";
 definePageMeta({
   middleware: ['auth'],
 });
+const userStore = useUserStore()
 
-const project_settings = {
-  'id': Number,
-  'project':{
-    'users':{
+const projectSettings = useProjectSettingsStore()
 
-    }
-  },
-  'api_endpoints':{
-    'earthquake.usgs.gov': {
-      url: 'https://earthquake.usgs.gov/fdsnws/event/1/query',
-      method: 'GET',
-      color: '#009b91',
-      params: {
-        format: 'format',
-        starttime: 'starttime',
-        endtime: 'endtime',
-        minmagnitude: 'minmagnitude',
-        maxmagnitude: 'maxmagnitude',
-        minlongitude: 'minlongitude',
-        maxlongitude: 'maxlongitude',
-        minlatitude: 'minlatitude',
-        maxlatitude: 'maxlatitude',
-      },
-      mappingRules: '',
-    },
+const projectSettingsRef = storeToRefs(projectSettings)
 
-    'earthquake.usgs.gov2': {
-      url: 'https://earthquake.usgs.gov/fdsnws/event/1/query',
-      method: 'GET',
-      color: '#e1967a',
-      params: {
-        format: 'format',
-        starttime: 'starttime',
-        endtime: 'endtime',
-        minmagnitude: 'minmagnitude',
-        maxmagnitude: 'maxmagnitude',
-        minlongitude: 'minlongitude',
-        maxlongitude: 'maxlongitude',
-        minlatitude: 'minlatitude',
-        maxlatitude: 'maxlatitude',
-      },
-      mappingRules: '',
-    }
 
-  },
-
-  'theme':{
-    'primary_color_light':'#009b91',
-    'primary_color_dark':'#009b91',
-    'gradient_from_light':"#dde6eb",
-    'gradient_to_light':"#dde6eb",
-    'gradient_from_dark':"#334152",
-    'gradient_to_dark':"#334152",
-    'default_theme': 'light',
-  },
-  /*
-  'theme':{
-    'primary_color_light':'#ffffff',
-    'primary_color_dark':'#9e9e9e',
-    'gradient_from_light':"#d8d8d8",
-    'gradient_to_light':"#d8d8d8",
-    'gradient_from_dark':"#1f1f1f",
-    'gradient_to_dark':"#1f1f1f",
-    'default_theme': 'light',
-  },
-
-   */
-
-};
+// Fetch Analytics Data
 
 const {
-  pending,
-  data: projectSettings,
-  error,
-  refresh
-} = useFetch('/api/project-settings', {
-  key: 'projectSettings',
+  pending: realtimePending,
+  data: realtimeDataComplete,
+  error: realtimeError,
+  refresh: realtimeRefresh
+} = useFetch('/api/analysis/realtime-complete', {
+  key: 'realtimeData',
   lazy: false,
-  // default settings (e.g. new tenant)
-  default: () => project_settings,
+  default: () => {},
   onResponseError({ request, response, options }) {
-    console.debug('ERROR while loading project settings: ', response);
-    //ToDo: Proper Error Handling, maybe display toast
+    console.debug('ERROR while loading realtime data: ', response);
   },
   onResponse({ request, response, options }) {
     if (response._data && response._data) {
-      console.debug('Loaded ProjectSettings: ', response._data);
-      setupTheme(response._data.theme)
+      console.debug('Loaded Real Time Data (Complete): ', response._data);
     }
   },
 });
+
+const realtimeAnalyticsMagDistrData = ref()
+const realtimeAnalyticsData = ref()
+
+const realtimeAnalyticsDataComplete = ref()
+const realtimeAnalyticsMagDistrDataComplete = ref()
+
+const token = useCookie('rrAuthToken').value
+const { $io } = useNuxtApp()
+
+const socket = $io({
+  token: token
+})
+
+socket.connect()
+
+socket.on(SocketEvent.analytics_magdistr, (data: any) => {
+  console.debug('Received new magdistr data: ', data)
+  realtimeAnalyticsMagDistrData.value = data
+})
+
+socket.on(SocketEvent.analytics, (data: any) => {
+  console.debug('Received new analytics data: ', data)
+  realtimeAnalyticsData.value = data
+})
+
+socket.on(SocketEvent.analytics_complete, (data: any) => {
+  console.debug('Received new complete analytics data: ', data)
+  realtimeAnalyticsDataComplete.value = data
+})
+
+socket.on(SocketEvent.analytics_complete_magdistr, (data: any) => {
+  console.debug('Received new complete magdistr data: ', data)
+  realtimeAnalyticsMagDistrDataComplete.value = data
+})
+
+
 
 const userEmail = ref('<null>');
 
@@ -107,7 +79,6 @@ watch(currentData,()=>{
   console.log('CURRENT',currentData.value);
 });
 
-const userStore = useUserStore()
 
 const savedTheme = localStorage.getItem('theme')
 
@@ -123,64 +94,16 @@ const setActiveWindow = (windowNumber) => {
   console.log(activeWindow.value);
 }
 
-function setupTheme(themeSettings: any) {
-  console.log('SEETING UP THEME: ', themeSettings)
-  //const themeSettings = projectSettings.value.theme;
-  document.documentElement.style.setProperty('--color-primary', unifyHex(themeSettings.primary_color_light));
-  document.documentElement.style.setProperty('--color-primary_light', unifyHex(themeSettings.primary_color_light));
-  document.documentElement.style.setProperty('--color-primary_dark', unifyHex(themeSettings.primary_color_dark));
-  document.documentElement.style.setProperty('--gradient_to_light', unifyHex(themeSettings.primary_color_dark));
-  document.documentElement.style.setProperty('--gradient_from_light', unifyHex(themeSettings.gradient_from_light));
-  document.documentElement.style.setProperty('--gradient_to_light', unifyHex(themeSettings.gradient_to_light));
-  document.documentElement.style.setProperty('--gradient_from_dark', unifyHex(themeSettings.gradient_from_dark));
-  document.documentElement.style.setProperty('--gradient_to_dark', unifyHex(themeSettings.gradient_to_dark));
-  document.documentElement.style.setProperty('--b_color_light', adjustColorBrightness(themeSettings.gradient_from_light,1.1));
-  document.documentElement.style.setProperty('--b_color_dark', adjustColorBrightness(themeSettings.gradient_from_dark, 0.9));
-}
 
-function unifyHex(text: string){
-  return '#'+text.replace("#", "")
-}
 
-function adjustColorBrightness(hexColor: string, factor: number): string {
-  if (!/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/.test(hexColor)) {
-    throw new Error('Ungültiger Hex-Farbwert');
-  }
 
-  let r: number = parseInt(hexColor.substring(1, 3), 16);
-  let g: number = parseInt(hexColor.substring(3, 5), 16);
-  let b: number = parseInt(hexColor.substring(5, 7), 16);
 
-  r = Math.min(255, Math.max(0, r * factor));
-  g = Math.min(255, Math.max(0, g * factor));
-  b = Math.min(255, Math.max(0, b * factor));
-
-  return `#${Math.round(r).toString(16).padStart(2, '0')}${Math.round(g).toString(16).padStart(2, '0')}${Math.round(b).toString(16).padStart(2, '0')}`;
-}
 
 onMounted(() => {
-  setupTheme(projectSettings.value.theme);
   getUserEmail();
 });
 
-const resetProjectSettings = () => {
-  refresh()
-}
 
-
-const updateProjectSettings = async (updatedSettings: any) => {
-  console.log("SETTINGS:", updatedSettings)
-
-
-  const response = await $fetch('/api/project-settings', {
-    method: 'post',
-    body: updatedSettings
-  });
-
-  if (!response.acknowledged) {
-    console.error('Error while updating project settings')
-  }
-}
 
 function to_color(text){
   return '#'+text.replace("#", "")
@@ -234,8 +157,7 @@ async function getUserEmail(){
   <div class="dashboard">
     <div class="container">
       <div class="tile tile_left first-column">
-        <ApiFilterContainer :project_settings="projectSettings"
-                            :current-data="currentData"
+        <ApiFilterContainer :current-data="currentData"
                             @update-api-response="update_api_response"
         ></ApiFilterContainer>
       </div>
@@ -257,13 +179,69 @@ async function getUserEmail(){
           </div>
           <div class="tile tile_right_2 map-content" v-if="activeWindow===1">
             <Map :currentData="currentData"></Map>
+            <div class="tile flex flex-row items-center mt-6" v-if="activeWindow===1">
 
+              <BarChart :data="realtimeAnalyticsMagDistrData ? realtimeAnalyticsMagDistrData : undefined" class="w-1/2"></BarChart>
+              <div class="flex flex-col justify-center items-center w-1/2">
+                <PrimeCard class="mb-4 w-2/3" >
+                  <template #title>
+                    <div class="text-center">Average Magnitude</div>
+                  </template>
+                  <template #content>
+                    <div class="text-center" style="font-size: 1.25rem">
+                      {{realtimeAnalyticsData ? realtimeAnalyticsData.avg_magnitude : '-'}}
+                    </div>
+                  </template>
+                </PrimeCard>
+                <PrimeCard class="w-2/3">
+                  <template #title>
+                    <div class="text-center">Event Count</div>
+                  </template>
+                  <template #content>
+                    <div class="text-center" style="font-size: 1.25rem">
+                      {{realtimeAnalyticsData ? realtimeAnalyticsData.count : '-'}}
+                    </div>
+                  </template>
+                </PrimeCard>
+              </div>
+            </div>
+
+            <div class="tile mt-6" v-if="activeWindow===1">
+              <div><b class="text-textColor_light dark:text-textColor_dark">Total Aggregations (over all queried data)</b></div> <!-- v-tooltip.top="'test'"-->
+              <div class="flex flex-row items-center">
+
+                <BarChart class="w-1/2" :data="realtimeAnalyticsMagDistrDataComplete ? realtimeAnalyticsMagDistrDataComplete : realtimeDataComplete ? realtimeDataComplete.magDistribution : undefined"></BarChart>
+                <div class="flex flex-col justify-center items-center w-1/2">
+                  <PrimeCard class="mb-4 w-2/3" >
+                    <template #title>
+                      <div class="text-center">Average Magnitude</div>
+                    </template>
+                    <template #content>
+                      <div class="text-center" style="font-size: 1.25rem">
+                        {{realtimeAnalyticsDataComplete ? realtimeAnalyticsDataComplete.avg_magnitude : realtimeDataComplete && realtimeDataComplete.aggregations ? realtimeDataComplete.aggregations.avg_magnitude : '-'}}
+                      </div>
+                    </template>
+                  </PrimeCard>
+                  <PrimeCard class="w-2/3">
+                    <template #title>
+                      <div class="text-center">Event Count</div>
+                    </template>
+                    <template #content>
+                      <div class="text-center" style="font-size: 1.25rem">
+                        {{realtimeAnalyticsDataComplete ? realtimeAnalyticsDataComplete.count : realtimeDataComplete && realtimeDataComplete.aggregations ? realtimeDataComplete.aggregations.count : '-'}}
+                      </div>
+                    </template>
+                  </PrimeCard>
+                </div>
+              </div>
+            </div>
           </div>
+
           <div class="tile tile_right_2 map-content" v-if="activeWindow===2">
             <PrimeCard>
               <template #title>Event Distribution</template>
               <template #content>
-              <BarChart/>
+              <!--<BarChart/>-->
               </template>
             </PrimeCard>
             <div style="height:20px"></div>
@@ -275,10 +253,7 @@ async function getUserEmail(){
             </PrimeCard>
           </div>
           <div class="tile tile_right_2 map-content" v-if="activeWindow===3">
-            <Settings :project_settings="projectSettings"
-                      :premium="userStore.isPremium"
-                      @update-project-settings="updateProjectSettings"
-                      @reset-project-settings="resetProjectSettings"></Settings>
+            <Settings :premium="userStore.isPremium"></Settings>
           </div>
         </div>
       </div>

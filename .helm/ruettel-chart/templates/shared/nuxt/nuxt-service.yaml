@@ -10,6 +10,10 @@ spec:
     - port:  {{ .Values.nuxt.port }}
       targetPort: 3000
       protocol: TCP
-      name: http
+      name: api-server
+    - port: {{ .Values.nuxt.socketPort }}
+      targetPort: 3001
+      protocol: TCP
+      name: socket-server
   selector:
     app: nuxt

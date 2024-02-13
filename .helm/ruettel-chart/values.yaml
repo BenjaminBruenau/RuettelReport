@@ -96,7 +96,7 @@
 
 image:
   repository: europe-west6-docker.pkg.dev/instant-heading-405914/ruettel-report/
-  pullPolicy: IfNotPresent
+  pullPolicy: IfNotPresent #Always
   #Overrides the image tag whose default is the chart appVersion.
   tag: "0.1.0"
 
@@ -111,10 +111,10 @@ autoscaling:
   targetCPUUtilizationPercentage: 80
   # targetMemoryUtilizationPercentage: 80
 
-imagePullPolicy: Always
 
 nuxt:
-  port: 80
+  port: 3000
+  socketPort: 3001
   fusionAuthApiKey: ""
   mongoConnectionUri: ""
   fusionAuthUrl: "my-fusion-fusionauth.default.svc.cluster.local:9011"
