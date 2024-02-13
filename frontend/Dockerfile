@@ -1,4 +1,4 @@
-FROM node:18.13-alpine as builder
+FROM node:21.6-alpine as builder
 WORKDIR /app
 COPY package.json ./
 COPY nuxt.config.ts ./
@@ -7,7 +7,7 @@ RUN yarn install
 COPY . .
 RUN yarn build
 
-FROM node:18.13-alpine
+FROM node:21.6-alpine
 
 COPY --from=builder /app/.output /ruettel-ui/.output
 
