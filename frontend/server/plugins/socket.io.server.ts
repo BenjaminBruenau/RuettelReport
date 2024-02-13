@@ -11,7 +11,8 @@ export default defineNitroPlugin((nitroApp) => {
         cors: {
             origin: '*',
             credentials: true
-        }
+        },
+        transports: ['websocket', 'polling'],
     })
 
     // authentication middleware

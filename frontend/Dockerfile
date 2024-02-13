@@ -16,5 +16,6 @@ WORKDIR /ruettel-ui/.output
 ENV NUXT_HOST=0.0.0.0
 ENV NUXT_PORT=3000
 EXPOSE 3000
+EXPOSE 3001
 
 CMD ["node", "/ruettel-ui/.output/server/index.mjs"]

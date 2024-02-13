@@ -4,7 +4,7 @@ metadata:
   namespace: shared
   name: ruettel-report
   annotations:
-    konghq.com/strip-path: "true"
+    konghq.com/strip-path: "false"
 spec:
   ingressClassName: kong
   rules:
@@ -17,3 +17,11 @@ spec:
                 name: nuxt
                 port:
                   number: {{ .Values.nuxt.port }}
+          - path: /socket.io
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: nuxt
+                port:
+                  number: {{ .Values.nuxt.socketPort }}
+

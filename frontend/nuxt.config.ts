@@ -17,7 +17,8 @@ export default defineNuxtConfig({
     accessTokenSigningKeyIdPremium: '',
     public: {
       socketPort: 3001,
-      url: 'http://localhost'
+      url: 'http://localhost',
+      wssDevelop: false // The Websocket Server can be accessed directly in a development environment, in production (e.g. k8s) it needs to be put behind a proxy e.g. kong ingress rule
     }
   },
   css: [
