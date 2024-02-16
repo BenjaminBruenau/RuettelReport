@@ -101,7 +101,7 @@ jobs:
         
         helm upgrade --install kong kong/ingress -n kong --create-namespace
 
-        helm upgrade --install promstack prometheus-community/kube-prometheus-stack --namespace monitoring --version 52.1.0 -f values-monitoring.yaml
+        helm upgrade --install promstack prometheus-community/kube-prometheus-stack --namespace monitoring --create-namespace --version 52.1.0 -f values-monitoring.yaml
 
         helm --install upgrade kong kong/ingress -n kong --set gateway.serviceMonitor.enabled=true --set gateway.serviceMonitor.labels.release=promstack
         kubectl apply -f kong-prometheus-plugin.yaml
