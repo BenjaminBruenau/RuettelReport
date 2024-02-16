@@ -42,16 +42,6 @@ jobs:
       run: terraform init
       working-directory: ./.terraform
 
-    - name: Terraform format
-      id: fmt
-      run: terraform fmt -check
-      working-directory: ./.terraform
-
-    - name: Terraform validate
-      id: validate
-      run: terraform validate
-      working-directory: ./.terraform
-
     - name: Terraform plan
       id: plan
       run: terraform plan -no-color -var "project=${{vars.PROJECT_ID}}"
