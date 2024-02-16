@@ -29,7 +29,15 @@ minikube addons enable gcp-auth
 ```
 
 ### Installing RuettelReport Infrastructure
+
+
 ```shell
+helm repo add spark-operator https://googlecloudplatform.github.io/spark-on-k8s-operator
+helm repo add kong https://charts.konghq.com
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo add fusionauth https://fusionauth.github.io/charts
+helm repo add bitnami https://charts.bitnami.com/bitnami
+
 helm install spark spark-operator/spark-operator --namespace spark-operator --create-namespace -f spark-operator-values.yaml
 
 helm install mongodb bitnami/mongodb -f mongodb-values.yaml -n shared --create-namespace
