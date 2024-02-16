@@ -70,12 +70,12 @@ jobs:
     - name: Terraform Plan Status
       if: steps.plan.outcome == 'failure'
       run: exit 1
-      working-directory: ./.terraform
       
     - name: Terraform Apply
       if: github.ref == 'refs/heads/master'
       run: |
         terraform apply -auto-approve -var "project=${{vars.PROJECT_ID}}"
+      continue-on-error: true # existing cluster with same resources, other errors are caught in later steps
       working-directory: ./.terraform
 
     - name: Install kubectl
