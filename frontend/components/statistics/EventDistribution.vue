@@ -1,17 +1,16 @@
 <template>
   <div>
-    <PrimeDataTable :value="data">
+    <PrimeDataTable :value="eventTypeData">
       <PrimeColumn field="type" header="Event Type" :sortable="true"></PrimeColumn>
       <PrimeColumn field="count" header="Occurrences" :sortable="true"></PrimeColumn>
       <PrimeColumn field="probability" header="Probability (%)" :sortable="true"></PrimeColumn>
     </PrimeDataTable>
-    <div style="height: 20px"></div>
-    <div>
+    <div class="mt-3">
       <PrimePanel header="Event Occurrence Probability (in a Row)">
 
       <div class="input-grid">
         <label for="typeDropdown" class="grid-label">Choose an event type:</label>
-        <PrimeDropdown v-model="selectedType" :options="data.map(item => item.type)" class="grid-input" />
+        <PrimeDropdown v-model="selectedType" :options="eventTypeData.map(item => item.type)" class="grid-input" />
 
         <label for="numberOfTimes" class="grid-label">Enter the number of occurrences:</label>
         <PrimeInputNumber v-model="numberOfTimes" :min="0" :max="1000" class="grid-input" />
@@ -26,7 +25,7 @@
       <div v-if="selectedType && numberOfTimes !== null && !isNaN(numberOfTimes)">
         <PrimePanel header="Result">
           <b>
-            The probability of {{ selectedType }} occurring exactly {{ numberOfTimes }} times in a row is: {{ calculateProbability(selectedType, numberOfTimes) }}%
+            The probability of event type <i>{{ selectedType }}</i> occurring exactly {{ numberOfTimes }} times in a row is: {{ calculateProbability(selectedType, numberOfTimes) }}%
           </b>
         </PrimePanel>
 
@@ -41,7 +40,15 @@ import { ref } from 'vue';
 
 
 
-const data = ref([
+const props = defineProps({
+    data : {
+      type: Object,
+      //default: () => ({type: "earthquake", count: 33083, probability: 97.3115})
+      required: true
+    }
+})
+
+const eventTypeData = ref([
   { type: "earthquake", count: 33083, probability: 97.3115 },
   { type: "ice quake", count: 355, probability: 1.0442 },
   { type: "quarry blast", count: 329, probability: 0.9677 },
@@ -49,6 +56,20 @@ const data = ref([
   { type: "mining explosion", count: 26, probability: 0.0765 },
   { type: "other event", count: 3, probability: 0.0088 },
 ]);
+
+watch(() => props.data, () => {
+  eventTypeData.value = convertEventTypeObjectToArray(props.data)
+})
+
+onMounted(() => {
+  eventTypeData.value = convertEventTypeObjectToArray(props.data)
+})
+
+const convertEventTypeObjectToArray = (evenTypeObject: {[key: string]: { count: number, probability: number }}) => {
+  return Object.entries(evenTypeObject).map(([key, value]) => {
+    return { type: key, count: value.count, probability: value.probability * 100}
+  })
+}
 
 const columns = [
   { field: 'type', header: 'Type' },
@@ -60,7 +81,7 @@ const selectedType = ref(null);
 const numberOfTimes = ref(5);
 
 const calculateProbability = (type, times) => {
-  const selectedRow = data.value.find(item => item.type === type);
+  const selectedRow = eventTypeData.value.find(item => item.type === type);
   if (selectedRow && times !== null && !isNaN(times)) {
     const n = times;
     const p = selectedRow.probability / 100;

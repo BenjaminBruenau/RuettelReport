@@ -28,9 +28,11 @@ const PrimevueDesignPreset = {
         header: ({ props: PanelProps }) => ({
             class: [
                 'flex items-center justify-between', // flex and alignments
-                'border border-gray-300 bg-gray-100 text-gray-700 rounded-tl-lg rounded-tr-lg', // borders and colors
-                'dark:bg-gray-900 dark:border-blue-900/40 dark:text-white/80', // Dark mode
-                { 'p-5': !props.toggleable, 'py-3 px-5': props.toggleable } // condition
+
+                { 'p-5': !props.toggleable, 'py-3 px-5': props.toggleable }, // condition
+                'bg-tile_color_light dark:bg-tile_color_dark',
+                'border-b_color_light dark:border-b_color_dark',
+                'text-textColor_light dark:text-textColor_dark',
             ]
         }),
         title: {
@@ -49,8 +51,10 @@ const PrimevueDesignPreset = {
         },
         content: {
             class: [
-                'p-5 border border-gray-300 bg-white text-gray-700 border-t-0 last:rounded-br-lg last:rounded-bl-lg',
-                'dark:bg-gray-900 dark:border-blue-900/40 dark:text-white/80' // Dark mode
+                'p-5 border-t-0 last:rounded-br-lg last:rounded-bl-lg',
+                'bg-tile_color_light dark:bg-tile_color_dark',
+                'border-b_color_light dark:border-b_color_dark',
+                'text-textColor_light dark:text-textColor_dark',
             ] // padding, borders, and colors
         }
     },
@@ -279,6 +283,7 @@ const PrimevueDesignPreset = {
                 'bg-tile_color_light dark:bg-tile_color_dark border-border_color_light dark:border-border_color_dark',
                 'border-b_color_light dark:border-b_color_dark',
                 'text-textColor_light dark:text-textColor_dark',
+                'bg-gradient-to-r from-mainColor_1_1_light to-mainColor_1_2_light dark:from-mainColor_1_1_dark dark:to-mainColor_1_2_dark'
             ]
         }),
         container: ({ props }) => ({
@@ -321,6 +326,31 @@ const PrimevueDesignPreset = {
                 'bg-tile_color_light dark:bg-tile_color_dark border-border_color_light dark:border-border_color_dark',
                 'border-b_color_light dark:border-b_color_dark',
                 'text-textColor_light dark:text-textColor_dark',
+            ]
+        }),
+        previousbutton: {
+            class: ['text-textColor_light dark:text-textColor_dark']
+        },
+        monthTitle: {
+            class: ['text-textColor_light dark:text-textColor_dark']
+        },
+        yearTitle: {
+            class: ['text-textColor_light dark:text-textColor_dark']
+        },
+        nextbutton: {
+            class: ['text-textColor_light dark:text-textColor_dark']
+        },
+        weekday: {
+            class: ['text-textColor_light dark:text-textColor_dark']
+        },
+        daylabel: ({ context }) => ({
+            class: [
+                {
+                    'text-textColor_light dark:text-textColor_dark': !context.selected && !context.disabled && !context.date.today,
+                    'text-primary_light dark:text-primary_dark ': context.selected && !context.disabled
+                },
+                'focus:outline-none focus:outline-offset-0 focus:ring focus:ring-primary_light dark:focus:ring-primary_dark ring-opacity-80',
+
             ]
         }),
     },
@@ -632,7 +662,25 @@ const PrimevueDesignPreset = {
                 'text-textColor_light dark:text-textColor_dark',
             ]}),
     },
+    dropdown: {
+        root: ({ props, state }) => ({
+            class: [
 
+                // States
+                'hover:border-primary_light dark:hover:border-primary_dark',
+                { 'outline-none outline-offset-0 ring ring-primary_light dark:focus:ring-primary_dark ring-opacity-80': state.focused },
+
+            ]
+        }),
+        item: ({ context }) => ({
+            class: [
+                'bg-tile_color_light dark:bg-tile_color_dark',
+                'border-b_color_light dark:border-b_color_dark',
+                'text-textColor_light dark:text-textColor_dark',
+
+            ]
+        }),
+    }
 }
 
 export default PrimevueDesignPreset

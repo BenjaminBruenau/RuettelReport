@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import {onMounted, ref} from "vue";
-import EventDistribution from "~/components/statistics/EventDistribution.vue";
 import {useCookie} from "nuxt/app";
 
 definePageMeta({
@@ -151,6 +150,129 @@ async function getUserEmail(){
 
 }
 
+// Ruettel Report Generation
+const {
+  pending: reportDataPending,
+  data: reportData,
+  error: reportDataError,
+  refresh: reportDataRefresh
+} = useFetch('/api/analysis/ruettel-report', {
+  key: 'realtimeData',
+  lazy: false,
+  default: () => [],
+  onResponseError({ request, response, options }) {
+    console.debug('ERROR while loading report data: ', response);
+  },
+  onResponse({ request, response, options }) {
+    if (response._data && response._data) {
+      console.debug('Loaded Ruettel Report Data: ', response._data);
+    }
+  },
+});
+
+const magDistrLabels = ['0-2', '2-4', '4-6', '6-8', '8-10', 'Unknown']
+
+const reportDataExample =
+  {
+    "_id" : "65cfc143b8edfd6277d1138f",
+    "distribution" : {
+      "mean" : 165329.5,
+      "std" : 99644.7804980271
+    },
+    "eventTypeData" : {
+      "earthquake" : {
+        "count" : 33083,
+        "probability" : 0.973115
+      },
+      "ice quake" : {
+        "count" : 355,
+        "probability" : 0.010442
+      },
+      "quarry blast" : {
+        "count" : 329,
+        "probability" : 0.009677
+      },
+      "explosion" : {
+        "count" : 200,
+        "probability" : 0.005883
+      },
+      "mining explosion" : {
+        "count" : 26,
+        "probability" : 0.000765
+      },
+      "other event" : {
+        "count" : 3,
+        "probability" : 8.8e-05
+      }
+    },
+    "time_range" : {
+      "minTimestamp" : "2024-01-24T14:41:16.774+01:00",
+      "maxTimestamp" : "2024-01-24T15:31:27.307+01:00"
+    }
+  }
+
+
+const getCountsOnly = (obj: any) => {
+  const result = {};
+  for (const key in obj) {
+    result[key] = obj[key].count;
+  }
+  return result;
+}
+
+const selectedReport = ref();
+
+const selectExampleData = () => {
+  selectedReport.value = reportDataExample
+}
+
+const reportOptionLabel = () => {
+  return (report: any) => {
+    const start = new Date(report.time_range.minTimestamp)
+    const end = new Date(report.time_range.maxTimestamp)
+    return `Data Range: ${start.toLocaleString()} - ${end.toLocaleString()}`
+  }
+}
+import html2canvas from 'html2canvas';
+import jsPDF from "jspdf";
+
+const pendingDownload = ref(false)
+const downloadAsPDF = async () => {
+
+  const element = document.getElementById('ruettel-report-predictions');
+  if (!element) return
+
+  const chart = document.getElementById('ruettel-report-chart');
+  if (!chart) return
+  const chartWidth = chart.offsetWidth;
+  const chartHeight = chart.offsetHeight;
+
+  pendingDownload.value = true
+  const pdf = new jsPDF({
+    unit: 'px',
+    format: [element.offsetWidth, element.offsetHeight]
+  });
+  html2canvas(chart, {scale: 1}).then(async canvas => {
+    await pdf.html(element, {
+      callback: (doc) => {
+        doc = doc.addPage()
+        doc.addImage({
+          imageData: canvas,
+          x: 5,
+          y: 5,
+          width: chartWidth,
+          height: chartHeight,
+          format: 'PNG'
+        })
+        .save(
+          `RuettelReport_${selectedReport.value.time_range.minTimestamp}-${selectedReport.value.time_range.maxTimestamp}.pdf`
+        );
+        pendingDownload.value = false
+      },
+      margin: [ 10, 10, 10, 10 ],
+    })
+  })
+}
 
 </script>
 <template>
@@ -181,7 +303,7 @@ async function getUserEmail(){
             <Map :currentData="currentData"></Map>
             <div class="tile flex flex-row items-center mt-6" v-if="activeWindow===1">
 
-              <BarChart :data="realtimeAnalyticsMagDistrData ? realtimeAnalyticsMagDistrData : undefined" class="w-1/2"></BarChart>
+              <BarChart :data="realtimeAnalyticsMagDistrData ? realtimeAnalyticsMagDistrData : undefined" :labels="magDistrLabels" class="w-1/2"></BarChart>
               <div class="flex flex-col justify-center items-center w-1/2">
                 <PrimeCard class="mb-4 w-2/3" >
                   <template #title>
@@ -210,7 +332,7 @@ async function getUserEmail(){
               <div><b class="text-textColor_light dark:text-textColor_dark">Total Aggregations (over all queried data)</b></div> <!-- v-tooltip.top="'test'"-->
               <div class="flex flex-row items-center">
 
-                <BarChart class="w-1/2" :data="realtimeAnalyticsMagDistrDataComplete ? realtimeAnalyticsMagDistrDataComplete : realtimeDataComplete ? realtimeDataComplete.magDistribution : undefined"></BarChart>
+                <BarChart class="w-1/2" :data="realtimeAnalyticsMagDistrDataComplete ? realtimeAnalyticsMagDistrDataComplete : realtimeDataComplete ? realtimeDataComplete.magDistribution : undefined" :labels="magDistrLabels"></BarChart>
                 <div class="flex flex-col justify-center items-center w-1/2">
                   <PrimeCard class="mb-4 w-2/3" >
                     <template #title>
@@ -238,19 +360,67 @@ async function getUserEmail(){
           </div>
 
           <div class="tile tile_right_2 map-content" v-if="activeWindow===2">
-            <PrimeCard>
-              <template #title>Event Distribution</template>
-              <template #content>
-              <!--<BarChart/>-->
-              </template>
-            </PrimeCard>
-            <div style="height:20px"></div>
-            <PrimeCard>
-              <template #title>Event Prediction</template>
-              <template #content>
-                <EventDistribution/>
-              </template>
-            </PrimeCard>
+            <div class="mb-4 flex flex-row justify-between text-center items-center">
+              <div class="flex items-center">
+                <PrimeButton label="Example Data" severity="secondary" rounded @click="selectExampleData"/>
+              </div>
+              <div class="flex items-center">
+                <PrimeDropdown class="mr-5"
+                               v-model="selectedReport"
+                               :options="reportData"
+                               placeholder="Select a Report"
+                               checkmark
+                               :loading="reportDataPending"
+                               :highlightOnSelect="false">
+                  <template #value="slotProps">
+                    <div v-if="slotProps.value" class="flex align-items-center">
+                      <div>{{ reportOptionLabel()(slotProps.value) }}</div>
+                    </div>
+                    <span v-else>
+                  {{ slotProps.placeholder }}
+                  </span>
+                  </template>
+                  <template #option="slotProps">
+                    <div class="flex align-items-center">
+                      <div>{{ reportOptionLabel()(slotProps.option) }}</div>
+                    </div>
+                  </template>
+                </PrimeDropdown>
+                <PrimeButton class="mr-5" icon="pi pi-refresh" text rounded aria-label="Refresh" @click="reportDataRefresh"/>
+                <PrimeButton :loading="pendingDownload" :disabled="!selectedReport" icon="pi pi-download" label="PDF"  @click="downloadAsPDF"/>
+              </div>
+            </div>
+            <div class="flex justify-center items-center mt-10" v-if="!selectedReport">
+              <h3>No Report Selected</h3>
+            </div>
+            <div id="ruettel-report"  v-if="selectedReport">
+              <PrimeCard>
+                <template #title>Event Distribution</template>
+                <template #content>
+                  <div id="ruettel-report-chart">
+                    <BarChart class="w-1/2" :data="getCountsOnly(selectedReport.eventTypeData)" :labels="Object.keys(selectedReport.eventTypeData)" x-axis-text="Event Type"></BarChart>
+                  </div>
+                </template>
+              </PrimeCard>
+              <div id="ruettel-report-predictions">
+                <PrimeCard class="mt-4">
+                  <template #title>Event Prediction</template>
+                  <template #content>
+                    <EventDistribution :data="selectedReport.eventTypeData"/>
+
+                  </template>
+                </PrimeCard>
+                <PrimeCard class="mt-4">
+                  <template #title>Time Prediction</template>
+                  <template #content>
+                    <PredictProbNext :mean="selectedReport.distribution.mean" :std="selectedReport.distribution.std"/>
+
+                  </template>
+                </PrimeCard>
+              </div>
+
+            </div>
+
           </div>
           <div class="tile tile_right_2 map-content" v-if="activeWindow===3">
             <Settings :premium="userStore.isPremium"></Settings>
