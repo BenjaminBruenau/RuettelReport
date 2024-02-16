@@ -49,6 +49,14 @@ jobs:
         run: sbt publishLocal
         working-directory: ./backend/commons
 
+      - name: Build and Push Analysis Service
+        run: |
+          sbt assembly
+          docker build -t analysis:0.1.0 .
+          docker tag analysis:0.1.0 ${{ vars.GCLOUD_REGION }}-docker.pkg.dev/${{vars.PROJECT_ID}}/ruettel-report/analysis:${{ steps.get-tag.outputs.short_ref }}
+          docker push ${{ vars.GCLOUD_REGION }}-docker.pkg.dev/${{vars.PROJECT_ID}}/ruettel-report/analysis:${{ steps.get-tag.outputs.short_ref }}
+        working-directory: ./backend/Analysis
+
       - name: Build Images
         run: sbt docker:publishLocal
         working-directory: ${{ env.working-directory }}
