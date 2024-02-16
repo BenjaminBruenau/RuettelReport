@@ -97,7 +97,7 @@ jobs:
         
         helm install spark spark-operator/spark-operator --namespace spark-operator --create-namespace -f spark-operator-values.yaml
         
-        helm install mongodb bitnami/mongodb -f mongodb-values.yaml --set auth.usernames=${{secrets.MONGODB_USER}} --set auth.passwords=${{secrets.MONGODB_PW}} --set auth.rootPassword=${{secrets.MONGODB_ROOT_PW}} -n shared --create-namespace
+        helm install mongodb bitnami/mongodb -f mongodb-values.yaml --set auth.usernames={${{secrets.MONGODB_USER}}} --set auth.passwords={${{secrets.MONGODB_PW}}} --set auth.rootPassword=${{secrets.MONGODB_ROOT_PW}} -n shared --create-namespace
         
         helm install kong kong/ingress -n kong --create-namespace
 
