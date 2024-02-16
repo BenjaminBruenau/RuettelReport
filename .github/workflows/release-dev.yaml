@@ -50,7 +50,6 @@ jobs:
 
       - name: Build and Push Analysis Service
         run: |
-          export SBT_OPTS="-Xmx4G"
           sbt assembly
           docker build -t analysis:0.1.0 .
           docker tag analysis:0.1.0 ${{ vars.GCLOUD_REGION }}-docker.pkg.dev/${{vars.PROJECT_ID}}/ruettel-report-dev/analysis:0.1.0
