@@ -1,7 +1,7 @@
 
 
 image:
-  repository: europe-west6-docker.pkg.dev/instant-heading-405914/ruettel-report/
+  repository: europe-west6-docker.pkg.dev/instant-heading-405914/ruettel-report-dev/  # or europe-west6-docker.pkg.dev/instant-heading-405914/ruettel-report/
   pullPolicy: IfNotPresent  #Always
   #Overrides the image tag whose default is the chart appVersion.
   tag: "1.0.6"

@@ -48,6 +48,14 @@ jobs:
         run: sbt publishLocal
         working-directory: ./backend/commons
 
+      - name: Build and Push Analysis Service
+        run: |
+          sbt assembly
+          docker build -t analysis:0.1.0 .
+          docker tag analysis:0.1.0 ${{ vars.GCLOUD_REGION }}-docker.pkg.dev/${{vars.PROJECT_ID}}/ruettel-report-dev/analysis:0.1.0
+          docker push ${{ vars.GCLOUD_REGION }}-docker.pkg.dev/${{vars.PROJECT_ID}}/ruettel-report-dev/analysis:0.1.0
+        working-directory: ./backend/Analysis
+
       - name: Build Images
         run: sbt docker:publishLocal
         working-directory: ${{ env.working-directory }}
@@ -60,7 +68,7 @@ jobs:
         name: Tag DataTransformerService Docker image and push to Google Artifact Registry
         run: |
           docker tag datatransformerservice:0.1.0 ${{ vars.GCLOUD_REGION }}-docker.pkg.dev/${{vars.PROJECT_ID}}/ruettel-report-dev/datatransformerservice:0.1.0
-          docker push ${{ vars.GCLOUD_REGION }}-docker.pkg.dev/${{vars.PROJECT_ID}}/ruettel-report-dev/queryservice:0.1.0
+          docker push ${{ vars.GCLOUD_REGION }}-docker.pkg.dev/${{vars.PROJECT_ID}}/ruettel-report-dev/datatransformerservice:0.1.0
       - id: docker-build-push-frontend-and-projectmanagement-service-tagged
         name: Build,Tag Frontend and ProjectManagement Docker image and push to Google Artifact Registry
         run: |
