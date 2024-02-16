@@ -143,5 +143,5 @@ analysis:
     driver:
 
 kong:
-  premiumConsumerSecret: ""
-  freeConsumerSecret: ""
+  premiumConsumerSecret:
+  freeConsumerSecret:
