@@ -95,18 +95,18 @@ jobs:
         helm repo add bitnami https://charts.bitnami.com/bitnami
         
         
-        helm upgrade spark spark-operator/spark-operator --namespace spark-operator --create-namespace -f spark-operator-values.yaml
+        helm upgrade --install spark spark-operator/spark-operator --namespace spark-operator --create-namespace -f spark-operator-values.yaml
         
-        helm upgrade mongodb bitnami/mongodb -f mongodb-values.yaml --set auth.usernames={${{secrets.MONGODB_USER}}} --set auth.passwords={${{secrets.MONGODB_PW}}} --set auth.rootPassword=${{secrets.MONGODB_ROOT_PW}} -n shared --create-namespace
+        helm upgrade --install mongodb bitnami/mongodb -f mongodb-values.yaml --set auth.usernames={${{secrets.MONGODB_USER}}} --set auth.passwords={${{secrets.MONGODB_PW}}} --set auth.rootPassword=${{secrets.MONGODB_ROOT_PW}} -n shared --create-namespace
         
-        helm upgrade kong kong/ingress -n kong --create-namespace
+        helm upgrade --install kong kong/ingress -n kong --create-namespace
 
-        helm upgrade promstack prometheus-community/kube-prometheus-stack --namespace monitoring --version 52.1.0 -f values-monitoring.yaml
+        helm upgrade --install promstack prometheus-community/kube-prometheus-stack --namespace monitoring --version 52.1.0 -f values-monitoring.yaml
 
-        helm upgrade kong kong/ingress -n kong --set gateway.serviceMonitor.enabled=true --set gateway.serviceMonitor.labels.release=promstack
+        helm --install upgrade kong kong/ingress -n kong --set gateway.serviceMonitor.enabled=true --set gateway.serviceMonitor.labels.release=promstack
         kubectl apply -f kong-prometheus-plugin.yaml
         
-        helm upgrade ruettel-chart ./ruettel-chart --set image.tag=${{ steps.previoustag.outputs.tag }} --set analysis.mongoConnectionUri=${{secrets.MONGODB_CONNECTION_URI}} --set nuxt.mongoConnectionUri=${{secrets.MONGODB_CONNECTION_URI}} --set nuxt.fusionAuthApiKey=${{secrets.FUSIONAUTH_API_KEY}} --set nuxt.access_token_signing_key_id_free=${{secrets.ACCESS_TOKEN_SIGNING_KEY_ID_FREE}} --set nuxt.access_token_signing_key_id_premium=${{secrets.ACCESS_TOKEN_SIGNING_KEY_ID_PREMIUM}} --set kong.premiumConsumerSecret=${{secrets.KONG_PREMIUM_CONSUMER_SECRET}} --set kong.freeConsumerSecret=${{secrets.KONG_FREE_CONSUMER_SECRET}}
+        helm upgrade --install ruettel-chart ./ruettel-chart --set image.tag=${{ steps.previoustag.outputs.tag }} --set analysis.mongoConnectionUri=${{secrets.MONGODB_CONNECTION_URI}} --set nuxt.mongoConnectionUri=${{secrets.MONGODB_CONNECTION_URI}} --set nuxt.fusionAuthApiKey=${{secrets.FUSIONAUTH_API_KEY}} --set nuxt.access_token_signing_key_id_free=${{secrets.ACCESS_TOKEN_SIGNING_KEY_ID_FREE}} --set nuxt.access_token_signing_key_id_premium=${{secrets.ACCESS_TOKEN_SIGNING_KEY_ID_PREMIUM}} --set kong.premiumConsumerSecret=${{secrets.KONG_PREMIUM_CONSUMER_SECRET}} --set kong.freeConsumerSecret=${{secrets.KONG_FREE_CONSUMER_SECRET}}
 
-        helm upgrade my-fusion fusionauth/fusionauth -f fa-values.yaml --set database.host=${{vars.GCLOUD_POSTGRES_HOST}} --set database.root.user=${{secrets.GCLOUD_POSTGRES_USER}} --set database.root.password=${{secrets.GCLOUD_POSTGRES_PW}} --set kickstart.data=${{secrets.FUSIONAUTH_KICKSTART}}
+        helm upgrade --install my-fusion fusionauth/fusionauth -f fa-values.yaml --set database.host=${{vars.GCLOUD_POSTGRES_HOST}} --set database.root.user=${{secrets.GCLOUD_POSTGRES_USER}} --set database.root.password=${{secrets.GCLOUD_POSTGRES_PW}} --set kickstart.data=${{secrets.FUSIONAUTH_KICKSTART}}
       working-directory: ./.helm
