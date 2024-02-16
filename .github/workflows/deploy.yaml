@@ -73,7 +73,7 @@ jobs:
       working-directory: ./.terraform
       
     - name: Terraform Apply
-      if: github.ref == 'refs/heads/main'
+      if: github.ref == 'refs/heads/master'
       run: |
         terraform apply -auto-approve -var "project=${{vars.PROJECT_ID}}"
       working-directory: ./.terraform
