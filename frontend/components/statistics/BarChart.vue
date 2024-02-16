@@ -16,6 +16,14 @@ const props = defineProps({
     type: Object,
     default: () => {},
   },
+  labels: {
+    type: Array,
+    required: true
+  },
+  xAxisText: {
+    type: String,
+    default: 'Magnitude Range'
+  },
   isLoading: {
     type: Boolean,
     default: false,
@@ -40,7 +48,7 @@ watch(
 const processData = () => {
   if (!props.data) return
 
-
+  /*
   const labelCounts = {
     '0-2': 0,
     '2-4': 0,
@@ -50,6 +58,12 @@ const processData = () => {
     'Unknown': 0
   };
 
+   */
+
+  const labelCounts: {[key: string]: number} = props.labels?.reduce((acc: any, label: string) => {
+    acc[label] = 0
+    return acc
+  }, {})
   Object.keys(labelCounts).forEach(key => {
     const data = props.data[key]
     if (data) {
@@ -57,17 +71,16 @@ const processData = () => {
     }
   })
 
-
   // Update the dataset with the counts
   chartData.value.datasets[0].data = Object.values(labelCounts);
 }
 
 const setChartData = () => {
   return {
-    labels: ['0-2', '2-4', '4-6', '6-8', '8-10', 'Unknown'],
+    labels: props.labels,
     datasets: [
       {
-        label: 'Mag Range Count',
+        label: props.xAxisText + ' Count',
         backgroundColor: '#009b91',
         data: []
       }
@@ -88,7 +101,7 @@ const setChartOptions = () => {
         position: 'bottom',
         title: {
           display: true,
-          text: 'Magnitude Range'
+          text: props.xAxisText
         }
       },
       y: {

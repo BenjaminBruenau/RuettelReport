@@ -41,6 +41,10 @@ class MongoDataService {
         return this.db.collection(analysisReportCollectionPrefix + tenantId).findOne({}, { sort: { _id: -1 } })
     }
 
+    async getRuettelReports(tenantId: string) {
+        return this.convertCursor(this.db.collection(analysisReportCollectionPrefix + tenantId).find({}, { sort: { _id: -1 } }))
+    }
+
     async getRuettelReportsWithPagination(tenantId: string, pageNumber: number, rows: number) {
         return this.getWithPagination(analysisReportCollectionPrefix + tenantId, pageNumber, rows)
     }

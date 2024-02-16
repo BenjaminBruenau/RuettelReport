@@ -7,13 +7,13 @@ export default defineEventHandler(async (event) => {
     const userInformation = await FusionAuthService.validateTokenAndReturnUserInformation(token)
 
     try {
-        return MongoDataService.getLastRuettelReport(userInformation.tenantId)
+        return MongoDataService.getRuettelReports(userInformation.tenantId)
     } catch (e) {
         console.error(e);
         throw createError({
             statusCode: 500,
             statusMessage: 'Internal Server Error',
-            message: 'Error while retrieving Analysis Report'
+            message: 'Error while retrieving Analysis Reports'
         });
     }
 })
