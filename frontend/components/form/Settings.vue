@@ -82,8 +82,8 @@ watch(darkMode,(b)=>{
 
 
 projectSettingsStore.$subscribe((mutation, state) => {
-  if (mutation.events.key && Object.keys(projectSettingsStore.theme).includes(mutation.events.key)) {
-    console.log('Theme Change')
+  if (mutation && state) {
+    console.debug('Possible Theme Change')
     projectSettingsStore.setupTheme()
   }
 })

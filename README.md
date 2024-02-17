@@ -10,6 +10,8 @@
 ## Local Setup Guide 
 **(with local Postgres DB for FusionAuth)**
 
+This setup flow is also usable for a deployment to the Kubernetes Engine of a Cloud Provider, the kubeconfig only needs to
+point to the K8s Cluster in the Cloud.
 ### Clone Project
 
 ````shell
@@ -61,11 +63,12 @@ kubectl apply -f kong-prometheus-plugin.yaml
 
 1. [Port Forward](#FusionAuth) FusionAuth
 2. Access its UI in the browser
-3. Go to `Settings` -> `Key Manager`
-4. View the `premium` and `free` key and copy both their public key entries
-5. Replace the values for `kong.premiumConsumerSecret` and `kong.freeConsumerSecret` (in `ruettel-chart-local-values.yaml`)
+3. Login with the values defined for the admin account in the kickstart property inside `local-fa-values.yaml`
+4. Go to `Settings` -> `Key Manager`
+5. View the `premium` and `free` key and copy both their public key entries
+6. Replace the values for `kong.premiumConsumerSecret` and `kong.freeConsumerSecret` (in `ruettel-chart-local-values.yaml`)
 with their corresponding public key value
-6. Proceed with the Application Chart Installation
+7. Proceed with the Application Chart Installation
 
 ```shell
 helm install ruettel-chart ./ruettel-chart -f ruettel-chart-local-values.yaml --set image.tag=<your desired release version / latest>
@@ -105,6 +108,13 @@ Get Logs of specific SparkApplication Job:
 kubectl logs spark-analysis-driver -n premium
 ````
 
+## Cloud Setup Guide
+(with PostgresDB provided by GoogleCloud for FusionAuth)
+
+
+### Point Kubeconfig to GKE Cluster
+
+`gcloud container clusters get-credentials <cluster-name> --region europe-west6`
 
 ## Architecture
 
