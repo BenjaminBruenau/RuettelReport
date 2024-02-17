@@ -120,5 +120,5 @@ jobs:
           --set database.host="${{vars.GCLOUD_POSTGRES_HOST}}" \
           --set database.root.user="${{secrets.GCLOUD_POSTGRES_USER}}" \
           --set database.root.password="${{secrets.GCLOUD_POSTGRES_PW}}" \
-          --set kickstart.data="${{secrets.FUSIONAUTH_KICKSTART}}"
+          --set-json 'kickstart.data=${{secrets.FUSIONAUTH_KICKSTART}}'
       working-directory: ./.helm
