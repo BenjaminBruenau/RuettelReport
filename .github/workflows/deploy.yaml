@@ -119,6 +119,5 @@ jobs:
         helm upgrade --install my-fusion fusionauth/fusionauth -f fa-values.yaml \
           --set database.host="${{vars.GCLOUD_POSTGRES_HOST}}" \
           --set database.root.user="${{secrets.GCLOUD_POSTGRES_USER}}" \
-          --set database.root.password="${{secrets.GCLOUD_POSTGRES_PW}}" \
-          --set-json 'kickstart.data=${{secrets.FUSIONAUTH_KICKSTART}}'
+          --set database.root.password="${{secrets.GCLOUD_POSTGRES_PW}}"
       working-directory: ./.helm
