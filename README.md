@@ -119,4 +119,11 @@ kubectl logs spark-analysis-driver -n premium
 ## Architecture
 
 
-![Ruettel-Report Banner](./.github/assets/architecture-transparent.png)
+![architecture](./.github/assets/architecture-transparent.png)
+
+
+
+## (Soft) Realtime Analytics - Data Flow
+
+
+![architecture](./.github/assets/realtime-analytics-dataflow-transparent.png)
