@@ -231,6 +231,7 @@ const handleApiSave = (event: MouseEvent) => {
             <div v-if="item[1].type === 'dateTime'">
               <PrimeCalendar
                   showIcon
+                  showTime
                   iconDisplay="input"
                   v-model="item[1].value"
                   @input="updateDateValue(item[1], $event)"
