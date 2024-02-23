@@ -18,7 +18,7 @@ then need to be adjusted accordingly.
 ## Setup Guide 
 **(with local Postgres DB for FusionAuth)**
 
-To setup the application in Google Cloud with FusionAuth using a GCloud SQL DB see [this](# CloudSQL for FusionAuth Guide).
+To setup the application in Google Cloud with FusionAuth using a GCloud SQL DB see [this](#cloudsql-for-fusionauth-guide).
 
 This setup flow is also suitable for a deployment to the Kubernetes Engine of a Cloud Provider, the kubeconfig only needs to
 point to the K8s Cluster in the Cloud.
