@@ -43,3 +43,52 @@
 }
 ```
  
+
+# DataFrames are grouped by tenants and users (to only take their aggregations for queried data into account for e.g. visualization)
+
++------------+----------+--------------------+
+|    tenantId|    userId|               value|
++------------+----------+--------------------+
+|test-tenant2|marcooo123|{"geometry":{"coo...|
+|test-tenant2|marcooo123|{"geometry":{"coo...|
+|test-tenant2|marcooo123|{"geometry":{"coo...|
+|test-tenant2| andiii123|{"geometry":{"coo...|
+|test-tenant2| andiii123|{"geometry":{"coo...|
+|test-tenant2| andiii123|{"geometry":{"coo...|
+| test-tenant|  benni123|{"geometry":{"coo...|
+| test-tenant|  benni123|{"geometry":{"coo...|
+| test-tenant|  benni123|{"geometry":{"coo...|
+| test-tenant|   joel123|{"geometry":{"coo...|
+| test-tenant|   joel123|{"geometry":{"coo...|
+| test-tenant|   joel123|{"geometry":{"coo...|
+| test-tenant|   joel123|{"geometry":{"coo...|
+| test-tenant|   joel123|{"geometry":{"coo...|
+| test-tenant|   joel123|{"geometry":{"coo...|
+| test-tenant|  maggo123|{"geometry":{"coo...|
+| test-tenant|  maggo123|{"geometry":{"coo...|
+| test-tenant|  maggo123|{"geometry":{"coo...|
+| test-tenant|  maggo123|{"geometry":{"coo...|
+| test-tenant|  maggo123|{"geometry":{"coo...|
++------------+----------+--------------------+
+
+
++------------+----------+-----+------------------+--------------------+
+|    tenantId|    userId|count|     avg_magnitude|high_magnitude_count|
++------------+----------+-----+------------------+--------------------+
+| test-tenant|  benni123|    6|1.6433333433333335|                   0|
+| test-tenant|  maggo123|    6|1.6433333433333335|                   0|
+| test-tenant|   joel123|    6|1.6433333433333335|                   0|
+|test-tenant2|marcooo123|    3|1.6433333433333333|                   0|
+|test-tenant2| andiii123|    3|1.6433333433333333|                   0|
++------------+----------+-----+------------------+--------------------+
+
+
++------------+----------+---+---+---+---+----+
+|    tenantId|    userId|0-2|2-4|4-6|6-8|8-10|
++------------+----------+---+---+---+---+----+
+| test-tenant|  benni123|  6|  0|  0|  0|   0|
+| test-tenant|  maggo123|  6|  0|  0|  0|   0|
+| test-tenant|   joel123|  6|  0|  0|  0|   0|
+|test-tenant2|marcooo123|  3|  0|  0|  0|   0|
+|test-tenant2| andiii123|  3|  0|  0|  0|   0|
++------------+----------+---+---+---+---+----+

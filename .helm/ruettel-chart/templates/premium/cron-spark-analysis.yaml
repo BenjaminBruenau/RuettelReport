@@ -1,7 +1,7 @@
 apiVersion: "sparkoperator.k8s.io/v1beta2"
 kind: ScheduledSparkApplication
 metadata:
-  name: spark-pi-scheduled
+  name: spark-analysis-scheduled
   namespace: premium
 spec:
   schedule: {{ .Values.analysis.schedule }}
@@ -26,7 +26,7 @@ spec:
       spark.jars.ivy: "/tmp/ivy"
       spark.kubernetes.memoryOverheadFactor: "0.2"
     restartPolicy:
-      type: Always
+      type: Never
     volumes:
       - name: "test-volume"
         hostPath:
