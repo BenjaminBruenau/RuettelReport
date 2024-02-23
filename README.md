@@ -7,10 +7,20 @@
 [![codecov](https://codecov.io/gh/BenjaminBruenau/RuettelReport/graph/badge.svg?token=7OKGD5WV2H)](https://codecov.io/gh/BenjaminBruenau/RuettelReport)
 
 
-## Local Setup Guide 
+## !Important!
+
+As of 21.2.2023 our test-period for Google Cloud has expired, meaning our Artifact Repositories for both develop and production
+are no longer accessible. To setup and run/deploy the application the artifacts need to be released to an own registry 
+(e.g. by changing the action environment variables for `GCLOUD_REGION`, `GAR_LOCATION` and `PROJECT_ID`).
+The values for `image.repository` in the [ruettel-chart](.helm/ruettel-chart/values.yaml) or the [ruettel-chart-local-values.yaml](.helm/ruettel-chart-local-values.yaml)
+then need to be adjusted accordingly.
+
+## Setup Guide 
 **(with local Postgres DB for FusionAuth)**
 
-This setup flow is also usable for a deployment to the Kubernetes Engine of a Cloud Provider, the kubeconfig only needs to
+To setup the application in Google Cloud with FusionAuth using a GCloud SQL DB see [this](# CloudSQL for FusionAuth Guide).
+
+This setup flow is also suitable for a deployment to the Kubernetes Engine of a Cloud Provider, the kubeconfig only needs to
 point to the K8s Cluster in the Cloud.
 ### Clone Project
 
@@ -108,9 +118,49 @@ Get Logs of specific SparkApplication Job:
 kubectl logs spark-analysis-driver -n premium
 ````
 
-## Cloud Setup Guide
-(with PostgresDB provided by GoogleCloud for FusionAuth)
+## CloudSQL for FusionAuth Guide
+(with PostgresDB provided by GoogleCloud for FusionAuth - [Reference](https://fusionauth.io/docs/get-started/download-and-install/kubernetes/gke#create-a-database))
 
+- this will only work with a vpc native gke cluster as the created db will have no external endpoint
+- when using terraform to setup the cluster it will be VPC_NATIVE by default per the configuration (see [cluster.tf](.terraform/cluster.tf))
+
+```shell
+export PROJECT_ID=<your-project-id>
+export DB_NAME=<your-db-name>
+export REGION=<your-gcloud-region>
+```
+
+**Setup the database**
+````shell
+gcloud beta sql instances create "${DB_NAME}" \
+  --project="${PROJECT_ID}" \
+  --database-version=POSTGRES_12 \
+  --tier=db-g1-small  \
+  --region="${REGION}" \
+  --network=default \
+  --no-assign-ip
+````
+
+**Configure the default user**
+````shell
+gcloud sql users set-password postgres \
+  --instance="${DB_NAME}" \
+  --password=<your-password>
+````
+
+
+**Verify installation**
+````shell
+gcloud sql instances list
+````
+
+The following values need to be adjusted in [fa-values.yaml](.helm/fa-values.yaml):
+- `database.host` (-> internal endpoint of the db)
+- `database.root.user` (-> postgres)
+- `database.root.password` (-> password you set up for the default user)
+- `database.user`
+- `database.password`
+- optionally: `kickstart.data` if FusionAuth should not be configured manually
 
 ### Point Kubeconfig to GKE Cluster
 
@@ -125,5 +175,35 @@ kubectl logs spark-analysis-driver -n premium
 
 ## (Soft) Realtime Analytics - Data Flow
 
+- when querying data (either via the API of the QueryService or DataTransformer) the results will be written to Kafka
+- the SparkStructured Streaming Analysis Service will aggregate the queried data in a streaming manner in two ways:
+  - Per Batch = Aggregations per Query of the user
+  - Complete = Aggregations are continuously updated for each incoming Query Data
+- the results are then written to a mongodb collection and enriched with the tenantID and userID to only provide the 
+analysis results to the user inside a tenancy who queried the data that was aggregated
+- when accessing the ui the latest complete aggregations are fetched
+- a socket connection to the project-management service is established to get the latest analysis results once they are written to the database
+  - this is done by establishing a Listener to the MongoDB Change Streams for each user (after authenticating the socket-connection)
+  - only inserts in the realtime-analytics collections that match the users id and his tenantid are listened to
+  - once a change streams event matches that criteria a message with the new analysis results is sent back to the client so it can be visualized
 
 ![architecture](./.github/assets/realtime-analytics-dataflow-transparent.png)
+
+
+
+## Report Generation (the actual Rüttel Report)
+
+- every day at 8 a.m. a cron-job as a scheduled SparkApplication is run
+- this job will aggregate the available data for each tenant in kafka (retention time = 1 week), report collection per tenant
+- spark will compute metrics which can later be used for interesting statistical computation for basic predictions 
+(e.g. probability for x events of a certain type happening in a row or probability of an event happening at a specific timestamp/time-range)
+- each report can then be visualized in the Frontend and exported as a PDF
+
+
+![architecture](./.github/assets/ruettel-report-transparent.png)
+
+<br>
+
+![report visualization](.github/assets/ruettel-report-report.png)
+
+Non-transparent versions of the architecture images are available [here](.github/assets).
